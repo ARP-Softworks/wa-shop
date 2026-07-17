@@ -1,0 +1,39 @@
+# Byte-compiled / caches
+__pycache__/
+*.class
+*.jar
+!backend/**/wrapper/*.jar
+target/
+.angular/
+dist/
+node_modules/
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Env & secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+credentials*.json
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / editor
+.classpath
+.project
+.settings/
+
+# Local static copy from Angular build (generated)
+backend/src/main/resources/static/**
+!backend/src/main/resources/static/.gitkeep
+
+# Local media uploads (dev only)
+data/media/
+backend/data/

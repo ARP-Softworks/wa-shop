@@ -1,0 +1,40 @@
+# Example production-style compose (reference only).
+# Copy to a private file, fill secrets via env / secret manager — never commit credentials.
+#
+#   cp docker-compose.production.example.yml docker-compose.production.yml
+#   # edit env / use a private .env.production (gitignored)
+#   docker compose -f docker-compose.production.yml up -d --build
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: wa-shop:production
+    restart: unless-stopped
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: production
+      SERVER_PORT: 8080
+      # Neon (SSL required) — example shape only:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://ep-xxxx.region.aws.neon.tech/neondb?sslmode=require
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      APP_PUBLIC_BASE_URL: https://www.example.com
+      APP_COOKIE_SECURE: "true"
+      APP_COOKIE_SAME_SITE: Strict
+      APP_WHATSAPP_PHONE: ${APP_WHATSAPP_PHONE}
+      MEDIA_PROVIDER: cloudinary
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+      # Create first admin once, then remove these vars and rotate the password:
+      # APP_ADMIN_BOOTSTRAP_EMAIL: ${APP_ADMIN_BOOTSTRAP_EMAIL}
+      # APP_ADMIN_BOOTSTRAP_PASSWORD: ${APP_ADMIN_BOOTSTRAP_PASSWORD}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/api/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 60s
+      retries: 3

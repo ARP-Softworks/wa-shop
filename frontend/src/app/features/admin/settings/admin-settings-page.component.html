@@ -1,0 +1,136 @@
+<div class="admin-page">
+  <app-admin-breadcrumbs [items]="[{ label: 'Configuración' }]" />
+
+  <header class="admin-page__header">
+    <div>
+      <h1>Configuración del sitio</h1>
+      <p class="admin-page__subtitle">Datos de contacto, marca y SEO visibles en el sitio público.</p>
+    </div>
+  </header>
+
+  @if (state().status === 'loading' || state().status === 'error') {
+    <app-state-panel [state]="state()" />
+    @if (state().status === 'error') {
+      <button type="button" (click)="load()">Reintentar</button>
+    }
+  } @else {
+    @if (successMessage()) {
+      <p class="admin-alert admin-alert--success">{{ successMessage() }}</p>
+    }
+    @if (submitError()) {
+      <p class="admin-alert admin-alert--error">{{ submitError() }}</p>
+    }
+
+    <form class="admin-form admin-card" [formGroup]="form" (ngSubmit)="submit()">
+      <section class="admin-form__section">
+        <h2>Contacto y marca</h2>
+        <div class="admin-form__grid">
+          <div class="admin-form__field admin-form__field--full">
+            <label for="businessName">Nombre del negocio</label>
+            <input id="businessName" type="text" formControlName="businessName" />
+            @if (fieldError('businessName'); as err) {
+              <p class="admin-form__error">{{ err }}</p>
+            }
+          </div>
+          <div class="admin-form__field">
+            <label for="whatsappNumber">WhatsApp</label>
+            <input id="whatsappNumber" type="text" formControlName="whatsappNumber" placeholder="+598..." />
+          </div>
+          <div class="admin-form__field">
+            <label for="email">Email</label>
+            <input id="email" type="email" formControlName="email" />
+            @if (fieldError('email'); as err) {
+              <p class="admin-form__error">{{ err }}</p>
+            }
+          </div>
+          <div class="admin-form__field admin-form__field--full">
+            <label for="instagramUrl">Instagram (URL)</label>
+            <input id="instagramUrl" type="url" formControlName="instagramUrl" />
+          </div>
+          <div class="admin-form__field admin-form__field--full">
+            <label for="address">Dirección</label>
+            <input id="address" type="text" formControlName="address" />
+          </div>
+          <div class="admin-form__field admin-form__field--full">
+            <label for="hours">Horario</label>
+            <input id="hours" type="text" formControlName="hours" placeholder="Lun–Vie 10–19 hs" />
+          </div>
+          <div class="admin-form__field admin-form__field--full">
+            <label>Logo del sitio</label>
+            <app-admin-media-uploader
+              folder="logos"
+              label="Subir logo"
+              [previewUrl]="form.controls.logoUrl.value || null"
+              (uploaded)="onLogoUploaded($event)"
+              (failed)="onLogoUploadFailed($event)"
+            />
+            @if (logoUploadError()) {
+              <p class="admin-form__error">{{ logoUploadError() }}</p>
+            }
+            @if (form.controls.logoUrl.value) {
+              <button type="button" class="btn btn-secondary" (click)="clearLogo()">Quitar logo</button>
+            }
+          </div>
+        </div>
+      </section>
+
+      <section class="admin-form__section">
+        <h2>SEO y verificación</h2>
+        <div class="admin-form__grid">
+          <div class="admin-form__field admin-form__field--full">
+            <label for="publicSiteUrl">URL pública del sitio</label>
+            <input id="publicSiteUrl" type="url" formControlName="publicSiteUrl" placeholder="https://washop.uy" />
+            <p class="admin-form__hint">Usada para canonical, sitemap y Open Graph.</p>
+          </div>
+          <div class="admin-form__field admin-form__field--full">
+            <label for="defaultSeoTitle">Título SEO por defecto</label>
+            <input id="defaultSeoTitle" type="text" formControlName="defaultSeoTitle" maxlength="70" />
+          </div>
+          <div class="admin-form__field admin-form__field--full">
+            <label for="defaultMetaDescription">Meta descripción por defecto</label>
+            <textarea
+              id="defaultMetaDescription"
+              formControlName="defaultMetaDescription"
+              rows="3"
+              maxlength="320"
+            ></textarea>
+          </div>
+          <div class="admin-form__field admin-form__field--full">
+            <label for="defaultSocialImageUrl">Imagen social por defecto (URL)</label>
+            <input id="defaultSocialImageUrl" type="url" formControlName="defaultSocialImageUrl" />
+          </div>
+          <div class="admin-form__field">
+            <label for="country">País</label>
+            <input id="country" type="text" formControlName="country" placeholder="UY" />
+          </div>
+          <div class="admin-form__field">
+            <label for="region">Departamento / región</label>
+            <input id="region" type="text" formControlName="region" />
+          </div>
+          <div class="admin-form__field">
+            <label for="city">Ciudad</label>
+            <input id="city" type="text" formControlName="city" />
+          </div>
+          <div class="admin-form__field">
+            <label for="postalCode">Código postal</label>
+            <input id="postalCode" type="text" formControlName="postalCode" />
+          </div>
+          <div class="admin-form__field admin-form__field--full">
+            <label for="googleSiteVerification">Google Search Console (meta verification)</label>
+            <input id="googleSiteVerification" type="text" formControlName="googleSiteVerification" />
+          </div>
+          <div class="admin-form__field admin-form__field--full">
+            <label for="bingSiteVerification">Bing Webmaster (meta verification)</label>
+            <input id="bingSiteVerification" type="text" formControlName="bingSiteVerification" />
+          </div>
+        </div>
+      </section>
+
+      <div class="admin-form__actions">
+        <button type="submit" class="btn" [disabled]="submitting()">
+          {{ submitting() ? 'Guardando…' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

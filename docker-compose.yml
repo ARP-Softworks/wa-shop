@@ -1,0 +1,65 @@
+# Local development stack: PostgreSQL + optional full app image.
+# Usage:
+#   docker compose up -d db
+#   docker compose --profile full up --build
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: wa-shop-db
+    environment:
+      POSTGRES_DB: washop
+      POSTGRES_USER: washop
+      POSTGRES_PASSWORD: washop
+    ports:
+      - "${POSTGRES_HOST_PORT:-5432}:5432"
+    volumes:
+      - wa_shop_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U washop -d washop"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: wa-shop-app
+    profiles:
+      - full
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      SERVER_PORT: 8080
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/washop
+      SPRING_DATASOURCE_USERNAME: washop
+      SPRING_DATASOURCE_PASSWORD: washop
+      APP_SESSION_TIMEOUT: 8h
+      APP_COOKIE_SECURE: "false"
+      APP_COOKIE_SAME_SITE: Lax
+      APP_CORS_ALLOWED_ORIGINS: http://localhost:4200
+      APP_WHATSAPP_PHONE: ""
+      MEDIA_PROVIDER: local
+      MEDIA_LOCAL_DIR: /app/data/media
+      APP_PUBLIC_BASE_URL: http://localhost:8080
+      PUBLIC_SITE_URL: http://localhost:8080
+      # Optional first admin (local only; never commit real secrets):
+      # APP_ADMIN_BOOTSTRAP_EMAIL: admin@washop.uy
+      # APP_ADMIN_BOOTSTRAP_PASSWORD: ChangeMe123!
+    volumes:
+      - wa_shop_media:/app/data/media
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/api/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 60s
+      retries: 3
+
+volumes:
+  wa_shop_pgdata:
+  wa_shop_media:

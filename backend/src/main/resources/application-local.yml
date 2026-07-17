@@ -1,0 +1,26 @@
+spring:
+  jpa:
+    show-sql: false
+  flyway:
+    locations: classpath:db/migration,classpath:db/dev
+  servlet:
+    session:
+      cookie:
+        secure: false
+        same-site: Lax
+
+app:
+  cors:
+    enabled: true
+  cookie:
+    secure: false
+    same-site: Lax
+  public-site-url: ${PUBLIC_SITE_URL:http://localhost:4200}
+  media:
+    provider: ${MEDIA_PROVIDER:${APP_MEDIA_PROVIDER:local}}
+    local:
+      base-dir: ${MEDIA_LOCAL_DIR:./data/media}
+
+logging:
+  level:
+    uy.washop: DEBUG

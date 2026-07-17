@@ -1,0 +1,35 @@
+<div class="media-uploader">
+  <div class="media-uploader__preview">
+    @if (displayPreview(); as url) {
+      <img [src]="url" [alt]="label" />
+    } @else {
+      <span class="media-uploader__placeholder">Sin imagen</span>
+    }
+  </div>
+
+  <div class="media-uploader__actions">
+    <label class="btn btn-secondary media-uploader__pick">
+      {{ uploading() ? 'Subiendo…' : label }}
+      <input
+        type="file"
+        accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
+        [disabled]="disabled || uploading()"
+        (change)="onFileSelected($event)"
+      />
+    </label>
+
+    @if (uploading()) {
+      <div class="media-uploader__progress" role="progressbar" [attr.aria-valuenow]="progress()">
+        <div class="media-uploader__bar" [style.width.%]="progress()"></div>
+        <span>{{ progress() }}%</span>
+      </div>
+    }
+
+    @if (error()) {
+      <p class="media-uploader__error" role="alert">{{ error() }}</p>
+      <button type="button" class="btn btn-secondary" (click)="retry()" [disabled]="uploading()">
+        Reintentar
+      </button>
+    }
+  </div>
+</div>

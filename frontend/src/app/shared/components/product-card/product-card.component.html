@@ -1,0 +1,78 @@
+<article class="card" [class.card--compact]="compact">
+  <a [routerLink]="detailLink" class="card__media" [attr.aria-label]="'Ver detalle de ' + product.name">
+    <div class="media-frame">
+      @if (product.primaryImageUrl) {
+        <img
+          [src]="product.primaryImageUrl"
+          [alt]="imageAlt"
+          loading="lazy"
+          width="400"
+          height="400"
+        />
+      } @else {
+        <span class="media-frame__fallback">Imagen pendiente</span>
+      }
+    </div>
+    <div class="card__badges">
+      <span class="badge" [class.badge--used]="product.condition === 'USED'">
+        {{ product.condition | conditionLabel }}
+      </span>
+      @if (!compact && product.featured) {
+        <span class="badge badge--featured">Destacado</span>
+      }
+      @if (product.stock <= 0) {
+        <span class="badge badge--out">Sin stock</span>
+      }
+    </div>
+  </a>
+
+  <div class="card__body">
+    <h3>
+      <a [routerLink]="detailLink">{{ product.name }}</a>
+    </h3>
+
+    <p class="card__specs">
+      @if (product.storageCapacity || product.color) {
+        {{ product.storageCapacity || '' }}
+        @if (product.storageCapacity && product.color) {
+          <span aria-hidden="true"> | </span>
+        }
+        {{ product.color || '' }}
+      }
+    </p>
+
+    @if (product.condition === 'USED' && product.batteryHealth != null) {
+      <p class="card__battery">Batería {{ product.batteryHealth }}%</p>
+    }
+
+    @if (!compact && product.warranty) {
+      <p class="card__warranty">Garantía: {{ product.warranty }}</p>
+    }
+
+    <p class="price">
+      {{ product.price | money: product.currency }}
+      @if (product.previousPrice) {
+        <span class="price__previous">{{ product.previousPrice | money: product.currency }}</span>
+      }
+    </p>
+
+    <div class="card__actions">
+      <a class="btn card__cta" [routerLink]="detailLink">Ver detalle</a>
+      @if (canAddToCart) {
+        <button type="button" class="btn btn-secondary card__cta" (click)="addToCart($event)">
+          {{ added ? 'Agregado ✓' : 'Agregar al carrito' }}
+        </button>
+      } @else if (!compact && whatsappUrl) {
+        <a
+          class="btn btn-secondary card__cta"
+          [href]="whatsappUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          (click)="onWhatsappClick($event)"
+        >
+          Consultar
+        </a>
+      }
+    </div>
+  </div>
+</article>

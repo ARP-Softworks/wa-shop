@@ -1,0 +1,142 @@
+<section class="section container">
+  <app-breadcrumbs [items]="crumbs" />
+
+  <a class="back-link" [routerLink]="catalogLink">← Volver al listado</a>
+
+  <app-state-panel [state]="detailState()" />
+
+  @if (detailState().status === 'success' && detailState().data; as product) {
+    <div class="detail">
+      <div class="detail__gallery">
+        <div class="media-frame media-frame--large">
+          @if (activeImage(); as image) {
+            <img
+              [src]="image.url"
+              [alt]="mainAlt"
+              [attr.width]="image.width || 640"
+              [attr.height]="image.height || 640"
+            />
+          } @else if (product.primaryImageUrl) {
+            <img [src]="product.primaryImageUrl" [alt]="mainAlt" width="640" height="640" />
+          } @else {
+            <span class="media-frame__fallback">Imagen pendiente</span>
+          }
+        </div>
+        @if (product.images.length > 1) {
+          <div class="thumbs" role="list">
+            @for (image of product.images; track image.id) {
+              <button
+                type="button"
+                class="thumb"
+                role="listitem"
+                [attr.aria-label]="image.altText || 'Imagen del producto'"
+                (click)="selectImage(image)"
+              >
+                <img
+                  [src]="image.url"
+                  [alt]="image.altText || productAltFallback(product)"
+                  loading="lazy"
+                  [attr.width]="image.width || 96"
+                  [attr.height]="image.height || 96"
+                />
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="detail__info">
+        <div class="card__meta">
+          <span class="badge" [class.badge--used]="product.condition === 'USED'">
+            {{ product.condition | conditionLabel }}
+          </span>
+          @if (product.featured) {
+            <span class="badge badge--featured">Destacado</span>
+          }
+        </div>
+
+        <h1>{{ product.name }}</h1>
+        @if (product.model) {
+          <p>Modelo: {{ product.model }}</p>
+        }
+
+        <p class="price price--lg">
+          {{ product.price | money: product.currency }}
+          @if (product.previousPrice) {
+            <span class="price__previous">{{ product.previousPrice | money: product.currency }}</span>
+          }
+        </p>
+
+        <ul class="specs">
+          @if (product.storageCapacity) {
+            <li><strong>Capacidad:</strong> {{ product.storageCapacity }}</li>
+          }
+          @if (product.color) {
+            <li><strong>Color:</strong> {{ product.color }}</li>
+          }
+          @if (product.condition === 'USED' && product.batteryHealth != null) {
+            <li><strong>Salud de batería:</strong> {{ product.batteryHealth }}%</li>
+          }
+          @if (product.warranty) {
+            <li><strong>Garantía:</strong> {{ product.warranty }}</li>
+          }
+          <li><strong>Stock:</strong> {{ stockMessage }}</li>
+        </ul>
+
+        @if (product.description) {
+          <div class="description">
+            <h2>Descripción</h2>
+            <p>{{ product.description }}</p>
+          </div>
+        }
+
+        @if (product.features.length) {
+          <div class="features">
+            <h2>Características</h2>
+            <dl>
+              @for (feature of product.features; track feature.id) {
+                <div>
+                  <dt>{{ feature.name }}</dt>
+                  <dd>{{ feature.value }}</dd>
+                </div>
+              }
+            </dl>
+          </div>
+        }
+
+        <div class="hero__actions">
+          @if (canAddToCart) {
+            <button type="button" class="btn" (click)="addToCart()">
+              {{ added ? 'Agregado al carrito ✓' : 'Agregar al carrito' }}
+            </button>
+          }
+          @if (whatsappUrl) {
+            <a
+              class="btn btn-whatsapp"
+              [class.btn-secondary]="canAddToCart"
+              [href]="whatsappUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              (click)="onWhatsappClick()"
+            >
+              Consultar por WhatsApp
+            </a>
+          } @else if (!canAddToCart) {
+            <p class="note-demo">WhatsApp no configurado todavía en el backend.</p>
+          }
+        </div>
+      </div>
+    </div>
+
+    @if (related().length) {
+      <section class="related">
+        <h2>Productos relacionados</h2>
+        <div class="grid-products">
+          @for (item of related(); track item.id) {
+            <app-product-card [product]="item" />
+          }
+        </div>
+      </section>
+    }
+  }
+</section>

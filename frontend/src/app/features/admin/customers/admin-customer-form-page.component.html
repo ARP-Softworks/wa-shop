@@ -1,0 +1,100 @@
+<div class="admin-page">
+  <app-admin-breadcrumbs
+    [items]="[
+      { label: 'Clientes', link: ['/admin/clientes'] },
+      { label: isEdit() ? 'Editar' : 'Nuevo' },
+    ]"
+  />
+
+  <header class="admin-page__header">
+    <h1>{{ isEdit() ? 'Editar cliente' : 'Nuevo cliente' }}</h1>
+    <a class="btn btn-secondary" routerLink="/admin/clientes">Volver</a>
+  </header>
+
+  @if (loadState().status === 'loading' || loadState().status === 'error') {
+    <app-state-panel [state]="loadState()" />
+  } @else {
+    @if (successMessage()) {
+      <p class="admin-alert admin-alert--success">{{ successMessage() }}</p>
+    }
+    @if (submitError()) {
+      <p class="admin-alert admin-alert--error">{{ submitError() }}</p>
+    }
+
+    <form class="admin-form admin-card" [formGroup]="form" (ngSubmit)="submit()">
+      <div class="admin-form__grid">
+        <div class="admin-form__field admin-form__field--full">
+          <label for="name">Nombre y apellido</label>
+          <input id="name" type="text" formControlName="name" />
+          @if (fieldError('name'); as err) {
+            <p class="admin-form__error">{{ err }}</p>
+          }
+        </div>
+        <div class="admin-form__field">
+          <label for="phone">Teléfono</label>
+          <input id="phone" type="tel" formControlName="phone" />
+          @if (fieldError('phone'); as err) {
+            <p class="admin-form__error">{{ err }}</p>
+          }
+        </div>
+        <div class="admin-form__field">
+          <label for="email">Email</label>
+          <input id="email" type="email" formControlName="email" />
+          @if (fieldError('email'); as err) {
+            <p class="admin-form__error">{{ err }}</p>
+          }
+        </div>
+        <div class="admin-form__field admin-form__field--full">
+          <label for="address">Dirección</label>
+          <textarea id="address" formControlName="address" rows="2"></textarea>
+        </div>
+        <div class="admin-form__field admin-form__field--full">
+          <label for="notes">Notas internas</label>
+          <textarea id="notes" formControlName="notes" rows="3"></textarea>
+        </div>
+      </div>
+
+      <div class="admin-form__actions">
+        <button type="submit" class="btn" [disabled]="submitting()">
+          {{ submitting() ? 'Guardando…' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+
+    @if (isEdit()) {
+      <section class="admin-card">
+        <h2>Pedidos de este cliente</h2>
+        @if (orders().length === 0) {
+          <p class="admin-form__hint">Todavía no tiene pedidos.</p>
+        } @else {
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Items</th>
+                  <th>Total</th>
+                  <th>Estado</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (order of orders(); track order.id) {
+                  <tr>
+                    <td data-label="Fecha">{{ order.createdAt | date: 'short' }}</td>
+                    <td data-label="Items">{{ order.itemCount }}</td>
+                    <td data-label="Total">{{ order.total | money: order.currency }}</td>
+                    <td data-label="Estado">{{ order.status | orderStatusLabel }}</td>
+                    <td data-label="">
+                      <a class="btn btn-secondary" [routerLink]="['/admin/pedidos', order.id]">Ver</a>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
+    }
+  }
+</div>

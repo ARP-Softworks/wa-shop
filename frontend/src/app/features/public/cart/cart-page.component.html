@@ -1,0 +1,81 @@
+<section class="section container cart-page">
+  <h1>Tu carrito</h1>
+
+  @if (cart.cartItems().length === 0) {
+    <div class="cart-empty">
+      <p>Todavía no agregaste productos al carrito.</p>
+      <a class="btn" routerLink="/iphone">Ver catálogo</a>
+    </div>
+  } @else {
+    <div class="cart-list">
+      @for (item of cart.cartItems(); track item.productId) {
+        <article class="cart-item">
+          <div class="cart-item__media">
+            @if (item.primaryImageUrl) {
+              <img [src]="item.primaryImageUrl" [alt]="item.name" width="96" height="96" />
+            } @else {
+              <span class="media-frame__fallback">Sin imagen</span>
+            }
+          </div>
+          <div class="cart-item__info">
+            <h3>{{ item.name }}</h3>
+            <p class="cart-item__specs">
+              {{ item.storageCapacity }}
+              @if (item.storageCapacity && item.color) {
+                <span aria-hidden="true"> · </span>
+              }
+              {{ item.color }}
+            </p>
+            <p class="price">{{ item.price | money: item.currency }}</p>
+          </div>
+          <div class="cart-item__qty">
+            <button
+              type="button"
+              (click)="decrement(item.productId, item.quantity)"
+              [disabled]="item.quantity <= 1"
+              aria-label="Restar unidad"
+            >
+              −
+            </button>
+            <span>{{ item.quantity }}</span>
+            <button
+              type="button"
+              (click)="increment(item.productId, item.quantity)"
+              [disabled]="item.quantity >= item.stock"
+              aria-label="Sumar unidad"
+            >
+              +
+            </button>
+          </div>
+          <p class="cart-item__subtotal">{{ item.price * item.quantity | money: item.currency }}</p>
+          <button
+            type="button"
+            class="cart-item__remove"
+            (click)="remove(item.productId)"
+            aria-label="Quitar del carrito"
+          >
+            ✕
+          </button>
+        </article>
+      }
+    </div>
+
+    @if (cart.hasMixedCurrency()) {
+      <p class="cart-warning" role="alert">
+        Uno de los productos del carrito no está en pesos uruguayos y solo se puede comprar
+        consultando por WhatsApp. Quitalo del carrito para pagar online.
+      </p>
+    }
+
+    <div class="cart-summary">
+      <p class="cart-summary__total">
+        Total: <strong>{{ cart.subtotal() | money: 'UYU' }}</strong>
+      </p>
+      @if (cart.hasMixedCurrency()) {
+        <button type="button" class="btn" disabled>Ir a pagar</button>
+      } @else {
+        <a class="btn" routerLink="/checkout">Ir a pagar</a>
+      }
+    </div>
+  }
+</section>

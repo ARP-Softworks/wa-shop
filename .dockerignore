@@ -1,0 +1,46 @@
+# VCS / IDE
+.git
+.gitignore
+.gitattributes
+.idea
+.vscode
+*.iml
+.cursor
+agent-transcripts
+
+# Secrets — never bake into the image
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+credentials*.json
+
+# Build outputs (rebuilt inside Docker)
+**/target/
+**/node_modules/
+**/dist/
+**/.angular/
+**/coverage/
+
+# Local media / data
+data/
+backend/data/
+
+# Docs & local tooling (not needed for image runtime)
+docs/
+*.md
+!README.md
+scripts/
+docker-compose*.yml
+docker-compose*.yaml
+
+# Frontend test / misc
+frontend/karma.conf.js
+**/*.spec.ts
+**/e2e/
+
+# OS junk
+.DS_Store
+Thumbs.db
+*.log

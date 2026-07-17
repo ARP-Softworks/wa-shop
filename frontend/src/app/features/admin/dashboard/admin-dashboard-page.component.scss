@@ -1,0 +1,11 @@
+@import '../../../shared/styles/admin-page.scss';
+
+.service-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--color-muted);
+}
+
+.service-list li + li {
+  margin-top: var(--space-2);
+}

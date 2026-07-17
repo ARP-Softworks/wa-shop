@@ -1,0 +1,41 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:washop_test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+  flyway:
+    enabled: true
+  servlet:
+    session:
+      cookie:
+        secure: false
+        same-site: Lax
+
+app:
+  cors:
+    enabled: false
+  cookie:
+    secure: false
+    same-site: Lax
+  login:
+    max-failed-attempts: 5
+    lock-duration-seconds: 60
+  admin-bootstrap:
+    email: ""
+    password: ""
+  media:
+    provider: local
+    local:
+      base-dir: ${java.io.tmpdir}/wa-shop-media-test
+  public-base-url: http://localhost
+  public-site-url: http://localhost
+  seo:
+    google-site-verification: ""
+    bing-site-verification: ""
+  analytics:
+    google-analytics-id: ""
+    google-tag-manager-id: ""

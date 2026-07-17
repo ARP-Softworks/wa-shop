@@ -1,0 +1,24 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "backend",
+      "runtimeExecutable": "mvn",
+      "runtimeArgs": ["spring-boot:run", "-Dspring-boot.run.profiles=local"],
+      "port": 8080,
+      "cwd": "backend",
+      "env": {
+        "SPRING_DATASOURCE_URL": "jdbc:postgresql://localhost:5433/washop",
+        "SPRING_DATASOURCE_USERNAME": "washop",
+        "SPRING_DATASOURCE_PASSWORD": "washop"
+      }
+    },
+    {
+      "name": "frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "start"],
+      "port": 4200,
+      "cwd": "frontend"
+    }
+  ]
+}

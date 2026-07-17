@@ -1,0 +1,44 @@
+<section class="login">
+  <div class="login__card">
+    <div class="login__brand">
+      <span class="logo-frame logo-frame--lg">
+        <img src="assets/logo/logo_wa-shop-transparent.png" alt="WA Shop logo" width="64" height="64" />
+      </span>
+      <h1>Ingreso administrativo</h1>
+      <p>Acceso solo para administradores. La sesión se guarda en una cookie segura.</p>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <label>
+        Email
+        <input type="email" formControlName="email" autocomplete="username" />
+      </label>
+
+      <label>
+        Contraseña
+        <span class="password-field">
+          <input
+            [type]="showPassword ? 'text' : 'password'"
+            formControlName="password"
+            autocomplete="current-password"
+          />
+          <button
+            type="button"
+            class="password-toggle"
+            (click)="showPassword = !showPassword"
+            [attr.aria-pressed]="showPassword"
+            [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+          >
+            {{ showPassword ? 'Ocultar' : 'Mostrar' }}
+          </button>
+        </span>
+      </label>
+
+      @if (errorMessage) {
+        <p class="error" role="alert">{{ errorMessage }}</p>
+      }
+
+      <button type="submit" class="btn login__submit" [disabled]="submitting">Ingresar</button>
+    </form>
+  </div>
+</section>

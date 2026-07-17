@@ -1,0 +1,60 @@
+<div class="admin-page">
+  <app-admin-breadcrumbs [items]="[{ label: 'Categorías' }]" />
+
+  <header class="admin-page__header">
+    <div>
+      <h1>Categorías</h1>
+      <p class="admin-page__subtitle">Organizá el catálogo por categorías.</p>
+    </div>
+    <a class="btn" routerLink="/admin/categorias/nuevo">Nueva categoría</a>
+  </header>
+
+  @if (actionError()) {
+    <p class="admin-alert admin-alert--error" role="alert">{{ actionError() }}</p>
+  }
+
+  @if (state().status === 'loading' || state().status === 'error' || state().status === 'empty') {
+    <app-state-panel [state]="state()" />
+    @if (state().status === 'error') {
+      <button type="button" (click)="load()">Reintentar</button>
+    }
+  } @else {
+    @if (state().data; as categories) {
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Slug</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (category of categories; track category.id) {
+            <tr>
+              <td data-label="Nombre">{{ category.name }}</td>
+              <td data-label="Slug">{{ category.slug }}</td>
+              <td data-label="Estado">
+                <span
+                  class="status-badge"
+                  [class.status-badge--published]="category.active"
+                  [class.status-badge--draft]="!category.active"
+                >
+                  {{ category.active ? 'Activa' : 'Inactiva' }}
+                </span>
+              </td>
+              <td data-label="Acciones">
+                <div class="admin-table__actions">
+                  <a class="btn btn-secondary" [routerLink]="['/admin/categorias', category.id]">Editar</a>
+                  <button type="button" class="btn btn-danger" (click)="deleteCategory(category)">Eliminar</button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    }
+  }
+</div>

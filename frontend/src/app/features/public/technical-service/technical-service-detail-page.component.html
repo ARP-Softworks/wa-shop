@@ -1,0 +1,52 @@
+<section class="section container">
+  <app-breadcrumbs [items]="crumbs" />
+
+  <p><a routerLink="/servicio-tecnico">← Volver a servicio técnico</a></p>
+
+  <app-state-panel [state]="detailState()" />
+
+  @if (detailState().status === 'success' && detailState().data; as service) {
+    <article class="service-detail">
+      <header class="section__header">
+        <p class="section__eyebrow">Servicio técnico</p>
+        <h1>{{ service.name }}</h1>
+      </header>
+
+      @if (service.description) {
+        <p class="service-detail__desc">{{ service.description }}</p>
+      }
+
+      <ul class="service-detail__specs">
+        @if (service.estimatedTime) {
+          <li><strong>Tiempo estimado:</strong> {{ service.estimatedTime }}</li>
+        }
+        @if (service.price != null && service.currency) {
+          <li>
+            <strong>Precio orientativo:</strong>
+            {{ service.price | money: service.currency }}
+          </li>
+        }
+      </ul>
+
+      <p class="note-demo">
+        Los precios son orientativos y pueden variar según el modelo y el diagnóstico. WA Shop es un
+        comercio independiente; no somos un servicio oficial de Apple.
+      </p>
+
+      <div class="hero__actions">
+        @if (whatsappUrl) {
+          <a
+            class="btn btn-whatsapp"
+            [href]="whatsappUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            (click)="onWhatsappClick()"
+          >
+            Consultar por WhatsApp
+          </a>
+        }
+        <a class="btn btn-secondary" routerLink="/contacto">Ver contacto</a>
+      </div>
+    </article>
+  }
+</section>

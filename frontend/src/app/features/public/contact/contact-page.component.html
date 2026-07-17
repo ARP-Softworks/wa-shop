@@ -1,0 +1,49 @@
+<section class="section container">
+  <div class="section__header">
+    <p class="section__eyebrow">Contacto</p>
+    <h1>Hablemos</h1>
+    <p>Usá WhatsApp para consultas de stock o visitanos según la información publicada.</p>
+  </div>
+
+  <div class="contact-grid">
+    <article>
+      <h2>{{ contentApi.settings()?.businessName || 'WA Shop' }}</h2>
+      @if (contentApi.settings()?.address) {
+        <p><strong>Dirección:</strong> {{ contentApi.settings()?.address }}</p>
+      } @else {
+        <p class="note-demo">Dirección pendiente de configuración.</p>
+      }
+      @if (contentApi.settings()?.openingHours) {
+        <p><strong>Horario:</strong> {{ contentApi.settings()?.openingHours }}</p>
+      }
+      @if (contentApi.settings()?.contactEmail) {
+        <p>
+          <strong>Email:</strong>
+          <a [href]="'mailto:' + contentApi.settings()?.contactEmail">
+            {{ contentApi.settings()?.contactEmail }}
+          </a>
+        </p>
+      }
+      @if (contentApi.settings()?.instagramUrl) {
+        <p>
+          <strong>Instagram:</strong>
+          <a [href]="contentApi.settings()?.instagramUrl!" target="_blank" rel="noopener noreferrer">
+            {{ contentApi.settings()?.instagramUrl }}
+          </a>
+        </p>
+      }
+    </article>
+
+    <article class="cta">
+      <h2>WhatsApp</h2>
+      <p>La forma más rápida de consultar disponibilidad.</p>
+      @if (whatsappUrl) {
+        <a class="btn btn-whatsapp" [href]="whatsappUrl" target="_blank" rel="noopener noreferrer">
+          Abrir WhatsApp
+        </a>
+      } @else {
+        <p class="note-demo">Número de WhatsApp no configurado en el backend.</p>
+      }
+    </article>
+  </div>
+</section>

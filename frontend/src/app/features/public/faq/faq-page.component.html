@@ -1,0 +1,22 @@
+<section class="section container">
+  <app-breadcrumbs [items]="crumbs" />
+
+  <div class="section__header">
+    <p class="section__eyebrow">Ayuda</p>
+    <h1>Preguntas frecuentes</h1>
+    <p>
+      Respuestas claras sobre cómo comprar iPhone, accesorios y servicio técnico en WA Shop Uruguay.
+      Si no encontrás lo que buscás,
+      <a routerLink="/contacto">escribinos</a>.
+    </p>
+  </div>
+
+  <div class="faq-list">
+    @for (item of items; track item.question) {
+      <details class="faq-item">
+        <summary>{{ item.question }}</summary>
+        <p>{{ item.answer }}</p>
+      </details>
+    }
+  </div>
+</section>

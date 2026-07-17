@@ -1,0 +1,74 @@
+<div class="admin-page">
+  <app-admin-breadcrumbs [items]="[{ label: 'Clientes' }]" />
+
+  <header class="admin-page__header">
+    <div>
+      <h1>Clientes</h1>
+      <p class="admin-page__subtitle">Fichas de clientes creadas desde pedidos o cargadas a mano.</p>
+    </div>
+    <a class="btn" routerLink="/admin/clientes/nuevo">Nuevo cliente</a>
+  </header>
+
+  <form class="admin-filters" [formGroup]="filters">
+    <label>
+      Buscar
+      <input type="search" formControlName="q" placeholder="Nombre, teléfono o email" />
+    </label>
+  </form>
+
+  @if (state().status === 'loading' || state().status === 'error' || state().status === 'empty') {
+    <app-state-panel [state]="state()" />
+    @if (state().status === 'error') {
+      <button type="button" (click)="load()">Reintentar</button>
+    }
+  } @else {
+    @if (state().data; as pageData) {
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Teléfono</th>
+            <th>Email</th>
+            <th>Alta</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (customer of pageData.content; track customer.id) {
+            <tr>
+              <td data-label="Nombre">{{ customer.name }}</td>
+              <td data-label="Teléfono">{{ customer.phone }}</td>
+              <td data-label="Email">{{ customer.email || '—' }}</td>
+              <td data-label="Alta">{{ customer.createdAt | date: 'short' }}</td>
+              <td data-label="">
+                <a class="btn btn-secondary" [routerLink]="['/admin/clientes', customer.id]">Editar</a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="admin-pagination">
+      <span>
+        Página {{ pageData.page + 1 }} de {{ pageData.totalPages || 1 }}
+        ({{ pageData.totalElements }} resultados)
+      </span>
+      <div class="admin-pagination__controls">
+        <button type="button" class="btn btn-secondary" [disabled]="pageData.page <= 0" (click)="goToPage(pageData.page - 1)">
+          Anterior
+        </button>
+        <button
+          type="button"
+          class="btn btn-secondary"
+          [disabled]="pageData.page + 1 >= pageData.totalPages"
+          (click)="goToPage(pageData.page + 1)"
+        >
+          Siguiente
+        </button>
+      </div>
+    </div>
+    }
+  }
+</div>

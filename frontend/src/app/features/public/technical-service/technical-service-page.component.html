@@ -1,0 +1,41 @@
+<section class="section container">
+  <app-breadcrumbs [items]="crumbs" />
+
+  <div class="section__header">
+    <p class="section__eyebrow">Servicio técnico</p>
+    <h1>Reparaciones y mantenimiento de iPhone</h1>
+    <p>
+      Consultá tiempos estimados y precios orientativos de los servicios activos en WA Shop Uruguay.
+      Somos un comercio independiente; no somos un servicio oficial de Apple.
+    </p>
+  </div>
+
+  <app-state-panel [state]="listState()" />
+
+  @if (listState().status === 'success' && listState().data; as services) {
+    <div class="service-list">
+      @for (service of services; track service.id) {
+        <article class="service-card">
+          <div>
+            <h2>
+              <a [routerLink]="['/servicio-tecnico', service.slug]">{{ service.name }}</a>
+            </h2>
+            <p>{{ service.description || 'Sin descripción publicada.' }}</p>
+            @if (service.estimatedTime) {
+              <p><strong>Tiempo estimado:</strong> {{ service.estimatedTime }}</p>
+            }
+            @if (service.price != null && service.currency) {
+              <p class="price">Desde {{ service.price | money: service.currency }}</p>
+            }
+          </div>
+          <div class="service-card__actions">
+            <a class="btn btn-secondary" [routerLink]="['/servicio-tecnico', service.slug]">Ver detalle</a>
+            @if (whatsappFor(service); as url) {
+              <a class="btn btn-whatsapp" [href]="url" target="_blank" rel="noopener noreferrer">Consultar</a>
+            }
+          </div>
+        </article>
+      }
+    </div>
+  }
+</section>

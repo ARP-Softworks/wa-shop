@@ -1,0 +1,25 @@
+<section class="section container checkout-result">
+  <div class="checkout-result__card">
+    @if (checking) {
+      <p class="checkout-result__spinner" aria-hidden="true">⏳</p>
+    } @else if (status === 'PAID' || status === 'CONFIRMED') {
+      <p class="checkout-result__icon checkout-result__icon--ok" aria-hidden="true">✓</p>
+    } @else if (status === 'REJECTED' || status === 'CANCELLED' || status === 'EXPIRED') {
+      <p class="checkout-result__icon checkout-result__icon--fail" aria-hidden="true">✕</p>
+    } @else {
+      <p class="checkout-result__icon" aria-hidden="true">⏳</p>
+    }
+
+    <h1>{{ title }}</h1>
+    <p>{{ description }}</p>
+
+    @if (!hasOrderId) {
+      <p class="note-demo">No encontramos el número de pedido en el enlace.</p>
+    }
+
+    <div class="checkout-result__actions">
+      <a class="btn" routerLink="/iphone">Volver al catálogo</a>
+      <a class="btn btn-secondary" routerLink="/contacto">Consultar por WhatsApp</a>
+    </div>
+  </div>
+</section>

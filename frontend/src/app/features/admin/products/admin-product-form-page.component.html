@@ -1,0 +1,283 @@
+<div class="admin-page">
+  <app-admin-breadcrumbs
+    [items]="[
+      { label: pageTitle(), link: [basePath()] },
+      { label: isEdit() ? 'Editar' : 'Nuevo' },
+    ]"
+  />
+
+  <header class="admin-page__header">
+    <div>
+      <h1>{{ isEdit() ? 'Editar' : 'Nuevo' }} — {{ pageTitle() }}</h1>
+    </div>
+    <a class="btn btn-secondary" [routerLink]="[basePath()]">Volver al listado</a>
+  </header>
+
+  @if (loadState().status === 'loading' || loadState().status === 'error') {
+    <app-state-panel [state]="loadState()" />
+  } @else {
+    @if (successMessage()) {
+      <p class="admin-alert admin-alert--success" role="status">{{ successMessage() }}</p>
+    }
+    @if (submitError()) {
+      <p class="admin-alert admin-alert--error" role="alert">{{ submitError() }}</p>
+    }
+
+    <form class="admin-form admin-card" [formGroup]="form" (ngSubmit)="submit()">
+      <section class="admin-form__section">
+        <h2>Información básica</h2>
+        <div class="admin-form__grid">
+          <div class="admin-form__field admin-form__field--full">
+            <label for="name">Nombre</label>
+            <input id="name" type="text" formControlName="name" />
+            @if (fieldError('name'); as err) {
+              <p class="admin-form__error">{{ err }}</p>
+            }
+          </div>
+          <div class="admin-form__field admin-form__field--full">
+            <label for="slug">Slug</label>
+            <input id="slug" type="text" formControlName="slug" />
+            @if (fieldError('slug'); as err) {
+              <p class="admin-form__error">{{ err }}</p>
+            }
+          </div>
+          <div class="admin-form__field">
+            <label for="model">Modelo</label>
+            <input id="model" type="text" formControlName="model" />
+          </div>
+          <div class="admin-form__field">
+            <label for="productType">Tipo</label>
+            <select id="productType" formControlName="productType">
+              <option value="IPHONE">iPhone</option>
+              <option value="ACCESSORY">Accesorio</option>
+            </select>
+          </div>
+          <div class="admin-form__field admin-form__field--full">
+            <label for="description">Descripción</label>
+            <textarea id="description" formControlName="description" rows="4"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <section class="admin-form__section">
+        <h2>Especificaciones</h2>
+        <div class="admin-form__grid">
+          <div class="admin-form__field">
+            <label for="condition">Condición</label>
+            <select id="condition" formControlName="condition">
+              <option value="NEW">Nuevo</option>
+              <option value="USED">Usado</option>
+            </select>
+          </div>
+          <div class="admin-form__field">
+            <label for="storageCapacity">Capacidad</label>
+            <input id="storageCapacity" type="text" formControlName="storageCapacity" placeholder="128 GB" />
+          </div>
+          <div class="admin-form__field">
+            <label for="color">Color</label>
+            <input id="color" type="text" formControlName="color" />
+          </div>
+          <div class="admin-form__field">
+            <label for="batteryHealth">Salud de batería (%)</label>
+            <input id="batteryHealth" type="number" min="0" max="100" formControlName="batteryHealth" />
+            @if (fieldError('batteryHealth'); as err) {
+              <p class="admin-form__error">{{ err }}</p>
+            }
+            <p class="admin-form__hint">Obligatorio para iPhone usados (0–100).</p>
+          </div>
+          <div class="admin-form__field">
+            <label for="categoryId">Categoría</label>
+            <select id="categoryId" formControlName="categoryId">
+              <option value="">Sin categoría</option>
+              @for (category of categories(); track category.id) {
+                <option [value]="category.id">{{ category.name }}</option>
+              }
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <section class="admin-form__section">
+        <h2>Precio y stock</h2>
+        <div class="admin-form__grid">
+          <div class="admin-form__field">
+            <label for="price">Precio</label>
+            <input id="price" type="number" min="0" step="0.01" formControlName="price" />
+            @if (fieldError('price'); as err) {
+              <p class="admin-form__error">{{ err }}</p>
+            }
+          </div>
+          <div class="admin-form__field">
+            <label for="previousPrice">Precio anterior</label>
+            <input id="previousPrice" type="number" min="0" step="0.01" formControlName="previousPrice" />
+          </div>
+          <div class="admin-form__field">
+            <label for="currency">Moneda</label>
+            <select id="currency" formControlName="currency">
+              <option value="UYU">UYU</option>
+              <option value="USD">USD</option>
+            </select>
+          </div>
+          <div class="admin-form__field">
+            <label for="stock">Stock</label>
+            <input id="stock" type="number" min="0" step="1" formControlName="stock" />
+            @if (fieldError('stock'); as err) {
+              <p class="admin-form__error">{{ err }}</p>
+            }
+          </div>
+          <div class="admin-form__field admin-form__field--full">
+            <label for="warranty">Garantía</label>
+            <input id="warranty" type="text" formControlName="warranty" />
+          </div>
+        </div>
+      </section>
+
+      <section class="admin-form__section">
+        <h2>IMEI (solo admin)</h2>
+        <div class="admin-form__grid">
+          <div class="admin-form__field admin-form__field--full">
+            <label for="imei">IMEI</label>
+            <input id="imei" type="text" formControlName="imei" maxlength="17" />
+            @if (fieldError('imei'); as err) {
+              <p class="admin-form__error">{{ err }}</p>
+            }
+          </div>
+        </div>
+      </section>
+
+      <section class="admin-form__section">
+        <h2>Características</h2>
+        <div formArrayName="features" class="dynamic-list">
+          @for (feature of features.controls; track $index; let i = $index) {
+            <div class="dynamic-list__row" [formGroupName]="i">
+              <input type="text" formControlName="name" placeholder="Nombre" aria-label="Nombre de característica" />
+              <input type="text" formControlName="value" placeholder="Valor" aria-label="Valor de característica" />
+              <button type="button" class="btn btn-secondary" (click)="removeFeature(i)">Quitar</button>
+            </div>
+          }
+        </div>
+        <button type="button" class="btn btn-secondary" (click)="addFeature()">Agregar característica</button>
+      </section>
+
+      <section class="admin-form__section">
+        <h2>Imágenes</h2>
+        <p class="admin-page__subtitle">
+          La subida se hace por el servidor (JPEG, PNG o WebP). Un fallo de carga no borra el resto del formulario.
+        </p>
+
+        <app-admin-media-uploader
+          [folder]="mediaFolder()"
+          label="Agregar imagen"
+          (uploaded)="onImageUploaded($event)"
+          (failed)="onImageUploadFailed($event)"
+        />
+
+        @if (imageUploadError()) {
+          <p class="admin-alert admin-alert--error" role="alert">{{ imageUploadError() }}</p>
+        }
+        @if (fieldErrors()['images']; as err) {
+          <p class="admin-form__error">{{ err }}</p>
+        }
+
+        <div formArrayName="images" class="image-list">
+          @for (image of images.controls; track $index; let i = $index) {
+            <div class="image-list__item" [formGroupName]="i">
+              <div class="image-list__preview">
+                @if (image.get('url')?.value) {
+                  <img [src]="image.get('url')?.value" [alt]="image.get('altText')?.value || 'Imagen'" />
+                }
+                @if (image.get('mainImage')?.value) {
+                  <span class="image-list__badge">Principal</span>
+                }
+              </div>
+              <div class="image-list__fields">
+                <label>
+                  Texto alternativo
+                  <input type="text" formControlName="altText" maxlength="255" />
+                </label>
+                <div class="image-list__meta">
+                  @if (image.get('format')?.value) {
+                    <span>{{ image.get('format')?.value }}</span>
+                  }
+                  @if (image.get('width')?.value && image.get('height')?.value) {
+                    <span>{{ image.get('width')?.value }}×{{ image.get('height')?.value }}</span>
+                  }
+                </div>
+                <div class="image-list__actions">
+                  <button type="button" class="btn btn-secondary" (click)="setMainImage(i)">
+                    Usar como principal
+                  </button>
+                  <button type="button" class="btn btn-secondary" (click)="moveImage(i, -1)" [disabled]="i === 0">
+                    Subir
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-secondary"
+                    (click)="moveImage(i, 1)"
+                    [disabled]="i === images.length - 1"
+                  >
+                    Bajar
+                  </button>
+                  <button type="button" class="btn btn-secondary" (click)="removeImage(i)">Quitar</button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+        @if (images.length === 0) {
+          <p class="admin-page__subtitle">Todavía no hay imágenes en este producto.</p>
+        }
+      </section>
+
+      <section class="admin-form__section">
+        <h2>SEO</h2>
+        <div class="admin-form__grid">
+          <div class="admin-form__field admin-form__field--full">
+            <label for="seoTitle">Título SEO (opcional)</label>
+            <input id="seoTitle" type="text" formControlName="seoTitle" maxlength="70" />
+            <p class="admin-form__hint">Máx. 70 caracteres. Si está vacío, se usa el nombre del producto.</p>
+          </div>
+          <div class="admin-form__field admin-form__field--full">
+            <label for="metaDescription">Meta descripción (opcional)</label>
+            <textarea id="metaDescription" formControlName="metaDescription" rows="3" maxlength="320"></textarea>
+            <p class="admin-form__hint">Máx. 320 caracteres.</p>
+          </div>
+          <div class="admin-form__checkboxes">
+            <label>
+              <input type="checkbox" formControlName="indexable" />
+              Indexable en buscadores
+            </label>
+          </div>
+          <div class="admin-form__field admin-form__field--full">
+            <p class="admin-form__hint">Vista previa SERP (solo lectura)</p>
+            <div class="serp-preview" aria-live="polite">
+              <p class="serp-preview__title">{{ serpTitle }}</p>
+              <p class="serp-preview__desc">{{ serpDescription }}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="admin-form__section">
+        <h2>Visibilidad</h2>
+        <div class="admin-form__checkboxes">
+          <label>
+            <input type="checkbox" formControlName="published" />
+            Publicado
+          </label>
+          <label>
+            <input type="checkbox" formControlName="featured" />
+            Destacado
+          </label>
+        </div>
+      </section>
+
+      <div class="admin-form__actions">
+        <button type="submit" class="btn" [disabled]="submitting()">
+          {{ submitting() ? 'Guardando…' : 'Guardar' }}
+        </button>
+        <a class="btn btn-secondary" [routerLink]="[basePath()]">Cancelar</a>
+      </div>
+    </form>
+  }
+</div>

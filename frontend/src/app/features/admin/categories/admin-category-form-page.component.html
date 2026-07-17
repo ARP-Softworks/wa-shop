@@ -1,0 +1,86 @@
+<div class="admin-page">
+  <app-admin-breadcrumbs
+    [items]="[
+      { label: 'Categorías', link: ['/admin/categorias'] },
+      { label: isEdit() ? 'Editar' : 'Nueva' },
+    ]"
+  />
+
+  <header class="admin-page__header">
+    <h1>{{ isEdit() ? 'Editar categoría' : 'Nueva categoría' }}</h1>
+    <a class="btn btn-secondary" routerLink="/admin/categorias">Volver</a>
+  </header>
+
+  @if (loadState().status === 'loading' || loadState().status === 'error') {
+    <app-state-panel [state]="loadState()" />
+  } @else {
+    @if (successMessage()) {
+      <p class="admin-alert admin-alert--success">{{ successMessage() }}</p>
+    }
+    @if (submitError()) {
+      <p class="admin-alert admin-alert--error">{{ submitError() }}</p>
+    }
+
+    <form class="admin-form admin-card" [formGroup]="form" (ngSubmit)="submit()">
+      <div class="admin-form__grid">
+        <div class="admin-form__field admin-form__field--full">
+          <label for="name">Nombre</label>
+          <input id="name" type="text" formControlName="name" />
+          @if (fieldError('name'); as err) {
+            <p class="admin-form__error">{{ err }}</p>
+          }
+        </div>
+        <div class="admin-form__field admin-form__field--full">
+          <label for="slug">Slug</label>
+          <input id="slug" type="text" formControlName="slug" />
+          @if (fieldError('slug'); as err) {
+            <p class="admin-form__error">{{ err }}</p>
+          }
+        </div>
+        <div class="admin-form__field admin-form__field--full">
+          <label for="description">Descripción</label>
+          <textarea id="description" formControlName="description" rows="4"></textarea>
+        </div>
+        <div class="admin-form__checkboxes">
+          <label>
+            <input type="checkbox" formControlName="active" />
+            Activa
+          </label>
+        </div>
+      </div>
+
+      <section class="admin-form__section">
+        <h2>SEO</h2>
+        <div class="admin-form__grid">
+          <div class="admin-form__field admin-form__field--full">
+            <label for="seoTitle">Título SEO (opcional)</label>
+            <input id="seoTitle" type="text" formControlName="seoTitle" maxlength="70" />
+          </div>
+          <div class="admin-form__field admin-form__field--full">
+            <label for="metaDescription">Meta descripción (opcional)</label>
+            <textarea id="metaDescription" formControlName="metaDescription" rows="3" maxlength="320"></textarea>
+          </div>
+          <div class="admin-form__checkboxes">
+            <label>
+              <input type="checkbox" formControlName="indexable" />
+              Indexable en buscadores
+            </label>
+          </div>
+          <div class="admin-form__field admin-form__field--full">
+            <p class="admin-form__hint">Vista previa SERP</p>
+            <div class="serp-preview" aria-live="polite">
+              <p class="serp-preview__title">{{ serpTitle }}</p>
+              <p class="serp-preview__desc">{{ serpDescription }}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="admin-form__actions">
+        <button type="submit" class="btn" [disabled]="submitting()">
+          {{ submitting() ? 'Guardando…' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

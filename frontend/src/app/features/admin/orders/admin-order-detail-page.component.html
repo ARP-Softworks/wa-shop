@@ -1,0 +1,146 @@
+<div class="admin-page">
+  <app-admin-breadcrumbs
+    [items]="[
+      { label: 'Pedidos', link: ['/admin/pedidos'] },
+      { label: 'Detalle' },
+    ]"
+  />
+
+  @if (state().status === 'loading' || state().status === 'error') {
+    <app-state-panel [state]="state()" />
+  } @else {
+    @if (state().data; as order) {
+    <header class="admin-page__header">
+      <div>
+        <h1>{{ order.customerName || 'Pedido' }}</h1>
+        <p class="admin-page__subtitle">Pedido del {{ order.createdAt | date: 'medium' }}</p>
+      </div>
+      <div class="header-actions">
+        <a class="btn btn-secondary" routerLink="/admin/pedidos">Volver</a>
+      </div>
+    </header>
+
+    <section class="admin-card detail-grid">
+      <div>
+        <h2>Cliente</h2>
+        <dl class="detail-list">
+          <dt>Nombre</dt>
+          <dd>
+            <a [routerLink]="['/admin/clientes', order.customerId]">{{ order.customerName || '—' }}</a>
+          </dd>
+          <dt>Teléfono</dt>
+          <dd>{{ order.customerPhone || '—' }}</dd>
+          <dt>Email</dt>
+          <dd>{{ order.customerEmail || '—' }}</dd>
+          <dt>Envío</dt>
+          <dd>{{ order.shippingAddress || '—' }}</dd>
+        </dl>
+      </div>
+
+      <div>
+        <h2>Pago</h2>
+        <dl class="detail-list">
+          <dt>Estado</dt>
+          <dd>
+            <span class="status-badge" [ngClass]="statusClass(order.status)">
+              {{ order.status | orderStatusLabel }}
+            </span>
+          </dd>
+          <dt>Total</dt>
+          <dd>{{ order.total | money: order.currency }}</dd>
+          <dt>ID de pago MP</dt>
+          <dd>{{ order.mpPaymentId || '—' }}</dd>
+          <dt>Estado MP</dt>
+          <dd>{{ order.mpPaymentStatus || '—' }}</dd>
+        </dl>
+      </div>
+    </section>
+
+    <section class="admin-card">
+      <h2>Productos</h2>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Precio</th>
+              <th>Cantidad</th>
+              <th>Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of order.items; track item.id) {
+              <tr>
+                <td data-label="Producto">{{ item.productName }}</td>
+                <td data-label="Precio">{{ item.unitPrice | money: order.currency }}</td>
+                <td data-label="Cantidad">{{ item.quantity }}</td>
+                <td data-label="Subtotal">{{ item.subtotal | money: order.currency }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    @if (successMessage()) {
+      <p class="admin-alert admin-alert--success">{{ successMessage() }}</p>
+    }
+    @if (submitError()) {
+      <p class="admin-alert admin-alert--error">{{ submitError() }}</p>
+    }
+
+    <section class="admin-card">
+      <h2>Actualizar estado</h2>
+      <form class="admin-form" [formGroup]="statusForm" (ngSubmit)="submitStatus()">
+        <div class="admin-form__grid">
+          <div class="admin-form__field">
+            <label for="status">Estado</label>
+            <select id="status" formControlName="status">
+              <option value="PENDING_PAYMENT">Pendiente de pago</option>
+              <option value="PAID">Pagado</option>
+              <option value="CONFIRMED">Confirmado</option>
+              <option value="SHIPPED">Enviado</option>
+              <option value="DELIVERED">Entregado</option>
+              <option value="CANCELLED">Cancelado</option>
+              <option value="REJECTED">Rechazado</option>
+              <option value="EXPIRED">Expirado</option>
+            </select>
+          </div>
+          <div class="admin-form__field admin-form__field--full">
+            <label for="note">Nota del cambio</label>
+            <input id="note" type="text" formControlName="note" placeholder="Opcional, queda en el historial" />
+          </div>
+        </div>
+        <div class="admin-form__actions">
+          <button type="submit" class="btn" [disabled]="submitting()">
+            {{ submitting() ? 'Guardando…' : 'Guardar cambios' }}
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <section class="admin-card">
+      <h2>Historial de estados</h2>
+      @if (order.statusHistory.length === 0) {
+        <p class="admin-form__hint">Sin historial registrado.</p>
+      } @else {
+        <ul class="history-list">
+          @for (entry of order.statusHistory; track entry.id) {
+            <li>
+              <strong>{{ entry.createdAt | date: 'short' }}</strong>
+              —
+              @if (entry.fromStatus) {
+                {{ entry.fromStatus | orderStatusLabel }} →
+              }
+              {{ entry.toStatus | orderStatusLabel }}
+              @if (entry.note) {
+                <span class="admin-form__hint">({{ entry.note }})</span>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </section>
+    }
+  }
+</div>

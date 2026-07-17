@@ -1,0 +1,11 @@
+/
+/iphone
+/iphone/nuevos
+/iphone/usados
+/accesorios
+/servicio-tecnico
+/contacto
+/preguntas-frecuentes
+
+# Note: prerender is currently disabled in angular.json (NG0401 on route extract).
+# Re-enable with server + prerender options; see app.config.server.ts comment.

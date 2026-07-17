@@ -1,0 +1,28 @@
+spring:
+  jpa:
+    show-sql: false
+  servlet:
+    session:
+      cookie:
+        secure: true
+        same-site: Strict
+
+server:
+  # Trust X-Forwarded-* from the TLS-terminating reverse proxy / hosting platform.
+  forward-headers-strategy: framework
+
+app:
+  cors:
+    enabled: false
+  cookie:
+    secure: true
+    same-site: Strict
+  media:
+    provider: ${MEDIA_PROVIDER:${APP_MEDIA_PROVIDER:cloudinary}}
+
+logging:
+  level:
+    root: WARN
+    uy.washop: INFO
+  pattern:
+    console: "%d{ISO8601} %-5level [%thread] %logger{36} - %msg%n"

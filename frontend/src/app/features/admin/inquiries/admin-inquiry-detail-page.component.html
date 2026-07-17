@@ -1,0 +1,131 @@
+<div class="admin-page">
+  <app-admin-breadcrumbs
+    [items]="[
+      { label: 'Consultas', link: ['/admin/consultas'] },
+      { label: 'Detalle' },
+    ]"
+  />
+
+  @if (state().status === 'loading' || state().status === 'error') {
+    <app-state-panel [state]="state()" />
+  } @else {
+    @if (state().data; as inquiry) {
+    <header class="admin-page__header">
+      <div>
+        <h1>{{ inquiry.customerName }}</h1>
+        <p class="admin-page__subtitle">
+          Consulta del {{ inquiry.createdAt | date: 'medium' }}
+        </p>
+      </div>
+      <div class="header-actions">
+        @if (whatsappUrl(); as waUrl) {
+          <a class="btn btn-whatsapp" [href]="waUrl" target="_blank" rel="noopener noreferrer">
+            WhatsApp
+          </a>
+        }
+        <a class="btn btn-secondary" routerLink="/admin/consultas">Volver</a>
+      </div>
+    </header>
+
+    <section class="admin-card detail-grid">
+      <div>
+        <h2>Datos del cliente</h2>
+        <dl class="detail-list">
+          <dt>Teléfono</dt>
+          <dd>{{ inquiry.phone || '—' }}</dd>
+          <dt>Email</dt>
+          <dd>{{ inquiry.email || '—' }}</dd>
+          <dt>Estado</dt>
+          <dd>
+            <span class="status-badge" [ngClass]="statusClass(inquiry.status)">
+              {{ inquiry.status | inquiryStatusLabel }}
+            </span>
+          </dd>
+          <dt>Origen</dt>
+          <dd>{{ inquiry.source }}</dd>
+        </dl>
+      </div>
+
+      <div>
+        <h2>Producto relacionado</h2>
+        @if (inquiry.productName) {
+          <p>
+            @if (inquiry.productSlug) {
+              <a [routerLink]="['/iphone', inquiry.productSlug]">{{ inquiry.productName }}</a>
+            } @else {
+              {{ inquiry.productName }}
+            }
+          </p>
+        } @else {
+          <p class="admin-form__hint">Sin producto asociado.</p>
+        }
+      </div>
+    </section>
+
+    <section class="admin-card">
+      <h2>Mensaje</h2>
+      <p class="message-body">{{ inquiry.message || '—' }}</p>
+    </section>
+
+    @if (successMessage()) {
+      <p class="admin-alert admin-alert--success">{{ successMessage() }}</p>
+    }
+    @if (submitError()) {
+      <p class="admin-alert admin-alert--error">{{ submitError() }}</p>
+    }
+
+    <section class="admin-card">
+      <h2>Actualizar estado</h2>
+      <form class="admin-form" [formGroup]="statusForm" (ngSubmit)="submitStatus()">
+        <div class="admin-form__grid">
+          <div class="admin-form__field">
+            <label for="status">Estado</label>
+            <select id="status" formControlName="status">
+              <option value="NEW">Nueva</option>
+              <option value="IN_PROGRESS">En progreso</option>
+              <option value="RESPONDED">Respondida</option>
+              <option value="CLOSED">Cerrada</option>
+            </select>
+          </div>
+          <div class="admin-form__field admin-form__field--full">
+            <label for="note">Nota del cambio</label>
+            <input id="note" type="text" formControlName="note" placeholder="Opcional, queda en el historial" />
+          </div>
+          <div class="admin-form__field admin-form__field--full">
+            <label for="adminNotes">Notas internas</label>
+            <textarea id="adminNotes" formControlName="adminNotes" rows="3"></textarea>
+          </div>
+        </div>
+        <div class="admin-form__actions">
+          <button type="submit" class="btn" [disabled]="submitting()">
+            {{ submitting() ? 'Guardando…' : 'Guardar cambios' }}
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <section class="admin-card">
+      <h2>Historial de estados</h2>
+      @if (inquiry.statusHistory.length === 0) {
+        <p class="admin-form__hint">Sin historial registrado.</p>
+      } @else {
+        <ul class="history-list">
+          @for (entry of inquiry.statusHistory; track entry.id) {
+            <li>
+              <strong>{{ entry.createdAt | date: 'short' }}</strong>
+              —
+              @if (entry.fromStatus) {
+                {{ entry.fromStatus | inquiryStatusLabel }} →
+              }
+              {{ entry.toStatus | inquiryStatusLabel }}
+              @if (entry.note) {
+                <span class="admin-form__hint">({{ entry.note }})</span>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </section>
+    }
+  }
+</div>

@@ -1,0 +1,114 @@
+<section class="section container">
+  <app-breadcrumbs [items]="crumbs()" />
+
+  <div class="section__header">
+    <p class="section__eyebrow">{{ productType() === 'ACCESSORY' ? 'Accesorios' : 'iPhone' }}</p>
+    <h1>{{ title() }}</h1>
+    @if (intro()) {
+      <p class="catalog-intro">{{ intro() }}</p>
+    }
+    @if (listState().status !== 'loading') {
+      <p>{{ totalElements() }} resultado(s)</p>
+    }
+  </div>
+
+  <form class="filters" [formGroup]="filters" aria-label="Filtros del catálogo">
+    <label>
+      Buscar
+      <input type="search" formControlName="q" placeholder="Nombre, modelo, color…" />
+    </label>
+
+    @if (!conditionLocked()) {
+      <label>
+        Estado
+        <select formControlName="condition">
+          <option value="">Todos</option>
+          <option value="NEW">Nuevo</option>
+          <option value="USED">Usado</option>
+        </select>
+      </label>
+    }
+
+    @if (!modelLocked()) {
+      <label>
+        Modelo
+        <input type="text" formControlName="model" placeholder="Ej. iPhone 14" />
+      </label>
+    }
+
+    <label>
+      Capacidad
+      <input type="text" formControlName="storageCapacity" placeholder="Ej. 128GB" />
+    </label>
+
+    <label>
+      Color
+      <input type="text" formControlName="color" placeholder="Ej. Midnight" />
+    </label>
+
+    @if (showBatteryFilter()) {
+      <label>
+        Batería mínima (%)
+        <input type="number" min="0" max="100" formControlName="minBatteryHealth" />
+      </label>
+    }
+
+    <label>
+      Precio desde
+      <input type="number" min="0" formControlName="minPrice" />
+    </label>
+
+    <label>
+      Precio hasta
+      <input type="number" min="0" formControlName="maxPrice" />
+    </label>
+
+    <label>
+      Orden
+      <select formControlName="sort">
+        <option value="createdAt,desc">Más recientes</option>
+        <option value="createdAt,asc">Más antiguos</option>
+        <option value="price,asc">Precio: menor a mayor</option>
+        <option value="price,desc">Precio: mayor a menor</option>
+      </select>
+    </label>
+
+    <button type="button" class="btn btn-secondary" (click)="clearFilters()">Limpiar filtros</button>
+  </form>
+
+  <app-state-panel [state]="listState()" />
+
+  @if (listState().status === 'success' && listState().data; as products) {
+    <div class="grid-products">
+      @for (product of products; track product.id) {
+        <app-product-card [product]="product" />
+      }
+    </div>
+
+    @if (totalPages() > 1) {
+      <nav class="pager" aria-label="Paginación">
+        <a
+          class="btn btn-secondary"
+          [class.is-disabled]="page() === 0"
+          [routerLink]="[]"
+          [queryParams]="pageLink(page() - 1)"
+          [attr.aria-disabled]="page() === 0"
+          tabindex="{{ page() === 0 ? -1 : 0 }}"
+        >
+          Anterior
+        </a>
+        <span>Página {{ page() + 1 }} de {{ totalPages() }}</span>
+        <a
+          class="btn btn-secondary"
+          [class.is-disabled]="page() + 1 >= totalPages()"
+          [routerLink]="[]"
+          [queryParams]="pageLink(page() + 1)"
+          [attr.aria-disabled]="page() + 1 >= totalPages()"
+          tabindex="{{ page() + 1 >= totalPages() ? -1 : 0 }}"
+        >
+          Siguiente
+        </a>
+      </nav>
+    }
+  }
+</section>

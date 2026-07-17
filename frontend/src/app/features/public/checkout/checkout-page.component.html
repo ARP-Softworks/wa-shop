@@ -1,0 +1,84 @@
+<section class="section container checkout-page">
+  <h1>Checkout</h1>
+
+  <div class="checkout-grid">
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="checkout-form">
+      <h2>Tus datos</h2>
+
+      <label>
+        Nombre y apellido
+        <input
+          type="text"
+          formControlName="customerName"
+          autocomplete="name"
+          [class.input-invalid]="fieldError('customerName')"
+        />
+        @if (fieldError('customerName'); as err) {
+          <p class="field-error">{{ err }}</p>
+        }
+      </label>
+
+      <label>
+        Teléfono (WhatsApp)
+        <input
+          type="tel"
+          formControlName="customerPhone"
+          autocomplete="tel"
+          placeholder="099 123 456"
+          [class.input-invalid]="fieldError('customerPhone')"
+        />
+        @if (fieldError('customerPhone'); as err) {
+          <p class="field-error">{{ err }}</p>
+        }
+      </label>
+
+      <label>
+        Email (opcional)
+        <input
+          type="email"
+          formControlName="customerEmail"
+          autocomplete="email"
+          [class.input-invalid]="fieldError('customerEmail')"
+        />
+        @if (fieldError('customerEmail'); as err) {
+          <p class="field-error">{{ err }}</p>
+        }
+      </label>
+
+      <label>
+        Dirección de envío (opcional)
+        <textarea formControlName="shippingAddress" rows="3"></textarea>
+      </label>
+
+      @if (cart.hasMixedCurrency()) {
+        <p class="cart-warning" role="alert">
+          Uno de los productos del carrito no se puede pagar online. Volvé al carrito y quitalo
+          para continuar.
+        </p>
+      }
+
+      @if (errorMessage) {
+        <p class="error" role="alert">{{ errorMessage }}</p>
+      }
+
+      <button type="submit" class="btn" [disabled]="submitting || cart.hasMixedCurrency()">
+        {{ submitting ? 'Redirigiendo a Mercado Pago…' : 'Pagar con Mercado Pago' }}
+      </button>
+      <a routerLink="/carrito" class="checkout-back">← Volver al carrito</a>
+    </form>
+
+    <aside class="checkout-summary">
+      <h2>Resumen</h2>
+      @for (item of cart.cartItems(); track item.productId) {
+        <div class="checkout-summary__row">
+          <span>{{ item.name }} × {{ item.quantity }}</span>
+          <span>{{ item.price * item.quantity | money: item.currency }}</span>
+        </div>
+      }
+      <div class="checkout-summary__total">
+        <span>Total</span>
+        <strong>{{ cart.subtotal() | money: 'UYU' }}</strong>
+      </div>
+    </aside>
+  </div>
+</section>
