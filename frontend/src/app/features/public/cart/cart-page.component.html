@@ -41,7 +41,7 @@
             <button
               type="button"
               (click)="increment(item.productId, item.quantity)"
-              [disabled]="item.quantity >= item.stock"
+              [disabled]="item.quantity >= item.stock || item.quantity >= 10"
               aria-label="Sumar unidad"
             >
               +

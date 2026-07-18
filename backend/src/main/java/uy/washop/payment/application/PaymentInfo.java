@@ -1,4 +1,13 @@
 package uy.washop.payment.application;
 
-public record PaymentInfo(String paymentId, String status, String statusDetail, String externalReference) {
+import java.math.BigDecimal;
+
+public record PaymentInfo(
+        String paymentId,
+        String status,
+        String statusDetail,
+        String externalReference,
+        BigDecimal transactionAmount,
+        String currencyId
+) {
 }

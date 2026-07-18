@@ -106,6 +106,19 @@ Flyway aplica migraciones al arrancar; la app no crea el esquema con `ddl-auto=u
 | `APP_ADMIN_BOOTSTRAP_EMAIL` | Solo primer deploy | |
 | `APP_ADMIN_BOOTSTRAP_PASSWORD` | Solo primer deploy | Rotar y quitar después |
 
+### Pedidos / checkout
+
+| Variable | Requerida | Descripción |
+|----------|-----------|-------------|
+| `ORDER_PENDING_EXPIRY_MINUTES` | No | Default `45` — libera stock de `PENDING_PAYMENT` abandonados |
+| `ORDER_CHECKOUT_IP_MAX_PER_WINDOW` | No | Default `8` — tope de checkouts por IP |
+| `ORDER_CHECKOUT_PHONE_MAX_PER_WINDOW` | No | Default `4` — tope de checkouts por teléfono |
+| `ORDER_CHECKOUT_WINDOW_SECONDS` | No | Default `900` (15 min) — ventana del rate limit |
+| `PAYMENT_PROVIDER` | No | Default `mercadopago` |
+| `MERCADOPAGO_ACCESS_TOKEN` | Sí si checkout activo | Solo servidor |
+| `MERCADOPAGO_PUBLIC_KEY` | Sí si checkout activo | Pública (también puede exponerse en settings) |
+| `MERCADOPAGO_WEBHOOK_SECRET` | Sí si checkout activo | Verificación HMAC del webhook |
+
 Autenticación: cookie de sesión + CSRF (`XSRF-TOKEN` / `X-XSRF-TOKEN`). No JWT en localStorage. Perfil `production` usa `server.forward-headers-strategy=framework` para respetar HTTPS del proxy.
 
 ### Medios (Cloudinary)

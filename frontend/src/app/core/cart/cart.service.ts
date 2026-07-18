@@ -3,6 +3,8 @@ import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core
 import { CartItem, ProductSummary } from '../../shared/models/catalog.models';
 
 const STORAGE_KEY = 'wa-shop-cart';
+/** Keep in sync with backend OrderItemRequest @Max. */
+const MAX_LINE_QUANTITY = 10;
 
 @Injectable({ providedIn: 'root' })
 export class CartService {
@@ -23,11 +25,12 @@ export class CartService {
   addItem(product: ProductSummary, quantity = 1): void {
     const current = this.items();
     const existing = current.find((item) => item.productId === product.id);
+    const maxQty = Math.min(Math.max(product.stock, 1), MAX_LINE_QUANTITY);
     if (existing) {
       this.items.set(
         current.map((item) =>
           item.productId === product.id
-            ? { ...item, quantity: Math.min(item.quantity + quantity, Math.max(item.stock, 1)) }
+            ? { ...item, quantity: Math.min(item.quantity + quantity, maxQty) }
             : item
         )
       );
@@ -44,7 +47,7 @@ export class CartService {
         condition: product.condition,
         productType: product.productType,
         stock: product.stock,
-        quantity: Math.min(quantity, Math.max(product.stock, 1)),
+        quantity: Math.min(quantity, maxQty),
       };
       this.items.set([...current, newItem]);
     }
@@ -57,11 +60,13 @@ export class CartService {
       return;
     }
     this.items.set(
-      this.items().map((item) =>
-        item.productId === productId
-          ? { ...item, quantity: Math.min(quantity, Math.max(item.stock, 1)) }
-          : item
-      )
+      this.items().map((item) => {
+        if (item.productId !== productId) {
+          return item;
+        }
+        const maxQty = Math.min(Math.max(item.stock, 1), MAX_LINE_QUANTITY);
+        return { ...item, quantity: Math.min(quantity, maxQty) };
+      })
     );
     this.persist();
   }

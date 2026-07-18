@@ -8,10 +8,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uy.washop.auth.api.dto.AuthenticatedUserResponse;
+import uy.washop.auth.api.dto.ChangePasswordRequest;
 import uy.washop.auth.api.dto.CsrfTokenResponse;
 import uy.washop.auth.api.dto.LoginRequest;
 import uy.washop.auth.application.AuthenticationService;
@@ -53,5 +55,11 @@ public class AuthenticationController {
     @GetMapping("/me")
     public AuthenticatedUserResponse me() {
         return authenticationService.currentUser();
+    }
+
+    @PutMapping("/password")
+    public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+        authenticationService.changePassword(request);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -80,6 +80,13 @@ Copiar `.env.example` a `.env` y completar valores. **No commitear secretos.**
 | `CLOUDINARY_API_SECRET` | API secret (solo backend; no exponer al frontend) | |
 | `APP_ADMIN_BOOTSTRAP_EMAIL` | Admin inicial (solo si no existe) | |
 | `APP_ADMIN_BOOTSTRAP_PASSWORD` | Password admin inicial (solo bootstrap) | |
+| `ORDER_PENDING_EXPIRY_MINUTES` | Minutos antes de liberar stock de pedidos sin pago | `45` |
+| `ORDER_CHECKOUT_IP_MAX_PER_WINDOW` | Máx. checkouts por IP en la ventana | `8` |
+| `ORDER_CHECKOUT_PHONE_MAX_PER_WINDOW` | Máx. checkouts por teléfono en la ventana | `4` |
+| `ORDER_CHECKOUT_WINDOW_SECONDS` | Ventana deslizante del rate limit de checkout (segundos) | `900` |
+| `MERCADOPAGO_ACCESS_TOKEN` | Access token MP (solo servidor) | |
+| `MERCADOPAGO_PUBLIC_KEY` | Public key MP | |
+| `MERCADOPAGO_WEBHOOK_SECRET` | Secret para verificar firmas del webhook MP | |
 
 Cada variable nueva **debe** documentarse aquí y en `docs/deployment.md`.
 

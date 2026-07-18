@@ -116,7 +116,9 @@ public class MercadoPagoPaymentProvider implements PaymentProvider {
                     String.valueOf(payment.getId()),
                     payment.getStatus(),
                     payment.getStatusDetail(),
-                    payment.getExternalReference()
+                    payment.getExternalReference(),
+                    payment.getTransactionAmount(),
+                    payment.getCurrencyId()
             );
         } catch (MPApiException ex) {
             log.error("Mercado Pago payment lookup failed: {}", ex.getApiResponse().getContent(), ex);

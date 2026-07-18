@@ -63,6 +63,14 @@ export class AuthService {
     return this.sessionRequest$;
   }
 
+  changePassword(currentPassword: string, newPassword: string): Observable<void> {
+    return this.http.get(`${this.apiBaseUrl}/auth/csrf`).pipe(
+      switchMap(() =>
+        this.http.put<void>(`${this.apiBaseUrl}/auth/password`, { currentPassword, newPassword })
+      )
+    );
+  }
+
   logout(): Observable<void> {
     return this.http.get(`${this.apiBaseUrl}/auth/csrf`).pipe(
       switchMap(() => this.http.post<void>(`${this.apiBaseUrl}/auth/logout`, {})),

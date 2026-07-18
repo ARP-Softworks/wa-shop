@@ -329,6 +329,12 @@ public class AppProperties {
     public static class Order {
         /** Minutes an unpaid order can stay PENDING_PAYMENT before its stock reservation is released. */
         private int pendingExpiryMinutes = 45;
+        /** Max checkout attempts per client IP inside the sliding window. */
+        private int checkoutIpMaxPerWindow = 8;
+        /** Max checkout attempts per phone number inside the sliding window. */
+        private int checkoutPhoneMaxPerWindow = 4;
+        /** Sliding window length for checkout rate limiting (seconds). */
+        private int checkoutWindowSeconds = 900;
 
         public int getPendingExpiryMinutes() {
             return pendingExpiryMinutes;
@@ -336,6 +342,30 @@ public class AppProperties {
 
         public void setPendingExpiryMinutes(int pendingExpiryMinutes) {
             this.pendingExpiryMinutes = pendingExpiryMinutes;
+        }
+
+        public int getCheckoutIpMaxPerWindow() {
+            return checkoutIpMaxPerWindow;
+        }
+
+        public void setCheckoutIpMaxPerWindow(int checkoutIpMaxPerWindow) {
+            this.checkoutIpMaxPerWindow = checkoutIpMaxPerWindow;
+        }
+
+        public int getCheckoutPhoneMaxPerWindow() {
+            return checkoutPhoneMaxPerWindow;
+        }
+
+        public void setCheckoutPhoneMaxPerWindow(int checkoutPhoneMaxPerWindow) {
+            this.checkoutPhoneMaxPerWindow = checkoutPhoneMaxPerWindow;
+        }
+
+        public int getCheckoutWindowSeconds() {
+            return checkoutWindowSeconds;
+        }
+
+        public void setCheckoutWindowSeconds(int checkoutWindowSeconds) {
+            this.checkoutWindowSeconds = checkoutWindowSeconds;
         }
     }
 

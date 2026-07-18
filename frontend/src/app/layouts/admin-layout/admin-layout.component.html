@@ -57,6 +57,12 @@
           </a>
         }
         <div class="sidebar__spacer"></div>
+        <a routerLink="/admin/contrasena" routerLinkActive="active" (click)="closeSidebar()">
+          <span class="nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
+          </span>
+          Cambiar contraseña
+        </a>
         <a routerLink="/" (click)="closeSidebar()">
           <span class="nav-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>

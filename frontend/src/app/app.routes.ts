@@ -17,6 +17,7 @@ import { AdminOrderDetailPageComponent } from './features/admin/orders/admin-ord
 import { AdminCustomerListPageComponent } from './features/admin/customers/admin-customer-list-page.component';
 import { AdminCustomerFormPageComponent } from './features/admin/customers/admin-customer-form-page.component';
 import { AdminSettingsPageComponent } from './features/admin/settings/admin-settings-page.component';
+import { AdminChangePasswordPageComponent } from './features/admin/account/admin-change-password-page.component';
 import { AdminAuditPageComponent } from './features/admin/audit/admin-audit-page.component';
 import { LoginPageComponent } from './features/auth/login/login-page.component';
 
@@ -280,6 +281,7 @@ export const routes: Routes = [
         canDeactivate: [dirtyFormGuard],
       },
       { path: 'auditoria', component: AdminAuditPageComponent },
+      { path: 'contrasena', component: AdminChangePasswordPageComponent },
     ],
   },
   {

@@ -12,13 +12,18 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Service;
+import uy.washop.audit.application.AuditService;
+import uy.washop.audit.domain.AuditAction;
 import uy.washop.auth.api.dto.AuthenticatedUserResponse;
+import uy.washop.auth.api.dto.ChangePasswordRequest;
 import uy.washop.auth.api.dto.LoginRequest;
 import uy.washop.auth.domain.User;
+import uy.washop.auth.infrastructure.UserRepository;
 import uy.washop.security.AdminUserDetails;
 import uy.washop.security.LoginAttemptService;
 
@@ -30,15 +35,24 @@ public class AuthenticationService {
 
     private final AuthenticationManager authenticationManager;
     private final LoginAttemptService loginAttemptService;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final AuditService auditService;
     private final SecurityContextRepository securityContextRepository =
             new HttpSessionSecurityContextRepository();
 
     public AuthenticationService(
             AuthenticationManager authenticationManager,
-            LoginAttemptService loginAttemptService
+            LoginAttemptService loginAttemptService,
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder,
+            AuditService auditService
     ) {
         this.authenticationManager = authenticationManager;
         this.loginAttemptService = loginAttemptService;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.auditService = auditService;
     }
 
     public AuthenticatedUserResponse login(
@@ -94,6 +108,27 @@ public class AuthenticationService {
 
         SecurityContextHolder.clearContext();
         log.info("Admin logout completed");
+    }
+
+    public void changePassword(ChangePasswordRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || !(authentication.getPrincipal() instanceof AdminUserDetails details)) {
+            throw new BadCredentialsException("No autenticado");
+        }
+
+        User user = userRepository.findById(details.getUser().getId())
+                .orElseThrow(() -> new BadCredentialsException("No autenticado"));
+
+        if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
+            throw new BadCredentialsException("La contraseña actual no es correcta");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+        userRepository.save(user);
+        auditService.record(AuditAction.UPDATE, "User", user.getId(), "Contraseña actualizada");
+        log.info("Admin password changed");
     }
 
     private AuthenticatedUserResponse toResponse(AdminUserDetails details) {

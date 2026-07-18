@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import uy.washop.audit.application.AuditService;
 import uy.washop.audit.domain.AuditAction;
 import uy.washop.order.domain.Order;
@@ -96,6 +97,28 @@ public class OrderWebhookService {
             return;
         }
 
+        if ("approved".equals(info.status()) && !paymentMatchesOrder(order, info)) {
+            orderRepository.save(order);
+            auditService.record(
+                    AuditAction.OTHER,
+                    "Order",
+                    order.getId(),
+                    "Pago MP approved con monto/moneda inconsistente (pagado="
+                            + info.transactionAmount() + " " + info.currencyId()
+                            + ", pedido=" + order.getTotal() + " " + order.getCurrency()
+                            + ") — no se marcó PAID; revisión manual"
+            );
+            log.warn(
+                    "Rejected Mercado Pago approval for order {} due to amount/currency mismatch (paid={} {}, expected={} {})",
+                    order.getId(),
+                    info.transactionAmount(),
+                    info.currencyId(),
+                    order.getTotal(),
+                    order.getCurrency()
+            );
+            return;
+        }
+
         OrderStatus newStatus = mapMercadoPagoStatus(info.status());
         if (newStatus == previous) {
             orderRepository.save(order);
@@ -122,6 +145,19 @@ public class OrderWebhookService {
                 order.getId(),
                 "Pedido actualizado a " + newStatus + " por Mercado Pago"
         );
+    }
+
+    static boolean paymentMatchesOrder(Order order, PaymentInfo info) {
+        if (info.transactionAmount() == null || !StringUtils.hasText(info.currencyId())) {
+            return false;
+        }
+        if (order.getTotal() == null || order.getCurrency() == null) {
+            return false;
+        }
+        if (info.transactionAmount().compareTo(order.getTotal()) != 0) {
+            return false;
+        }
+        return order.getCurrency().name().equalsIgnoreCase(info.currencyId().trim());
     }
 
     private void restoreStock(Order order) {

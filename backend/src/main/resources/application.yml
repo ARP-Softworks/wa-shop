@@ -83,6 +83,9 @@ app:
       webhook-secret: ${MERCADOPAGO_WEBHOOK_SECRET:}
   order:
     pending-expiry-minutes: ${ORDER_PENDING_EXPIRY_MINUTES:45}
+    checkout-ip-max-per-window: ${ORDER_CHECKOUT_IP_MAX_PER_WINDOW:8}
+    checkout-phone-max-per-window: ${ORDER_CHECKOUT_PHONE_MAX_PER_WINDOW:4}
+    checkout-window-seconds: ${ORDER_CHECKOUT_WINDOW_SECONDS:900}
   public-base-url: ${APP_PUBLIC_BASE_URL:http://localhost:8080}
   public-site-url: ${PUBLIC_SITE_URL:${APP_PUBLIC_BASE_URL:http://localhost:8080}}
   seo:
