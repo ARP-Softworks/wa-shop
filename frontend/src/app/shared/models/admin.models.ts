@@ -54,6 +54,8 @@ export interface AdminProductSummary {
   color: string | null;
   batteryHealth: number | null;
   price: number;
+  promoBuyQuantity: number | null;
+  promoPayQuantity: number | null;
   currency: CurrencyCode;
   stock: number;
   imei: string | null;
@@ -76,6 +78,8 @@ export interface AdminProductDetail {
   batteryHealth: number | null;
   price: number;
   previousPrice: number | null;
+  promoBuyQuantity: number | null;
+  promoPayQuantity: number | null;
   currency: CurrencyCode;
   stock: number;
   warranty: string | null;
@@ -122,6 +126,8 @@ export interface ProductWriteRequest {
   batteryHealth?: number | null;
   price: number;
   previousPrice?: number | null;
+  promoBuyQuantity?: number | null;
+  promoPayQuantity?: number | null;
   currency: CurrencyCode;
   stock: number;
   warranty?: string | null;
@@ -400,6 +406,56 @@ export interface AdminCustomerSearchParams {
   q?: string;
   page?: number;
   size?: number;
+}
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  enabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UserWriteRequest {
+  email: string;
+  password?: string | null;
+  firstName: string;
+  lastName: string;
+  enabled: boolean;
+}
+
+export interface AdminUserSearchParams {
+  q?: string;
+  page?: number;
+  size?: number;
+}
+
+export interface AdminPromotion {
+  id: string;
+  name: string;
+  active: boolean;
+  triggerCategoryId: string;
+  triggerCategoryName: string;
+  triggerQuantity: number;
+  rewardCategoryId: string;
+  rewardCategoryName: string;
+  rewardQuantity: number;
+  discountPercent: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PromotionWriteRequest {
+  name: string;
+  active: boolean;
+  triggerCategoryId: string;
+  triggerQuantity: number;
+  rewardCategoryId: string;
+  rewardQuantity: number;
+  discountPercent: number;
 }
 
 export interface AuditLog {

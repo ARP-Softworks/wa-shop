@@ -119,6 +119,18 @@ Flyway aplica migraciones al arrancar; la app no crea el esquema con `ddl-auto=u
 | `MERCADOPAGO_PUBLIC_KEY` | Sí si checkout activo | Pública (también puede exponerse en settings) |
 | `MERCADOPAGO_WEBHOOK_SECRET` | Sí si checkout activo | Verificación HMAC del webhook |
 
+### Emails de pedido
+
+| Variable | Requerida | Descripción |
+|----------|-----------|-------------|
+| `MAIL_HOST` | Sí para emails | Host SMTP (Gmail, SendGrid, Mailgun, SES, Resend, etc.) |
+| `MAIL_PORT` | No (default `587`) | Puerto SMTP |
+| `MAIL_USERNAME` | Sí para emails | Usuario SMTP |
+| `MAIL_PASSWORD` | Sí para emails | Password/API key SMTP |
+| `MAIL_FROM` | No | Remitente, ej. `WA Shop <no-reply@dominio>` |
+
+Sin `MAIL_HOST` la app arranca igual; solo se loguea un warning y no se envían los emails de confirmación de pedido. El destinatario "dueño" es `contact_email` de la configuración del sitio.
+
 Autenticación: cookie de sesión + CSRF (`XSRF-TOKEN` / `X-XSRF-TOKEN`). No JWT en localStorage. Perfil `production` usa `server.forward-headers-strategy=framework` para respetar HTTPS del proxy.
 
 ### Medios (Cloudinary)

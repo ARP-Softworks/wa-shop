@@ -17,6 +17,9 @@
       <span class="badge" [class.badge--used]="product.condition === 'USED'">
         {{ product.condition | conditionLabel }}
       </span>
+      @if (promoLabel) {
+        <span class="badge badge--promo">{{ promoLabel }}</span>
+      }
       @if (!compact && product.featured) {
         <span class="badge badge--featured">Destacado</span>
       }

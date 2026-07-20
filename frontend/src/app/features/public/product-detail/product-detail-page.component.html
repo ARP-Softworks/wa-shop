@@ -65,6 +65,9 @@
           @if (product.previousPrice) {
             <span class="price__previous">{{ product.previousPrice | money: product.currency }}</span>
           }
+          @if (product.promoBuyQuantity && product.promoPayQuantity) {
+            <span class="badge badge--promo">{{ product.promoBuyQuantity }}x{{ product.promoPayQuantity }}</span>
+          }
         </p>
 
         <ul class="specs">

@@ -208,6 +208,8 @@ public class AdminProductService {
         probe.setBatteryHealth(request.batteryHealth());
         probe.setPrice(request.price());
         probe.setPreviousPrice(request.previousPrice());
+        probe.setPromoBuyQuantity(request.promoBuyQuantity());
+        probe.setPromoPayQuantity(request.promoPayQuantity());
         ProductRules.validateAll(probe);
 
         List<ProductImage> images = new ArrayList<>();
@@ -233,6 +235,8 @@ public class AdminProductService {
         product.setBatteryHealth(request.batteryHealth());
         product.setPrice(request.price());
         product.setPreviousPrice(request.previousPrice());
+        product.setPromoBuyQuantity(request.promoBuyQuantity());
+        product.setPromoPayQuantity(request.promoPayQuantity());
         product.setCurrency(request.currency());
         product.setStock(request.stock());
         product.setWarranty(blankToNull(request.warranty()));

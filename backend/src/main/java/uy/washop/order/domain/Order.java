@@ -41,6 +41,11 @@ public class Order extends BaseEntity {
     private BigDecimal total;
 
     @NotNull
+    @DecimalMin("0.00")
+    @Column(name = "promotion_discount", nullable = false, precision = 12, scale = 2)
+    private BigDecimal promotionDiscount = BigDecimal.ZERO;
+
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 3)
     private CurrencyCode currency;
@@ -97,6 +102,14 @@ public class Order extends BaseEntity {
 
     public void setTotal(BigDecimal total) {
         this.total = total;
+    }
+
+    public BigDecimal getPromotionDiscount() {
+        return promotionDiscount;
+    }
+
+    public void setPromotionDiscount(BigDecimal promotionDiscount) {
+        this.promotionDiscount = promotionDiscount;
     }
 
     public CurrencyCode getCurrency() {

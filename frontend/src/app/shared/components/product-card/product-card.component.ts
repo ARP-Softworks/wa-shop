@@ -30,6 +30,14 @@ export class ProductCardComponent {
     return this.product.currency === 'UYU' && this.product.stock > 0;
   }
 
+  get promoLabel(): string | null {
+    const { promoBuyQuantity, promoPayQuantity } = this.product;
+    if (!promoBuyQuantity || !promoPayQuantity) {
+      return null;
+    }
+    return `${promoBuyQuantity}x${promoPayQuantity}`;
+  }
+
   addToCart(event: Event): void {
     event.preventDefault();
     event.stopPropagation();

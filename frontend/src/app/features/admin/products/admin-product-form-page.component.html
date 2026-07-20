@@ -112,6 +112,21 @@
             <input id="previousPrice" type="number" min="0" step="0.01" formControlName="previousPrice" />
           </div>
           <div class="admin-form__field">
+            <label for="promoBuyQuantity">Promoción — comprá</label>
+            <input id="promoBuyQuantity" type="number" min="1" step="1" formControlName="promoBuyQuantity" placeholder="Ej: 2" />
+            @if (fieldError('promoBuyQuantity'); as err) {
+              <p class="admin-form__error">{{ err }}</p>
+            }
+          </div>
+          <div class="admin-form__field">
+            <label for="promoPayQuantity">Promoción — pagá</label>
+            <input id="promoPayQuantity" type="number" min="1" step="1" formControlName="promoPayQuantity" placeholder="Ej: 1" />
+            <p class="admin-form__hint">Dejar ambos vacíos si no hay promoción. Ej: comprá 2, pagá 1 = 2x1.</p>
+            @if (fieldError('promoPayQuantity'); as err) {
+              <p class="admin-form__error">{{ err }}</p>
+            }
+          </div>
+          <div class="admin-form__field">
             <label for="currency">Moneda</label>
             <select id="currency" formControlName="currency">
               <option value="UYU">UYU</option>

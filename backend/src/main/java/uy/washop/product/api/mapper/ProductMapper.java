@@ -29,6 +29,8 @@ public final class ProductMapper {
                 product.getColor(),
                 product.getBatteryHealth(),
                 product.getPrice(),
+                product.getPromoBuyQuantity(),
+                product.getPromoPayQuantity(),
                 product.getCurrency(),
                 product.getStock(),
                 product.getImei(),
@@ -52,12 +54,15 @@ public final class ProductMapper {
                 product.getBatteryHealth(),
                 product.getPrice(),
                 product.getPreviousPrice(),
+                product.getPromoBuyQuantity(),
+                product.getPromoPayQuantity(),
                 product.getCurrency(),
                 product.getStock(),
                 product.getWarranty(),
                 product.isFeatured(),
                 primaryImageUrl,
-                product.getCreatedAt()
+                product.getCreatedAt(),
+                product.getCategoryId()
         );
     }
 
@@ -87,6 +92,8 @@ public final class ProductMapper {
                 product.getBatteryHealth(),
                 product.getPrice(),
                 product.getPreviousPrice(),
+                product.getPromoBuyQuantity(),
+                product.getPromoPayQuantity(),
                 product.getCurrency(),
                 product.getStock(),
                 product.getWarranty(),
@@ -123,6 +130,8 @@ public final class ProductMapper {
                 product.getBatteryHealth(),
                 product.getPrice(),
                 product.getPreviousPrice(),
+                product.getPromoBuyQuantity(),
+                product.getPromoPayQuantity(),
                 product.getCurrency(),
                 product.getStock(),
                 product.getWarranty(),

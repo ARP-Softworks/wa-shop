@@ -75,9 +75,15 @@
           <span>{{ item.price * item.quantity | money: item.currency }}</span>
         </div>
       }
+      @if (cart.promotionDiscount() > 0) {
+        <div class="checkout-summary__row">
+          <span>Descuento por promoción</span>
+          <span>-{{ cart.promotionDiscount() | money: 'UYU' }}</span>
+        </div>
+      }
       <div class="checkout-summary__total">
         <span>Total</span>
-        <strong>{{ cart.subtotal() | money: 'UYU' }}</strong>
+        <strong>{{ cart.grandTotal() | money: 'UYU' }}</strong>
       </div>
     </aside>
   </div>

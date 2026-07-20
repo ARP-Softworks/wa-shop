@@ -22,6 +22,7 @@ import uy.washop.order.domain.OrderStatusHistory;
 import uy.washop.order.infrastructure.OrderItemRepository;
 import uy.washop.order.infrastructure.OrderRepository;
 import uy.washop.order.infrastructure.OrderStatusHistoryRepository;
+import uy.washop.notification.application.OrderEmailService;
 import uy.washop.product.infrastructure.ProductRepository;
 import uy.washop.shared.api.PageResponse;
 import uy.washop.shared.exception.ResourceNotFoundException;
@@ -38,19 +39,22 @@ public class AdminOrderService {
     private final OrderStatusHistoryRepository historyRepository;
     private final ProductRepository productRepository;
     private final AuditService auditService;
+    private final OrderEmailService orderEmailService;
 
     public AdminOrderService(
             OrderRepository orderRepository,
             OrderItemRepository orderItemRepository,
             OrderStatusHistoryRepository historyRepository,
             ProductRepository productRepository,
-            AuditService auditService
+            AuditService auditService,
+            OrderEmailService orderEmailService
     ) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.historyRepository = historyRepository;
         this.productRepository = productRepository;
         this.auditService = auditService;
+        this.orderEmailService = orderEmailService;
     }
 
     @Transactional(readOnly = true)
@@ -111,6 +115,10 @@ public class AdminOrderService {
             history.setNote(StringUtils.hasText(request.note()) ? request.note().trim() : null);
             historyRepository.save(history);
             order.setStatus(request.status());
+
+            if (previous != OrderStatus.PAID && request.status() == OrderStatus.PAID) {
+                orderEmailService.sendOrderConfirmedEmails(order, orderItemRepository.findByOrderId(id));
+            }
         }
         orderRepository.save(order);
         auditService.record(AuditAction.UPDATE, "Order", id, "Pedido actualizado a " + order.getStatus());

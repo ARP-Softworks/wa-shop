@@ -1,0 +1,82 @@
+<div class="admin-page">
+  <app-admin-breadcrumbs
+    [items]="[
+      { label: 'Usuarios', link: ['/admin/usuarios'] },
+      { label: isEdit() ? 'Editar' : 'Nuevo' },
+    ]"
+  />
+
+  <header class="admin-page__header">
+    <h1>{{ isEdit() ? 'Editar usuario' : 'Nuevo usuario' }}</h1>
+    <a class="btn btn-secondary" routerLink="/admin/usuarios">Volver</a>
+  </header>
+
+  @if (loadState().status === 'loading' || loadState().status === 'error') {
+    <app-state-panel [state]="loadState()" />
+  } @else {
+    @if (successMessage()) {
+      <p class="admin-alert admin-alert--success">{{ successMessage() }}</p>
+    }
+    @if (submitError()) {
+      <p class="admin-alert admin-alert--error">{{ submitError() }}</p>
+    }
+
+    <form class="admin-form admin-card" [formGroup]="form" (ngSubmit)="submit()">
+      <div class="admin-form__grid">
+        <div class="admin-form__field">
+          <label for="firstName">Nombre</label>
+          <input id="firstName" type="text" formControlName="firstName" />
+          @if (fieldError('firstName'); as err) {
+            <p class="admin-form__error">{{ err }}</p>
+          }
+        </div>
+        <div class="admin-form__field">
+          <label for="lastName">Apellido</label>
+          <input id="lastName" type="text" formControlName="lastName" />
+          @if (fieldError('lastName'); as err) {
+            <p class="admin-form__error">{{ err }}</p>
+          }
+        </div>
+        <div class="admin-form__field admin-form__field--full">
+          <label for="email">Email</label>
+          <input id="email" type="email" formControlName="email" />
+          @if (fieldError('email'); as err) {
+            <p class="admin-form__error">{{ err }}</p>
+          }
+        </div>
+        <div class="admin-form__field">
+          <label for="password">{{ isEdit() ? 'Nueva contraseña' : 'Contraseña' }}</label>
+          <input id="password" type="password" formControlName="password" autocomplete="new-password" />
+          @if (isEdit()) {
+            <p class="admin-form__hint">Dejar en blanco para no cambiarla.</p>
+          }
+          @if (fieldError('password'); as err) {
+            <p class="admin-form__error">{{ err }}</p>
+          }
+        </div>
+        <div class="admin-form__field">
+          <label for="confirmPassword">Confirmar contraseña</label>
+          <input id="confirmPassword" type="password" formControlName="confirmPassword" autocomplete="new-password" />
+          @if (form.hasError('passwordsMismatch') && form.controls.confirmPassword.touched) {
+            <p class="admin-form__error">Las contraseñas no coinciden</p>
+          }
+        </div>
+        <div class="admin-form__field">
+          <label>
+            <input type="checkbox" formControlName="enabled" />
+            Habilitado
+          </label>
+          @if (isSelf) {
+            <p class="admin-form__hint">No podés deshabilitar tu propia cuenta.</p>
+          }
+        </div>
+      </div>
+
+      <div class="admin-form__actions">
+        <button type="submit" class="btn" [disabled]="submitting()">
+          {{ submitting() ? 'Guardando…' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

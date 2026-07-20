@@ -15,6 +15,7 @@ import uy.washop.order.domain.OrderStatusHistory;
 import uy.washop.order.infrastructure.OrderItemRepository;
 import uy.washop.order.infrastructure.OrderRepository;
 import uy.washop.order.infrastructure.OrderStatusHistoryRepository;
+import uy.washop.notification.application.OrderEmailService;
 import uy.washop.payment.application.PaymentInfo;
 import uy.washop.payment.application.PaymentProvider;
 import uy.washop.product.infrastructure.ProductRepository;
@@ -30,6 +31,7 @@ public class OrderWebhookService {
     private final ProductRepository productRepository;
     private final PaymentProvider paymentProvider;
     private final AuditService auditService;
+    private final OrderEmailService orderEmailService;
 
     public OrderWebhookService(
             OrderRepository orderRepository,
@@ -37,7 +39,8 @@ public class OrderWebhookService {
             OrderStatusHistoryRepository historyRepository,
             ProductRepository productRepository,
             PaymentProvider paymentProvider,
-            AuditService auditService
+            AuditService auditService,
+            OrderEmailService orderEmailService
     ) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
@@ -45,6 +48,7 @@ public class OrderWebhookService {
         this.productRepository = productRepository;
         this.paymentProvider = paymentProvider;
         this.auditService = auditService;
+        this.orderEmailService = orderEmailService;
     }
 
     @Transactional
@@ -145,6 +149,10 @@ public class OrderWebhookService {
                 order.getId(),
                 "Pedido actualizado a " + newStatus + " por Mercado Pago"
         );
+
+        if (newStatus == OrderStatus.PAID) {
+            orderEmailService.sendOrderConfirmedEmails(order, orderItemRepository.findByOrderId(order.getId()));
+        }
     }
 
     static boolean paymentMatchesOrder(Order order, PaymentInfo info) {

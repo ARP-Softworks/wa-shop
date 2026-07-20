@@ -90,7 +90,12 @@
                   —
                 }
               </td>
-              <td data-label="Precio">{{ product.price | money: product.currency }}</td>
+              <td data-label="Precio">
+                {{ product.price | money: product.currency }}
+                @if (product.promoBuyQuantity && product.promoPayQuantity) {
+                  <span class="badge badge--promo">{{ product.promoBuyQuantity }}x{{ product.promoPayQuantity }}</span>
+                }
+              </td>
               <td data-label="Stock">{{ product.stock }}</td>
               <td data-label="Estado">
                 <span

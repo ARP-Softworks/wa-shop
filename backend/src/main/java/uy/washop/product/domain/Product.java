@@ -115,6 +115,14 @@ public class Product extends BaseEntity {
     @JoinColumn(name = "category_id")
     private Category category;
 
+    @Min(1)
+    @Column(name = "promo_buy_quantity")
+    private Integer promoBuyQuantity;
+
+    @Min(1)
+    @Column(name = "promo_pay_quantity")
+    private Integer promoPayQuantity;
+
     public String getSlug() {
         return slug;
     }
@@ -293,5 +301,26 @@ public class Product extends BaseEntity {
 
     public UUID getCategoryId() {
         return category != null ? category.getId() : null;
+    }
+
+    public Integer getPromoBuyQuantity() {
+        return promoBuyQuantity;
+    }
+
+    public void setPromoBuyQuantity(Integer promoBuyQuantity) {
+        this.promoBuyQuantity = promoBuyQuantity;
+    }
+
+    public Integer getPromoPayQuantity() {
+        return promoPayQuantity;
+    }
+
+    public void setPromoPayQuantity(Integer promoPayQuantity) {
+        this.promoPayQuantity = promoPayQuantity;
+    }
+
+    public boolean hasActivePromotion() {
+        return promoBuyQuantity != null && promoPayQuantity != null
+                && promoBuyQuantity > promoPayQuantity && promoPayQuantity >= 1;
     }
 }

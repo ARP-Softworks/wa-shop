@@ -1,6 +1,7 @@
 package uy.washop.order.application;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -32,6 +33,10 @@ import uy.washop.payment.application.PaymentPreferenceRequest;
 import uy.washop.payment.application.PaymentProvider;
 import uy.washop.product.domain.Product;
 import uy.washop.product.infrastructure.ProductRepository;
+import uy.washop.promotion.application.CategoryCartLine;
+import uy.washop.promotion.application.PromotionEngine;
+import uy.washop.promotion.domain.Promotion;
+import uy.washop.promotion.infrastructure.PromotionRepository;
 import uy.washop.seo.application.SeoUrlService;
 import uy.washop.shared.domain.CurrencyCode;
 import uy.washop.shared.exception.BusinessConflictException;
@@ -49,6 +54,7 @@ public class CheckoutService {
     private final AuditService auditService;
     private final AppProperties appProperties;
     private final SeoUrlService seoUrlService;
+    private final PromotionRepository promotionRepository;
 
     public CheckoutService(
             ProductRepository productRepository,
@@ -59,7 +65,8 @@ public class CheckoutService {
             PaymentProvider paymentProvider,
             AuditService auditService,
             AppProperties appProperties,
-            SeoUrlService seoUrlService
+            SeoUrlService seoUrlService,
+            PromotionRepository promotionRepository
     ) {
         this.productRepository = productRepository;
         this.customerRepository = customerRepository;
@@ -70,6 +77,7 @@ public class CheckoutService {
         this.auditService = auditService;
         this.appProperties = appProperties;
         this.seoUrlService = seoUrlService;
+        this.promotionRepository = promotionRepository;
     }
 
     @Transactional
@@ -103,7 +111,7 @@ public class CheckoutService {
                 throw new BusinessConflictException("Stock insuficiente para " + product.getName());
             }
 
-            BigDecimal lineSubtotal = product.getPrice().multiply(BigDecimal.valueOf(quantity));
+            BigDecimal lineSubtotal = calculateLineSubtotal(product, quantity);
             subtotal = subtotal.add(lineSubtotal);
 
             OrderItem orderItem = new OrderItem();
@@ -115,13 +123,17 @@ public class CheckoutService {
             orderItems.add(orderItem);
         }
 
+        Map<UUID, BigDecimal> promotionDiscounts = calculatePromotionDiscounts(orderItems);
+        BigDecimal totalDiscount = PromotionEngine.totalDiscount(promotionDiscounts);
+
         Customer customer = upsertCustomer(request);
 
         Order order = new Order();
         order.setCustomer(customer);
         order.setStatus(OrderStatus.PENDING_PAYMENT);
         order.setSubtotal(subtotal);
-        order.setTotal(subtotal);
+        order.setPromotionDiscount(totalDiscount);
+        order.setTotal(subtotal.subtract(totalDiscount));
         order.setCurrency(CurrencyCode.UYU);
         order.setShippingAddress(request.shippingAddress());
         order = orderRepository.save(order);
@@ -138,7 +150,7 @@ public class CheckoutService {
         history.setNote("Pedido creado desde el carrito");
         historyRepository.save(history);
 
-        PaymentPreference preference = createPreference(order, orderItems, customer);
+        PaymentPreference preference = createPreference(order, orderItems, customer, promotionDiscounts);
         order.setMpPreferenceId(preference.preferenceId());
         orderRepository.save(order);
 
@@ -159,6 +171,38 @@ public class CheckoutService {
         return new OrderStatusResponse(order.getId(), order.getStatus());
     }
 
+    /** Applies "buy X pay Y" promos (2x1, 3x2, ...): full-price for the non-bundled remainder. */
+    static BigDecimal calculateLineSubtotal(Product product, int quantity) {
+        BigDecimal unitPrice = product.getPrice();
+        if (!product.hasActivePromotion()) {
+            return unitPrice.multiply(BigDecimal.valueOf(quantity));
+        }
+        int buy = product.getPromoBuyQuantity();
+        int pay = product.getPromoPayQuantity();
+        int bundles = quantity / buy;
+        int remainder = quantity % buy;
+        int payableUnits = bundles * pay + remainder;
+        return unitPrice.multiply(BigDecimal.valueOf(payableUnits));
+    }
+
+    /** Cross-category "buy N, get M at X% off" promotions, layered on top of any per-product promo already baked into each line's subtotal. */
+    private Map<UUID, BigDecimal> calculatePromotionDiscounts(List<OrderItem> orderItems) {
+        List<Promotion> activePromotions = promotionRepository.findByActiveTrueOrderByNameAsc();
+        if (activePromotions.isEmpty()) {
+            return Map.of();
+        }
+        List<CategoryCartLine> lines = orderItems.stream()
+                .filter(oi -> oi.getProduct().getCategoryId() != null)
+                .map(oi -> new CategoryCartLine(
+                        oi.getProduct().getId(),
+                        oi.getProduct().getCategoryId(),
+                        oi.getQuantity(),
+                        oi.getSubtotal().divide(BigDecimal.valueOf(oi.getQuantity()), 4, RoundingMode.HALF_UP)
+                ))
+                .toList();
+        return PromotionEngine.calculateDiscounts(lines, activePromotions);
+    }
+
     private Customer upsertCustomer(OrderCreateRequest request) {
         String normalizedPhone = PhoneNormalizer.normalize(request.customerPhone());
         if (!StringUtils.hasText(normalizedPhone)) {
@@ -177,9 +221,22 @@ public class CheckoutService {
         return customerRepository.save(customer);
     }
 
-    private PaymentPreference createPreference(Order order, List<OrderItem> orderItems, Customer customer) {
+    private PaymentPreference createPreference(
+            Order order, List<OrderItem> orderItems, Customer customer, Map<UUID, BigDecimal> promotionDiscounts
+    ) {
+        // Quantity is always sent as 1 with the (already promo-discounted) line subtotal as the
+        // unit price — this guarantees the amount Mercado Pago charges exactly matches
+        // order.getTotal(), with no rounding drift from dividing a promo price across units.
+        // Cross-category promotion discounts are subtracted per line rather than sent as a
+        // separate negative item — Mercado Pago rejects zero/negative unit prices, so a line
+        // fully covered by a promotion (100% off) is dropped instead of sent as $0.
         List<PaymentItem> items = orderItems.stream()
-                .map(oi -> new PaymentItem(oi.getProductName(), oi.getQuantity(), oi.getUnitPrice(), "UYU"))
+                .map(oi -> {
+                    BigDecimal discount = promotionDiscounts.getOrDefault(oi.getProduct().getId(), BigDecimal.ZERO);
+                    BigDecimal adjustedPrice = oi.getSubtotal().subtract(discount).max(BigDecimal.ZERO);
+                    return new PaymentItem(oi.getProductName() + " × " + oi.getQuantity(), 1, adjustedPrice, "UYU");
+                })
+                .filter(item -> item.unitPrice().compareTo(BigDecimal.ZERO) > 0)
                 .toList();
 
         String orderId = order.getId().toString();

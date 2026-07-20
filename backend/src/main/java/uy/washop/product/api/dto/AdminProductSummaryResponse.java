@@ -18,6 +18,8 @@ public record AdminProductSummaryResponse(
         String color,
         Integer batteryHealth,
         BigDecimal price,
+        Integer promoBuyQuantity,
+        Integer promoPayQuantity,
         CurrencyCode currency,
         int stock,
         String imei,

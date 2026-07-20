@@ -18,7 +18,12 @@
             }
           </div>
           <div class="cart-item__info">
-            <h3>{{ item.name }}</h3>
+            <h3>
+              {{ item.name }}
+              @if (promoLabel(item); as promo) {
+                <span class="cart-item__promo">{{ promo }}</span>
+              }
+            </h3>
             <p class="cart-item__specs">
               {{ item.storageCapacity }}
               @if (item.storageCapacity && item.color) {
@@ -47,7 +52,12 @@
               +
             </button>
           </div>
-          <p class="cart-item__subtotal">{{ item.price * item.quantity | money: item.currency }}</p>
+          <p class="cart-item__subtotal">
+            {{ lineSubtotal(item) - lineDiscount(item) | money: item.currency }}
+            @if (lineDiscount(item) > 0) {
+              <span class="cart-item__discount">Promo: -{{ lineDiscount(item) | money: item.currency }}</span>
+            }
+          </p>
           <button
             type="button"
             class="cart-item__remove"
@@ -68,9 +78,15 @@
     }
 
     <div class="cart-summary">
-      <p class="cart-summary__total">
-        Total: <strong>{{ cart.subtotal() | money: 'UYU' }}</strong>
-      </p>
+      <div class="cart-summary__totals">
+        @if (cart.promotionDiscount() > 0) {
+          <p class="cart-summary__subtotal">Subtotal: {{ cart.subtotal() | money: 'UYU' }}</p>
+          <p class="cart-summary__discount">Descuento por promoción: -{{ cart.promotionDiscount() | money: 'UYU' }}</p>
+        }
+        <p class="cart-summary__total">
+          Total: <strong>{{ cart.grandTotal() | money: 'UYU' }}</strong>
+        </p>
+      </div>
       @if (cart.hasMixedCurrency()) {
         <button type="button" class="btn" disabled>Ir a pagar</button>
       } @else {

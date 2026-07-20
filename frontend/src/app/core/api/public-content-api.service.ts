@@ -2,7 +2,12 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, of, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Category, PublicSiteSettings, TechnicalServiceItem } from '../../shared/models/catalog.models';
+import {
+  Category,
+  PublicPromotion,
+  PublicSiteSettings,
+  TechnicalServiceItem,
+} from '../../shared/models/catalog.models';
 
 @Injectable({ providedIn: 'root' })
 export class PublicContentApiService {
@@ -36,6 +41,12 @@ export class PublicContentApiService {
   getTechnicalServiceBySlug(slug: string): Observable<TechnicalServiceItem> {
     return this.http.get<TechnicalServiceItem>(
       `${this.baseUrl}/technical-services/${encodeURIComponent(slug)}`
+    );
+  }
+
+  getPromotions(): Observable<PublicPromotion[]> {
+    return this.http.get<PublicPromotion[]>(`${this.baseUrl}/promotions`).pipe(
+      catchError(() => of([]))
     );
   }
 }

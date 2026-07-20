@@ -30,12 +30,15 @@ export interface ProductSummary {
   batteryHealth: number | null;
   price: number;
   previousPrice: number | null;
+  promoBuyQuantity: number | null;
+  promoPayQuantity: number | null;
   currency: CurrencyCode;
   stock: number;
   warranty: string | null;
   featured: boolean;
   primaryImageUrl: string | null;
   createdAt: string;
+  categoryId: string | null;
 }
 
 export interface ProductDetail extends ProductSummary {
@@ -135,6 +138,95 @@ export interface CartItem {
   productType: ProductType;
   stock: number;
   quantity: number;
+  promoBuyQuantity: number | null;
+  promoPayQuantity: number | null;
+  categoryId: string | null;
+}
+
+/** "Buy X pay Y" line pricing (2x1, 3x2...) — mirrors CheckoutService.calculateLineSubtotal on the backend. */
+export function calculateLineSubtotal(
+  unitPrice: number,
+  quantity: number,
+  promoBuyQuantity: number | null,
+  promoPayQuantity: number | null
+): number {
+  if (!promoBuyQuantity || !promoPayQuantity || promoBuyQuantity <= promoPayQuantity) {
+    return unitPrice * quantity;
+  }
+  const bundles = Math.floor(quantity / promoBuyQuantity);
+  const remainder = quantity % promoBuyQuantity;
+  const payableUnits = bundles * promoPayQuantity + remainder;
+  return unitPrice * payableUnits;
+}
+
+/** Cross-category "buy N from group A, get M from group B at X% off" promotion (mirrors backend PromotionEngine). */
+export interface PublicPromotion {
+  triggerCategoryId: string;
+  triggerQuantity: number;
+  rewardCategoryId: string;
+  rewardQuantity: number;
+  discountPercent: number;
+}
+
+interface CategoryCartLine {
+  key: string;
+  categoryId: string;
+  quantity: number;
+  effectiveUnitPrice: number;
+}
+
+/** Same-category trigger/reward covers mix-and-match; different categories cover cross-sell gifts. */
+export function calculatePromotionDiscounts(
+  lines: CategoryCartLine[],
+  promotions: PublicPromotion[]
+): Map<string, number> {
+  const discounts = new Map<string, number>();
+  for (const promotion of promotions) {
+    const triggerUnits = lines
+      .filter((line) => line.categoryId === promotion.triggerCategoryId)
+      .reduce((sum, line) => sum + line.quantity, 0);
+    const multiplier = Math.floor(triggerUnits / promotion.triggerQuantity);
+    if (multiplier === 0) {
+      continue;
+    }
+
+    let rewardUnitsRemaining = multiplier * promotion.rewardQuantity;
+    const discountFraction = promotion.discountPercent / 100;
+    const rewardLines = lines
+      .filter((line) => line.categoryId === promotion.rewardCategoryId)
+      .slice()
+      .sort((a, b) => a.effectiveUnitPrice - b.effectiveUnitPrice);
+
+    for (const line of rewardLines) {
+      if (rewardUnitsRemaining <= 0) {
+        break;
+      }
+      const unitsHere = Math.min(rewardUnitsRemaining, line.quantity);
+      const lineDiscount = Math.round(line.effectiveUnitPrice * unitsHere * discountFraction * 100) / 100;
+      discounts.set(line.key, (discounts.get(line.key) ?? 0) + lineDiscount);
+      rewardUnitsRemaining -= unitsHere;
+    }
+  }
+  return discounts;
+}
+
+export function totalPromotionDiscount(discounts: Map<string, number>): number {
+  let total = 0;
+  for (const value of discounts.values()) {
+    total += value;
+  }
+  return total;
+}
+
+export function buildCategoryCartLines(items: CartItem[]): CategoryCartLine[] {
+  return items
+    .filter((item) => item.categoryId != null)
+    .map((item) => ({
+      key: item.productId,
+      categoryId: item.categoryId as string,
+      quantity: item.quantity,
+      effectiveUnitPrice: calculateLineSubtotal(item.price, item.quantity, item.promoBuyQuantity, item.promoPayQuantity) / item.quantity,
+    }));
 }
 
 export interface OrderCreateRequest {

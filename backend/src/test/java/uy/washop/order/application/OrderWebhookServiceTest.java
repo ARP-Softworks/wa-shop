@@ -24,6 +24,7 @@ import uy.washop.order.domain.OrderStatus;
 import uy.washop.order.infrastructure.OrderItemRepository;
 import uy.washop.order.infrastructure.OrderRepository;
 import uy.washop.order.infrastructure.OrderStatusHistoryRepository;
+import uy.washop.notification.application.OrderEmailService;
 import uy.washop.payment.application.PaymentInfo;
 import uy.washop.payment.application.PaymentProvider;
 import uy.washop.product.infrastructure.ProductRepository;
@@ -38,6 +39,7 @@ class OrderWebhookServiceTest {
     @Mock private ProductRepository productRepository;
     @Mock private PaymentProvider paymentProvider;
     @Mock private AuditService auditService;
+    @Mock private OrderEmailService orderEmailService;
 
     private OrderWebhookService service;
 
@@ -49,7 +51,8 @@ class OrderWebhookServiceTest {
                 historyRepository,
                 productRepository,
                 paymentProvider,
-                auditService
+                auditService,
+                orderEmailService
         );
     }
 

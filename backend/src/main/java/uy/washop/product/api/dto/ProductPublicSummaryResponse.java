@@ -20,11 +20,14 @@ public record ProductPublicSummaryResponse(
         Integer batteryHealth,
         BigDecimal price,
         BigDecimal previousPrice,
+        Integer promoBuyQuantity,
+        Integer promoPayQuantity,
         CurrencyCode currency,
         int stock,
         String warranty,
         boolean featured,
         String primaryImageUrl,
-        Instant createdAt
+        Instant createdAt,
+        UUID categoryId
 ) {
 }

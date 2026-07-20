@@ -29,8 +29,27 @@ public final class ProductRules {
         }
     }
 
+    public static void validatePromotion(Product product) {
+        Integer buy = product.getPromoBuyQuantity();
+        Integer pay = product.getPromoPayQuantity();
+        if (buy == null && pay == null) {
+            return;
+        }
+        if (buy == null || pay == null) {
+            throw new BusinessConflictException(
+                    "La promoción necesita cantidad a llevar y cantidad a pagar"
+            );
+        }
+        if (pay < 1 || buy <= pay) {
+            throw new BusinessConflictException(
+                    "La promoción debe llevar más unidades de las que se pagan (ej. 2x1, 3x2)"
+            );
+        }
+    }
+
     public static void validateAll(Product product) {
         validateBatteryHealth(product);
         validatePreviousPrice(product);
+        validatePromotion(product);
     }
 }

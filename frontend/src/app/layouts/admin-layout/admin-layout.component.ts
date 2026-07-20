@@ -30,7 +30,9 @@ export class AdminLayoutComponent {
     { label: 'Servicios', link: '/admin/servicios', icon: 'services' },
     { label: 'Consultas', link: '/admin/consultas', icon: 'inquiries' },
     { label: 'Pedidos', link: '/admin/pedidos', icon: 'orders' },
+    { label: 'Promociones', link: '/admin/promociones', icon: 'promotions' },
     { label: 'Clientes', link: '/admin/clientes', icon: 'customers' },
+    { label: 'Usuarios', link: '/admin/usuarios', icon: 'users' },
     { label: 'Configuración', link: '/admin/configuracion', icon: 'settings' },
     { label: 'Auditoría', link: '/admin/auditoria', icon: 'audit' },
   ];

@@ -21,6 +21,8 @@ public record ProductPublicResponse(
         Integer batteryHealth,
         BigDecimal price,
         BigDecimal previousPrice,
+        Integer promoBuyQuantity,
+        Integer promoPayQuantity,
         CurrencyCode currency,
         int stock,
         String warranty,

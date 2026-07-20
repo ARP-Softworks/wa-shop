@@ -87,6 +87,11 @@ Copiar `.env.example` a `.env` y completar valores. **No commitear secretos.**
 | `MERCADOPAGO_ACCESS_TOKEN` | Access token MP (solo servidor) | |
 | `MERCADOPAGO_PUBLIC_KEY` | Public key MP | |
 | `MERCADOPAGO_WEBHOOK_SECRET` | Secret para verificar firmas del webhook MP | |
+| `MAIL_HOST` | Host SMTP para emails de pedido (vacío = deshabilitado) | |
+| `MAIL_PORT` | Puerto SMTP | `587` |
+| `MAIL_USERNAME` | Usuario SMTP | |
+| `MAIL_PASSWORD` | Password/API key SMTP | |
+| `MAIL_FROM` | Remitente de los emails | `WA Shop <no-reply@washop.uy>` |
 
 Cada variable nueva **debe** documentarse aquí y en `docs/deployment.md`.
 

@@ -9,6 +9,20 @@ spring:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/washop}
     username: ${SPRING_DATASOURCE_USERNAME:washop}
     password: ${SPRING_DATASOURCE_PASSWORD:washop}
+  mail:
+    host: ${MAIL_HOST:}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
   jpa:
     open-in-view: false
     hibernate:
@@ -47,6 +61,11 @@ management:
   endpoint:
     health:
       show-details: never
+  health:
+    mail:
+      # Mail is an optional, lazily-validated feature (see OrderEmailService) — an
+      # unconfigured/unreachable SMTP server must not flip the whole app's health to DOWN.
+      enabled: false
 
 app:
   session:
@@ -86,6 +105,8 @@ app:
     checkout-ip-max-per-window: ${ORDER_CHECKOUT_IP_MAX_PER_WINDOW:8}
     checkout-phone-max-per-window: ${ORDER_CHECKOUT_PHONE_MAX_PER_WINDOW:4}
     checkout-window-seconds: ${ORDER_CHECKOUT_WINDOW_SECONDS:900}
+  mail:
+    from: ${MAIL_FROM:WA Shop <no-reply@washop.uy>}
   public-base-url: ${APP_PUBLIC_BASE_URL:http://localhost:8080}
   public-site-url: ${PUBLIC_SITE_URL:${APP_PUBLIC_BASE_URL:http://localhost:8080}}
   seo:

@@ -16,6 +16,10 @@ import { AdminOrderListPageComponent } from './features/admin/orders/admin-order
 import { AdminOrderDetailPageComponent } from './features/admin/orders/admin-order-detail-page.component';
 import { AdminCustomerListPageComponent } from './features/admin/customers/admin-customer-list-page.component';
 import { AdminCustomerFormPageComponent } from './features/admin/customers/admin-customer-form-page.component';
+import { AdminUserListPageComponent } from './features/admin/users/admin-user-list-page.component';
+import { AdminUserFormPageComponent } from './features/admin/users/admin-user-form-page.component';
+import { AdminPromotionListPageComponent } from './features/admin/promotions/admin-promotion-list-page.component';
+import { AdminPromotionFormPageComponent } from './features/admin/promotions/admin-promotion-form-page.component';
 import { AdminSettingsPageComponent } from './features/admin/settings/admin-settings-page.component';
 import { AdminChangePasswordPageComponent } from './features/admin/account/admin-change-password-page.component';
 import { AdminAuditPageComponent } from './features/admin/audit/admin-audit-page.component';
@@ -273,6 +277,28 @@ export const routes: Routes = [
       {
         path: 'clientes/:id',
         component: AdminCustomerFormPageComponent,
+        canDeactivate: [dirtyFormGuard],
+      },
+      { path: 'usuarios', component: AdminUserListPageComponent },
+      {
+        path: 'usuarios/nuevo',
+        component: AdminUserFormPageComponent,
+        canDeactivate: [dirtyFormGuard],
+      },
+      {
+        path: 'usuarios/:id',
+        component: AdminUserFormPageComponent,
+        canDeactivate: [dirtyFormGuard],
+      },
+      { path: 'promociones', component: AdminPromotionListPageComponent },
+      {
+        path: 'promociones/nueva',
+        component: AdminPromotionFormPageComponent,
+        canDeactivate: [dirtyFormGuard],
+      },
+      {
+        path: 'promociones/:id',
+        component: AdminPromotionFormPageComponent,
         canDeactivate: [dirtyFormGuard],
       },
       {

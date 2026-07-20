@@ -284,6 +284,11 @@ button:disabled,
   color: var(--color-badge-out-fg);
 }
 
+.badge--promo {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
 /* ——— Price ——— */
 .price {
   font-family: var(--font-display);

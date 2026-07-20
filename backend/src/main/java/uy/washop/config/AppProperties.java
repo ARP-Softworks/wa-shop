@@ -14,6 +14,7 @@ public class AppProperties {
     private final Media media = new Media();
     private final Payment payment = new Payment();
     private final Order order = new Order();
+    private final Mail mail = new Mail();
     private final Seo seo = new Seo();
     private final Analytics analytics = new Analytics();
     private String publicBaseUrl = "http://localhost:8080";
@@ -53,6 +54,10 @@ public class AppProperties {
 
     public Order getOrder() {
         return order;
+    }
+
+    public Mail getMail() {
+        return mail;
     }
 
     public Seo getSeo() {
@@ -366,6 +371,18 @@ public class AppProperties {
 
         public void setCheckoutWindowSeconds(int checkoutWindowSeconds) {
             this.checkoutWindowSeconds = checkoutWindowSeconds;
+        }
+    }
+
+    public static class Mail {
+        private String from = "WA Shop <no-reply@washop.uy>";
+
+        public String getFrom() {
+            return from;
+        }
+
+        public void setFrom(String from) {
+            this.from = from;
         }
     }
 

@@ -10,7 +10,9 @@
       "env": {
         "SPRING_DATASOURCE_URL": "jdbc:postgresql://localhost:5433/washop",
         "SPRING_DATASOURCE_USERNAME": "washop",
-        "SPRING_DATASOURCE_PASSWORD": "washop"
+        "SPRING_DATASOURCE_PASSWORD": "washop",
+        "APP_ADMIN_BOOTSTRAP_EMAIL": "admin@washop.uy",
+        "APP_ADMIN_BOOTSTRAP_PASSWORD": "ChangeMe123!"
       }
     },
     {

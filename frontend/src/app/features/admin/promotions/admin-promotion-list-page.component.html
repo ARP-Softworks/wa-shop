@@ -1,0 +1,66 @@
+<div class="admin-page">
+  <app-admin-breadcrumbs [items]="[{ label: 'Promociones' }]" />
+
+  <header class="admin-page__header">
+    <div>
+      <h1>Promociones</h1>
+      <p class="admin-page__subtitle">
+        Promos cruzadas entre categorías: "comprá N de una categoría, llevate M de otra con descuento".
+      </p>
+    </div>
+    <a class="btn" routerLink="/admin/promociones/nueva">Nueva promoción</a>
+  </header>
+
+  @if (actionError()) {
+    <p class="admin-alert admin-alert--error" role="alert">{{ actionError() }}</p>
+  }
+
+  @if (state().status === 'loading' || state().status === 'error' || state().status === 'empty') {
+    <app-state-panel [state]="state()" />
+    @if (state().status === 'error') {
+      <button type="button" (click)="load()">Reintentar</button>
+    }
+  } @else {
+    @if (state().data; as promotions) {
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Comprá</th>
+            <th>Llevate</th>
+            <th>Descuento</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (promotion of promotions; track promotion.id) {
+            <tr>
+              <td data-label="Nombre">{{ promotion.name }}</td>
+              <td data-label="Comprá">{{ promotion.triggerQuantity }} de {{ promotion.triggerCategoryName }}</td>
+              <td data-label="Llevate">{{ promotion.rewardQuantity }} de {{ promotion.rewardCategoryName }}</td>
+              <td data-label="Descuento">{{ promotion.discountPercent }}%</td>
+              <td data-label="Estado">
+                <span
+                  class="status-badge"
+                  [class.status-badge--published]="promotion.active"
+                  [class.status-badge--draft]="!promotion.active"
+                >
+                  {{ promotion.active ? 'Activa' : 'Inactiva' }}
+                </span>
+              </td>
+              <td data-label="Acciones">
+                <div class="admin-table__actions">
+                  <a class="btn btn-secondary" [routerLink]="['/admin/promociones', promotion.id]">Editar</a>
+                  <button type="button" class="btn btn-danger" (click)="deletePromotion(promotion)">Eliminar</button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    }
+  }
+</div>

@@ -26,6 +26,8 @@ public record ProductWriteRequest(
         @Min(0) @Max(100) Integer batteryHealth,
         @NotNull @DecimalMin("0.00") BigDecimal price,
         @DecimalMin("0.00") BigDecimal previousPrice,
+        @Min(1) Integer promoBuyQuantity,
+        @Min(1) Integer promoPayQuantity,
         @NotNull CurrencyCode currency,
         @Min(0) int stock,
         @Size(max = 200) String warranty,
