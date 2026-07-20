@@ -15,8 +15,10 @@ import uy.washop.product.api.dto.ProductPublicSummaryResponse;
 import uy.washop.product.api.dto.ProductSearchCriteria;
 import uy.washop.product.api.mapper.ProductMapper;
 import uy.washop.product.domain.Product;
+import uy.washop.product.domain.ProductCompatibleModel;
 import uy.washop.product.domain.ProductFeature;
 import uy.washop.product.domain.ProductImage;
+import uy.washop.product.infrastructure.ProductCompatibleModelRepository;
 import uy.washop.product.infrastructure.ProductFeatureRepository;
 import uy.washop.product.infrastructure.ProductImageRepository;
 import uy.washop.product.infrastructure.ProductRepository;
@@ -30,17 +32,20 @@ public class PublicCatalogService {
     private final ProductRepository productRepository;
     private final ProductImageRepository productImageRepository;
     private final ProductFeatureRepository productFeatureRepository;
+    private final ProductCompatibleModelRepository productCompatibleModelRepository;
     private final PrimaryImageUrlLoader primaryImageUrlLoader;
 
     public PublicCatalogService(
             ProductRepository productRepository,
             ProductImageRepository productImageRepository,
             ProductFeatureRepository productFeatureRepository,
+            ProductCompatibleModelRepository productCompatibleModelRepository,
             PrimaryImageUrlLoader primaryImageUrlLoader
     ) {
         this.productRepository = productRepository;
         this.productImageRepository = productImageRepository;
         this.productFeatureRepository = productFeatureRepository;
+        this.productCompatibleModelRepository = productCompatibleModelRepository;
         this.primaryImageUrlLoader = primaryImageUrlLoader;
     }
 
@@ -93,6 +98,22 @@ public class PublicCatalogService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<ProductPublicSummaryResponse> variants(String slugOrId) {
+        Product product = resolvePublished(slugOrId);
+        if (product.getProductGroupId() == null) {
+            return List.of();
+        }
+        List<Product> siblings = productRepository
+                .findByProductGroup_IdAndPublishedTrueOrderByPriceAsc(product.getProductGroupId());
+        Map<UUID, String> primaryImages = primaryImageUrlLoader.load(
+                siblings.stream().map(Product::getId).toList()
+        );
+        return siblings.stream()
+                .map(item -> ProductMapper.toPublicSummary(item, primaryImages.get(item.getId())))
+                .toList();
+    }
+
     private Product resolvePublished(String slugOrId) {
         try {
             UUID id = UUID.fromString(slugOrId);
@@ -108,7 +129,11 @@ public class PublicCatalogService {
     private ProductPublicResponse toDetail(Product product) {
         List<ProductImage> images = productImageRepository.findByProductIdOrderByPositionAsc(product.getId());
         List<ProductFeature> features = productFeatureRepository.findByProductIdOrderByNameAsc(product.getId());
-        return ProductMapper.toPublicResponse(product, images, features);
+        List<String> compatibleModels = productCompatibleModelRepository
+                .findByProductIdOrderByModelAsc(product.getId()).stream()
+                .map(ProductCompatibleModel::getModel)
+                .toList();
+        return ProductMapper.toPublicResponse(product, images, features, compatibleModels);
     }
 
     private static int clampSize(int size) {

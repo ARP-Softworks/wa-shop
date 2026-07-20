@@ -5,9 +5,12 @@
     <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="checkout-form">
       <h2>Tus datos</h2>
 
-      <label>
-        Nombre y apellido
+      <div class="form-field">
+        <label for="customerName">
+          Nombre y apellido<span class="required-mark" aria-hidden="true">*</span>
+        </label>
         <input
+          id="customerName"
           type="text"
           formControlName="customerName"
           autocomplete="name"
@@ -16,11 +19,14 @@
         @if (fieldError('customerName'); as err) {
           <p class="field-error">{{ err }}</p>
         }
-      </label>
+      </div>
 
-      <label>
-        Teléfono (WhatsApp)
+      <div class="form-field">
+        <label for="customerPhone">
+          Teléfono (WhatsApp)<span class="required-mark" aria-hidden="true">*</span>
+        </label>
         <input
+          id="customerPhone"
           type="tel"
           formControlName="customerPhone"
           autocomplete="tel"
@@ -30,11 +36,12 @@
         @if (fieldError('customerPhone'); as err) {
           <p class="field-error">{{ err }}</p>
         }
-      </label>
+      </div>
 
-      <label>
-        Email (opcional)
+      <div class="form-field">
+        <label for="customerEmail">Email (opcional)</label>
         <input
+          id="customerEmail"
           type="email"
           formControlName="customerEmail"
           autocomplete="email"
@@ -43,12 +50,12 @@
         @if (fieldError('customerEmail'); as err) {
           <p class="field-error">{{ err }}</p>
         }
-      </label>
+      </div>
 
-      <label>
-        Dirección de envío (opcional)
-        <textarea formControlName="shippingAddress" rows="3"></textarea>
-      </label>
+      <div class="form-field">
+        <label for="shippingAddress">Dirección de envío (opcional)</label>
+        <textarea id="shippingAddress" formControlName="shippingAddress" rows="3"></textarea>
+      </div>
 
       @if (cart.hasMixedCurrency()) {
         <p class="cart-warning" role="alert">
@@ -79,6 +86,12 @@
         <div class="checkout-summary__row">
           <span>Descuento por promoción</span>
           <span>-{{ cart.promotionDiscount() | money: 'UYU' }}</span>
+        </div>
+      }
+      @if (cart.couponDiscount() > 0) {
+        <div class="checkout-summary__row">
+          <span>Cupón {{ cart.couponCode() }}</span>
+          <span>-{{ cart.couponDiscount() | money: 'UYU' }}</span>
         </div>
       }
       <div class="checkout-summary__total">

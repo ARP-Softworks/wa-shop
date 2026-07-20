@@ -1,44 +1,76 @@
 <section class="login">
-  <div class="login__card">
-    <div class="login__brand">
-      <span class="logo-frame logo-frame--lg">
-        <img src="assets/logo/logo_wa-shop-transparent.png" alt="WA Shop logo" width="64" height="64" />
-      </span>
-      <h1>Ingreso administrativo</h1>
-      <p>Acceso solo para administradores. La sesión se guarda en una cookie segura.</p>
-    </div>
+  <div class="login__shell">
+    <aside class="login__aside" aria-hidden="true">
+      <div class="login__aside-brand">
+        <img
+          class="login__aside-logo"
+          src="assets/logo/logo-wordmark-white.png"
+          alt="WA Shop"
+          width="280"
+          height="120"
+        />
+        <p class="login__aside-eyebrow">Panel administrativo</p>
+        <h2 class="login__aside-title">Panel de gestión</h2>
+        <p class="login__aside-copy">
+          Catálogo, pedidos, consultas y configuración en un solo lugar.
+        </p>
+      </div>
+    </aside>
 
-    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
-      <label>
-        Email
-        <input type="email" formControlName="email" autocomplete="username" />
-      </label>
+    <div class="login__panel">
+      <div class="login__brand">
+        <h1>Ingresar</h1>
+        <p class="login__lead">Usá tu cuenta de administrador para continuar.</p>
+      </div>
 
-      <label>
-        Contraseña
-        <span class="password-field">
+      <form class="login__form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="login__field">
+          <label for="loginEmail">
+            Email<span class="required-mark" aria-hidden="true">*</span>
+          </label>
           <input
-            [type]="showPassword ? 'text' : 'password'"
-            formControlName="password"
-            autocomplete="current-password"
+            id="loginEmail"
+            type="email"
+            formControlName="email"
+            autocomplete="username"
+            placeholder="admin@washop.uy"
           />
-          <button
-            type="button"
-            class="password-toggle"
-            (click)="showPassword = !showPassword"
-            [attr.aria-pressed]="showPassword"
-            [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
-          >
-            {{ showPassword ? 'Ocultar' : 'Mostrar' }}
-          </button>
-        </span>
-      </label>
+        </div>
 
-      @if (errorMessage) {
-        <p class="error" role="alert">{{ errorMessage }}</p>
-      }
+        <div class="login__field">
+          <label for="loginPassword">
+            Contraseña<span class="required-mark" aria-hidden="true">*</span>
+          </label>
+          <div class="password-field">
+            <input
+              id="loginPassword"
+              [type]="showPassword ? 'text' : 'password'"
+              formControlName="password"
+              autocomplete="current-password"
+              placeholder="Tu contraseña"
+            />
+            <button
+              type="button"
+              class="password-toggle"
+              (click)="showPassword = !showPassword"
+              [attr.aria-pressed]="showPassword"
+              [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+            >
+              {{ showPassword ? 'Ocultar' : 'Mostrar' }}
+            </button>
+          </div>
+        </div>
 
-      <button type="submit" class="btn login__submit" [disabled]="submitting">Ingresar</button>
-    </form>
+        @if (errorMessage) {
+          <p class="login__error" role="alert">{{ errorMessage }}</p>
+        }
+
+        <button type="submit" class="btn login__submit" [disabled]="submitting">
+          {{ submitting ? 'Ingresando…' : 'Ingresar' }}
+        </button>
+      </form>
+
+      <a class="login__back" routerLink="/">← Volver al sitio</a>
+    </div>
   </div>
 </section>

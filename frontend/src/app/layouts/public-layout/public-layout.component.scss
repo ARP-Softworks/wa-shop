@@ -51,8 +51,8 @@
 }
 
 .brand__logo {
-  height: 3.5rem;
-  width: 3.5rem;
+  height: 3rem;
+  width: auto;
   object-fit: contain;
   display: block;
 }
@@ -240,13 +240,11 @@
 }
 
 .footer__logo {
-  width: 3.5rem;
-  height: 3.5rem;
+  width: auto;
+  height: 3rem;
   object-fit: contain;
   display: block;
   margin-bottom: 0.75rem;
-  background: #fff;
-  border-radius: 50%;
 }
 
 .footer__tagline {

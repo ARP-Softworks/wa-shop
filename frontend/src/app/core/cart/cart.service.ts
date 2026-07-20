@@ -22,6 +22,8 @@ export class CartService {
   private readonly contentApi = inject(PublicContentApiService);
   private readonly items = signal<CartItem[]>(this.readFromStorage());
   private readonly promotions = signal<PublicPromotion[]>([]);
+  private readonly appliedCouponCode = signal<string | null>(null);
+  private readonly appliedCouponAmount = signal(0);
 
   readonly cartItems = this.items.asReadonly();
   readonly itemCount = computed(() => this.items().reduce((sum, item) => sum + item.quantity, 0));
@@ -36,7 +38,12 @@ export class CartService {
     calculatePromotionDiscounts(buildCategoryCartLines(this.items()), this.promotions())
   );
   readonly promotionDiscount = computed(() => totalPromotionDiscount(this.promotionDiscounts()));
-  readonly grandTotal = computed(() => Math.max(0, this.subtotal() - this.promotionDiscount()));
+  readonly afterPromotions = computed(() => Math.max(0, this.subtotal() - this.promotionDiscount()));
+  readonly couponCode = this.appliedCouponCode.asReadonly();
+  readonly couponDiscount = this.appliedCouponAmount.asReadonly();
+  readonly grandTotal = computed(() =>
+    Math.max(0, this.afterPromotions() - this.appliedCouponAmount())
+  );
   readonly hasMixedCurrency = computed(() => {
     const currencies = new Set(this.items().map((item) => item.currency));
     return currencies.size > 1 || (currencies.size === 1 && !currencies.has('UYU'));
@@ -107,7 +114,18 @@ export class CartService {
 
   clear(): void {
     this.items.set([]);
+    this.clearCoupon();
     this.persist();
+  }
+
+  setCoupon(code: string, amount: number): void {
+    this.appliedCouponCode.set(code.trim().toUpperCase());
+    this.appliedCouponAmount.set(Math.max(0, amount));
+  }
+
+  clearCoupon(): void {
+    this.appliedCouponCode.set(null);
+    this.appliedCouponAmount.set(0);
   }
 
   private persist(): void {

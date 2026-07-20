@@ -14,6 +14,7 @@ import { AdminProductApiService } from '../../../core/api/admin-product-api.serv
 import { CanComponentDeactivate } from '../../../core/auth/can-deactivate.guard';
 import { AdminBreadcrumbsComponent } from '../../../shared/components/admin-breadcrumbs/admin-breadcrumbs.component';
 import { AdminMediaUploaderComponent } from '../../../shared/components/admin-media-uploader/admin-media-uploader.component';
+import { SuggestComboComponent } from '../../../shared/components/suggest-combo/suggest-combo.component';
 import { StatePanelComponent } from '../../../shared/components/state-panel/state-panel.component';
 import {
   AdminCategory,
@@ -27,6 +28,7 @@ import { loadingState, successState, UiState } from '../../../shared/models/ui-s
 import { apiErrorMessage, mapFieldErrors, parseApiError } from '../../../shared/utils/api-error.util';
 import { confirmAction } from '../../../shared/utils/confirm.util';
 import { slugify } from '../../../shared/utils/slugify.util';
+import { IPHONE_MODELS, IPHONE_CAPACITIES, colorsForModel } from '../../../shared/data/iphone-catalog-reference';
 
 interface ProductFormRouteData {
   productType?: ProductType;
@@ -64,6 +66,7 @@ function batteryRequiredValidator(control: AbstractControl): ValidationErrors | 
     AdminBreadcrumbsComponent,
     StatePanelComponent,
     AdminMediaUploaderComponent,
+    SuggestComboComponent,
   ],
   templateUrl: './admin-product-form-page.component.html',
   styleUrl: './admin-product-form-page.component.scss',
@@ -87,14 +90,22 @@ export class AdminProductFormPageComponent implements OnInit, OnDestroy, CanComp
   readonly successMessage = signal('');
   readonly submitting = signal(false);
   readonly imageUploadError = signal('');
+  readonly compatibleModels = signal<string[]>([]);
+  readonly modelSearch = signal('');
+  readonly modelPickerOpen = signal(false);
+
+  readonly iphoneModels = IPHONE_MODELS;
+  readonly iphoneCapacities = IPHONE_CAPACITIES;
 
   private slugManuallyEdited = false;
+  private groupManuallyEdited = false;
   private subscriptions = new Subscription();
 
   readonly form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(200)]],
     slug: ['', [Validators.required, Validators.maxLength(220)]],
     model: ['', Validators.maxLength(120)],
+    productGroupName: ['', Validators.maxLength(200)],
     description: [''],
     productType: ['IPHONE' as ProductType, Validators.required],
     condition: ['NEW' as ProductCondition, Validators.required],
@@ -158,6 +169,20 @@ export class AdminProductFormPageComponent implements OnInit, OnDestroy, CanComp
     );
 
     this.subscriptions.add(
+      this.form.controls.model.valueChanges.subscribe((model) => {
+        if (!this.groupManuallyEdited) {
+          this.form.controls.productGroupName.setValue(model, { emitEvent: false });
+        }
+      })
+    );
+
+    this.subscriptions.add(
+      this.form.controls.productGroupName.valueChanges.subscribe(() => {
+        this.groupManuallyEdited = true;
+      })
+    );
+
+    this.subscriptions.add(
       this.form.controls.productType.valueChanges.subscribe(() => {
         this.form.controls.batteryHealth.updateValueAndValidity();
       })
@@ -189,22 +214,38 @@ export class AdminProductFormPageComponent implements OnInit, OnDestroy, CanComp
     return this.form.controls.images;
   }
 
-  get serpTitle(): string {
-    const seo = this.form.controls.seoTitle.value?.trim();
-    return seo || this.form.controls.name.value?.trim() || 'Título del producto';
-  }
-
-  get serpDescription(): string {
-    const meta = this.form.controls.metaDescription.value?.trim();
-    if (meta) {
-      return meta;
-    }
-    const desc = this.form.controls.description.value?.trim();
-    return desc || 'Descripción que verán los buscadores…';
-  }
-
   mediaFolder(): string {
     return this.defaultProductType() === 'ACCESSORY' ? 'accessories' : 'products';
+  }
+
+  colorOptionsForModel(): string[] {
+    return colorsForModel(this.form.controls.model.value);
+  }
+
+  get modelSuggestions(): string[] {
+    const term = this.modelSearch().trim().toLowerCase();
+    const selected = this.compatibleModels();
+    return this.iphoneModels.filter(
+      (m) => !selected.includes(m) && (!term || m.toLowerCase().includes(term))
+    );
+  }
+
+  onModelSearchInput(value: string): void {
+    this.modelSearch.set(value);
+    this.modelPickerOpen.set(true);
+  }
+
+  addCompatibleModel(model: string): void {
+    if (!this.compatibleModels().includes(model)) {
+      this.compatibleModels.set([...this.compatibleModels(), model]);
+      this.form.markAsDirty();
+    }
+    this.modelSearch.set('');
+  }
+
+  removeCompatibleModel(model: string): void {
+    this.compatibleModels.set(this.compatibleModels().filter((m) => m !== model));
+    this.form.markAsDirty();
   }
 
   addFeature(name = '', value = ''): void {
@@ -340,6 +381,7 @@ export class AdminProductFormPageComponent implements OnInit, OnDestroy, CanComp
         this.loadState.set(successState(product));
         this.patchFormFromProduct(product);
         this.slugManuallyEdited = true;
+        this.groupManuallyEdited = true;
       },
       error: (error) => {
         this.loadState.set({
@@ -380,6 +422,7 @@ export class AdminProductFormPageComponent implements OnInit, OnDestroy, CanComp
       name: product.name,
       slug: product.slug,
       model: product.model ?? '',
+      productGroupName: product.productGroupName ?? '',
       description: product.description ?? '',
       productType: product.productType,
       condition: product.condition,
@@ -401,6 +444,7 @@ export class AdminProductFormPageComponent implements OnInit, OnDestroy, CanComp
       metaDescription: product.metaDescription ?? '',
       indexable: product.indexable ?? true,
     });
+    this.compatibleModels.set(product.compatibleModels ?? []);
     this.form.markAsPristine();
   }
 
@@ -426,6 +470,7 @@ export class AdminProductFormPageComponent implements OnInit, OnDestroy, CanComp
       name: raw.name.trim(),
       slug: raw.slug.trim(),
       model: raw.model.trim() || null,
+      productGroupName: raw.productGroupName.trim() || null,
       description: raw.description.trim() || null,
       productType: raw.productType,
       condition: raw.condition,
@@ -450,6 +495,7 @@ export class AdminProductFormPageComponent implements OnInit, OnDestroy, CanComp
         .filter((f) => f.name.trim() && f.value.trim())
         .map((f) => ({ name: f.name.trim(), value: f.value.trim() })),
       images,
+      compatibleModels: raw.productType === 'ACCESSORY' ? this.compatibleModels() : [],
     };
   }
 

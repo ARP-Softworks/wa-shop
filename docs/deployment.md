@@ -114,6 +114,7 @@ Flyway aplica migraciones al arrancar; la app no crea el esquema con `ddl-auto=u
 | `ORDER_CHECKOUT_IP_MAX_PER_WINDOW` | No | Default `8` — tope de checkouts por IP |
 | `ORDER_CHECKOUT_PHONE_MAX_PER_WINDOW` | No | Default `4` — tope de checkouts por teléfono |
 | `ORDER_CHECKOUT_WINDOW_SECONDS` | No | Default `900` (15 min) — ventana del rate limit |
+| `ORDER_DISCOUNT_VALIDATE_IP_MAX_PER_WINDOW` | No | Default `20` — tope de validaciones de cupón por IP |
 | `PAYMENT_PROVIDER` | No | Default `mercadopago` |
 | `MERCADOPAGO_ACCESS_TOKEN` | Sí si checkout activo | Solo servidor |
 | `MERCADOPAGO_PUBLIC_KEY` | Sí si checkout activo | Pública (también puede exponerse en settings) |

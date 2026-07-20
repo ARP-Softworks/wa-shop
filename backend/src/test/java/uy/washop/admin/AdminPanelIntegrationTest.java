@@ -247,7 +247,7 @@ class AdminPanelIntegrationTest {
                                 {
                                   "businessName": "WA Shop Uruguay",
                                   "whatsappNumber": "59899111222",
-                                  "instagramUrl": "https://instagram.com/washop",
+                                  "instagramUrl": "https://www.instagram.com/wa.shop.uy/",
                                   "address": "Montevideo",
                                   "openingHours": "Lun-Vie 10-19",
                                   "contactEmail": "hola@washop.uy",

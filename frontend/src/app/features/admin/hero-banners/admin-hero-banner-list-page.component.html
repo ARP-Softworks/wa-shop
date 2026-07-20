@@ -1,0 +1,66 @@
+<div class="admin-page">
+  <app-admin-breadcrumbs [items]="[{ label: 'Banners' }]" />
+
+  <header class="admin-page__header">
+    <div>
+      <h1>Banners del inicio</h1>
+      <p class="admin-page__subtitle">
+        Imágenes que rotan en la portada del sitio. Cada una puede llevar a una sección o producto.
+      </p>
+    </div>
+    <a class="btn" routerLink="/admin/banners/nuevo">Nuevo banner</a>
+  </header>
+
+  @if (actionError()) {
+    <p class="admin-alert admin-alert--error" role="alert">{{ actionError() }}</p>
+  }
+
+  @if (state().status === 'loading' || state().status === 'error' || state().status === 'empty') {
+    <app-state-panel [state]="state()" />
+    @if (state().status === 'error') {
+      <button type="button" (click)="load()">Reintentar</button>
+    }
+  } @else {
+    @if (state().data; as banners) {
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Enlace</th>
+            <th>Orden</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (banner of banners; track banner.id) {
+            <tr>
+              <td data-label="">
+                <img class="admin-table__thumb" [src]="banner.imageUrl" [alt]="banner.altText || 'Banner'" />
+              </td>
+              <td data-label="Enlace">{{ banner.linkUrl || '—' }}</td>
+              <td data-label="Orden">{{ banner.position }}</td>
+              <td data-label="Estado">
+                <span
+                  class="status-badge"
+                  [class.status-badge--published]="banner.active"
+                  [class.status-badge--draft]="!banner.active"
+                >
+                  {{ banner.active ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+              <td data-label="Acciones">
+                <div class="admin-table__actions">
+                  <a class="btn btn-secondary" [routerLink]="['/admin/banners', banner.id]">Editar</a>
+                  <button type="button" class="btn btn-danger" (click)="deleteBanner(banner)">Eliminar</button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    }
+  }
+</div>

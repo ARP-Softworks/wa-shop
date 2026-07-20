@@ -3,6 +3,8 @@ package uy.washop.notification.application;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import java.math.BigDecimal;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -67,7 +69,7 @@ public class OrderEmailService {
         String customerEmail = order.getCustomer() != null ? order.getCustomer().getEmail() : null;
         if (StringUtils.hasText(customerEmail)) {
             trySend(customerEmail, "Confirmamos tu pedido " + orderCode(order) + " — " + businessName,
-                    buildCustomerHtml(order, items, businessName));
+                    buildCustomerHtml(order, items, businessName, settings));
         }
 
         String ownerEmail = settings != null ? settings.getContactEmail() : null;
@@ -95,21 +97,55 @@ public class OrderEmailService {
         return "#" + order.getId().toString().substring(0, 8).toUpperCase(Locale.ROOT);
     }
 
-    private String buildCustomerHtml(Order order, List<OrderItem> items, String businessName) {
+    private String buildCustomerHtml(Order order, List<OrderItem> items, String businessName, SiteSettings settings) {
         String customerName = order.getCustomer() != null ? order.getCustomer().getName() : "";
         String rows = itemRows(items, order);
         String address = StringUtils.hasText(order.getShippingAddress())
                 ? "<p style=\"margin:0 0 4px;color:#475569;\"><strong>Dirección de envío:</strong> "
                         + escape(order.getShippingAddress()) + "</p>"
                 : "";
+        String whatsappSection = buildWhatsappSection(order, businessName, settings);
 
         return wrapper(businessName, """
                 <h1 style="margin:0 0 8px;font-size:22px;color:#0f172a;">¡Gracias por tu compra, %s!</h1>
                 <p style="margin:0 0 20px;color:#475569;">Tu pago fue confirmado. Acá tenés el resumen de tu pedido.</p>
                 %s
                 %s
-                <p style="margin:20px 0 0;color:#475569;">Te vamos a contactar por WhatsApp para coordinar la entrega. ¡Gracias por elegirnos!</p>
-                """.formatted(escape(customerName), orderSummaryBlock(order, rows), address));
+                %s
+                """.formatted(escape(customerName), orderSummaryBlock(order, rows), address, whatsappSection));
+    }
+
+    /** Prompts the customer to reach out first — the shop coordinates delivery by replying to their message. */
+    private String buildWhatsappSection(Order order, String businessName, SiteSettings settings) {
+        String phone = settings != null ? normalizePhone(settings.getWhatsappNumber()) : null;
+        if (phone == null) {
+            return """
+                    <p style="margin:20px 0 0;color:#475569;">
+                      Escribinos por WhatsApp con tu número de pedido para coordinar la entrega. ¡Gracias por elegirnos!
+                    </p>
+                    """;
+        }
+        String message = "Hola! Realicé el pedido " + orderCode(order) + " en " + businessName
+                + " y quiero coordinar la entrega.";
+        String whatsappUrl = "https://wa.me/" + phone + "?text=" + URLEncoder.encode(message, StandardCharsets.UTF_8);
+
+        return """
+                <p style="margin:20px 0 12px;color:#475569;">
+                  Para coordinar la entrega, escribinos por WhatsApp confirmando tu número de pedido
+                  <strong>%s</strong>.
+                </p>
+                <p style="margin:0;">
+                  <a href="%s" style="background:#25d366;color:#ffffff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600;display:inline-block;">Escribir por WhatsApp</a>
+                </p>
+                """.formatted(orderCode(order), whatsappUrl);
+    }
+
+    private static String normalizePhone(String phone) {
+        if (!StringUtils.hasText(phone)) {
+            return null;
+        }
+        String digits = phone.replaceAll("\\D", "");
+        return digits.isEmpty() ? null : digits;
     }
 
     private String buildOwnerHtml(Order order, List<OrderItem> items, String businessName) {

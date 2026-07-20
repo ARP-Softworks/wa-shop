@@ -33,4 +33,10 @@ export class CatalogApiService {
       `${this.baseUrl}/${encodeURIComponent(slugOrId)}/related`
     );
   }
+
+  variants(slugOrId: string): Observable<ProductSummary[]> {
+    return this.http.get<ProductSummary[]>(
+      `${this.baseUrl}/${encodeURIComponent(slugOrId)}/variants`
+    );
+  }
 }

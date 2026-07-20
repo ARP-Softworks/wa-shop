@@ -46,8 +46,10 @@ export interface ProductDetail extends ProductSummary {
   published: boolean;
   categoryId: string | null;
   categoryName: string | null;
+  productGroupId: string | null;
   images: ProductImage[];
   features: ProductFeature[];
+  compatibleModels: string[];
   seoTitle?: string | null;
   metaDescription?: string | null;
   indexable?: boolean;
@@ -229,11 +231,19 @@ export function buildCategoryCartLines(items: CartItem[]): CategoryCartLine[] {
     }));
 }
 
+export interface PublicHeroBanner {
+  id: string;
+  imageUrl: string;
+  altText: string | null;
+  linkUrl: string | null;
+}
+
 export interface OrderCreateRequest {
   customerName: string;
   customerPhone: string;
   customerEmail?: string | null;
   shippingAddress?: string | null;
+  discountCode?: string | null;
   items: { productId: string; quantity: number }[];
 }
 

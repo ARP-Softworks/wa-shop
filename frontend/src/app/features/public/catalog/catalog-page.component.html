@@ -21,7 +21,7 @@
     @if (!conditionLocked()) {
       <label>
         Estado
-        <select formControlName="condition">
+        <select class="ui-select" formControlName="condition">
           <option value="">Todos</option>
           <option value="NEW">Nuevo</option>
           <option value="USED">Usado</option>
@@ -65,7 +65,7 @@
 
     <label>
       Orden
-      <select formControlName="sort">
+      <select class="ui-select" formControlName="sort">
         <option value="createdAt,desc">Más recientes</option>
         <option value="createdAt,asc">Más antiguos</option>
         <option value="price,asc">Precio: menor a mayor</option>

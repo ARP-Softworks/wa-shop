@@ -70,6 +70,8 @@ export interface AdminProductDetail {
   slug: string;
   name: string;
   model: string | null;
+  productGroupId: string | null;
+  productGroupName: string | null;
   description: string | null;
   productType: ProductType;
   condition: ProductCondition;
@@ -90,6 +92,7 @@ export interface AdminProductDetail {
   categoryName: string | null;
   images: AdminProductImage[];
   features: ProductFeature[];
+  compatibleModels: string[];
   seoTitle?: string | null;
   metaDescription?: string | null;
   indexable?: boolean;
@@ -118,6 +121,7 @@ export interface ProductWriteRequest {
   name: string;
   slug: string;
   model?: string | null;
+  productGroupName?: string | null;
   description?: string | null;
   productType: ProductType;
   condition: ProductCondition;
@@ -140,6 +144,7 @@ export interface ProductWriteRequest {
   indexable?: boolean;
   features: ProductFeatureWrite[];
   images: ProductImageWrite[];
+  compatibleModels?: string[];
 }
 
 export interface AdminProductSearchParams {
@@ -456,6 +461,53 @@ export interface PromotionWriteRequest {
   rewardCategoryId: string;
   rewardQuantity: number;
   discountPercent: number;
+}
+
+export type DiscountType = 'PERCENT' | 'FIXED';
+
+export interface AdminDiscountCode {
+  id: string;
+  code: string;
+  active: boolean;
+  discountType: DiscountType;
+  discountValue: number;
+  maxUses: number | null;
+  usedCount: number;
+  startsAt: string | null;
+  endsAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DiscountCodeWriteRequest {
+  code: string;
+  active: boolean;
+  discountType: DiscountType;
+  discountValue: number;
+  maxUses: number | null;
+  startsAt: string | null;
+  endsAt: string | null;
+}
+
+export interface AdminHeroBanner {
+  id: string;
+  imageUrl: string;
+  imagePublicId: string | null;
+  altText: string | null;
+  linkUrl: string | null;
+  position: number;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface HeroBannerWriteRequest {
+  imageUrl: string;
+  imagePublicId?: string | null;
+  altText?: string | null;
+  linkUrl?: string | null;
+  position: number;
+  active: boolean;
 }
 
 export interface AuditLog {

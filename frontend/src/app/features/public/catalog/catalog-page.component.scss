@@ -10,17 +10,18 @@
   box-shadow: var(--shadow-soft);
 }
 
-label {
-  display: grid;
-  gap: var(--space-2);
+.filters label {
+  display: block;
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--color-ink);
 }
 
-input,
-select {
+.filters label > input,
+.filters label > select {
+  display: block;
   width: 100%;
+  margin-top: var(--space-2);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   padding: 0.7rem 0.85rem;
@@ -29,8 +30,8 @@ select {
   transition: border-color 140ms ease;
 }
 
-input:focus,
-select:focus {
+.filters label > input:focus,
+.filters label > select:focus {
   border-color: var(--color-accent);
 }
 

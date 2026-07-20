@@ -1,4 +1,4 @@
-<div class="admin-page">
+<div class="admin-page products-page">
   <app-admin-breadcrumbs [items]="[{ label: pageTitle() }]" />
 
   <header class="admin-page__header">
@@ -6,21 +6,21 @@
       <h1>{{ pageTitle() }}</h1>
       <p class="admin-page__subtitle">Gestión de catálogo administrativo.</p>
     </div>
-    <a class="btn" [routerLink]="createLink()">Nuevo</a>
+    <a class="btn products-page__new" [routerLink]="createLink()">Nuevo</a>
   </header>
 
   @if (actionError()) {
     <p class="admin-alert admin-alert--error" role="alert">{{ actionError() }}</p>
   }
 
-  <form class="admin-filters" [formGroup]="filters" (ngSubmit)="$event.preventDefault()">
-    <label>
+  <form class="admin-filters products-filters" [formGroup]="filters" (ngSubmit)="$event.preventDefault()">
+    <label class="products-filters__search">
       Buscar
       <input type="search" formControlName="q" placeholder="Nombre, modelo…" />
     </label>
     <label>
       Condición
-      <select formControlName="condition">
+      <select class="ui-select" formControlName="condition">
         <option value="">Todas</option>
         <option value="NEW">Nuevo</option>
         <option value="USED">Usado</option>
@@ -28,7 +28,7 @@
     </label>
     <label>
       Publicación
-      <select formControlName="published">
+      <select class="ui-select" formControlName="published">
         <option value="">Todas</option>
         <option value="true">Publicados</option>
         <option value="false">Borradores</option>
@@ -39,109 +39,124 @@
   @if (state().status === 'loading' || state().status === 'error' || state().status === 'empty') {
     <app-state-panel [state]="state()" />
     @if (state().status === 'error') {
-      <button type="button" (click)="load()">Reintentar</button>
+      <button type="button" class="btn btn-secondary" (click)="load()">Reintentar</button>
     }
   } @else {
     @if (state().data; as pageData) {
-    <div class="admin-table-wrap">
-      <table class="admin-table">
-        <thead>
-          <tr>
-            <th></th>
-            <th>Nombre</th>
-            <th>Condición</th>
-            <th>Capacidad</th>
-            <th>Color</th>
-            <th>Batería</th>
-            <th>Precio</th>
-            <th>Stock</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (product of pageData.content; track product.id) {
+      <div class="admin-table-wrap products-table-wrap">
+        <table class="admin-table products-table">
+          <thead>
             <tr>
-              <td data-label="">
-                @if (product.primaryImageUrl) {
-                  <img class="admin-table__thumb" [src]="product.primaryImageUrl" [alt]="product.name" />
-                } @else {
-                  <span class="admin-form__hint">Sin img</span>
-                }
-              </td>
-              <td data-label="Nombre">
-                <a [routerLink]="editLink(product.id)">{{ product.name }}</a>
-              </td>
-              <td data-label="Condición">
-                <span
-                  class="status-badge"
-                  [class.status-badge--published]="product.condition === 'NEW'"
-                  [class.status-badge--pending-payment]="product.condition === 'USED'"
-                >
-                  {{ product.condition | conditionLabel }}
-                </span>
-              </td>
-              <td data-label="Capacidad">{{ product.storageCapacity || '—' }}</td>
-              <td data-label="Color">{{ product.color || '—' }}</td>
-              <td data-label="Batería">
-                @if (product.batteryHealth != null) {
-                  {{ product.batteryHealth }}%
-                } @else {
-                  —
-                }
-              </td>
-              <td data-label="Precio">
-                {{ product.price | money: product.currency }}
-                @if (product.promoBuyQuantity && product.promoPayQuantity) {
-                  <span class="badge badge--promo">{{ product.promoBuyQuantity }}x{{ product.promoPayQuantity }}</span>
-                }
-              </td>
-              <td data-label="Stock">{{ product.stock }}</td>
-              <td data-label="Estado">
-                <span
-                  class="status-badge"
-                  [class.status-badge--published]="product.published"
-                  [class.status-badge--draft]="!product.published"
-                >
-                  {{ product.published ? 'Publicado' : 'Borrador' }}
-                </span>
-              </td>
-              <td data-label="Acciones">
-                <div class="admin-table__actions">
-                  <a class="btn btn-secondary" [routerLink]="editLink(product.id)">Editar</a>
-                  <button type="button" class="btn btn-secondary" (click)="togglePublish(product)">
-                    {{ product.published ? 'Despublicar' : 'Publicar' }}
-                  </button>
-                  <button type="button" class="btn btn-danger" (click)="deleteProduct(product)">
-                    Eliminar
-                  </button>
-                </div>
-              </td>
+              <th class="products-table__col-image"></th>
+              <th>Nombre</th>
+              <th>Condición</th>
+              <th>Capacidad</th>
+              <th>Color</th>
+              <th>Batería</th>
+              <th>Precio</th>
+              <th>Stock</th>
+              <th>Estado</th>
+              <th>Acciones</th>
             </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-
-    <div class="admin-pagination">
-      <span>
-        Página {{ pageData.page + 1 }} de {{ pageData.totalPages || 1 }}
-        ({{ pageData.totalElements }} resultados)
-      </span>
-      <div class="admin-pagination__controls">
-        <button type="button" class="btn btn-secondary" [disabled]="pageData.page <= 0" (click)="goToPage(pageData.page - 1)">
-          Anterior
-        </button>
-        <button
-          type="button"
-          class="btn btn-secondary"
-          [disabled]="pageData.page + 1 >= pageData.totalPages"
-          (click)="goToPage(pageData.page + 1)"
-        >
-          Siguiente
-        </button>
+          </thead>
+          <tbody>
+            @for (product of pageData.content; track product.id) {
+              <tr>
+                <td class="products-table__col-image" data-label="">
+                  @if (product.primaryImageUrl) {
+                    <img
+                      class="products-table__thumb"
+                      [src]="product.primaryImageUrl"
+                      [alt]="product.name"
+                      width="48"
+                      height="48"
+                    />
+                  } @else {
+                    <span class="products-table__thumb products-table__thumb--empty">Sin img</span>
+                  }
+                </td>
+                <td data-label="Nombre">
+                  <a class="products-table__name" [routerLink]="editLink(product.id)">{{ product.name }}</a>
+                </td>
+                <td data-label="Condición">
+                  <span
+                    class="status-badge"
+                    [class.status-badge--condition-new]="product.condition === 'NEW'"
+                    [class.status-badge--condition-used]="product.condition === 'USED'"
+                  >
+                    {{ product.condition | conditionLabel }}
+                  </span>
+                </td>
+                <td data-label="Capacidad">{{ product.storageCapacity || '—' }}</td>
+                <td data-label="Color">{{ product.color || '—' }}</td>
+                <td data-label="Batería">
+                  @if (product.batteryHealth != null) {
+                    {{ product.batteryHealth }}%
+                  } @else {
+                    —
+                  }
+                </td>
+                <td data-label="Precio" class="products-table__price">
+                  {{ product.price | money: product.currency }}
+                  @if (product.promoBuyQuantity && product.promoPayQuantity) {
+                    <span class="badge badge--promo">{{ product.promoBuyQuantity }}x{{ product.promoPayQuantity }}</span>
+                  }
+                </td>
+                <td data-label="Stock">{{ product.stock }}</td>
+                <td data-label="Estado">
+                  <span
+                    class="status-badge"
+                    [class.status-badge--published]="product.published"
+                    [class.status-badge--draft]="!product.published"
+                  >
+                    {{ product.published ? 'Publicado' : 'Borrador' }}
+                  </span>
+                </td>
+                <td data-label="Acciones">
+                  <div class="products-table__actions">
+                    <a class="products-table__action" [routerLink]="editLink(product.id)">Editar</a>
+                    <button type="button" class="products-table__action" (click)="togglePublish(product)">
+                      {{ product.published ? 'Despublicar' : 'Publicar' }}
+                    </button>
+                    <button
+                      type="button"
+                      class="products-table__action products-table__action--danger"
+                      (click)="deleteProduct(product)"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
       </div>
-    </div>
+
+      <div class="admin-pagination products-pagination">
+        <span>
+          Página {{ pageData.page + 1 }} de {{ pageData.totalPages || 1 }}
+          ({{ pageData.totalElements }} resultados)
+        </span>
+        <div class="admin-pagination__controls">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            [disabled]="pageData.page <= 0"
+            (click)="goToPage(pageData.page - 1)"
+          >
+            Anterior
+          </button>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            [disabled]="pageData.page + 1 >= pageData.totalPages"
+            (click)="goToPage(pageData.page + 1)"
+          >
+            Siguiente
+          </button>
+        </div>
+      </div>
     }
   }
 </div>

@@ -1,9 +1,7 @@
-<div class="admin-shell" [class.admin-shell--nav-open]="sidebarOpen()">
+<div class="admin-shell" [class.admin-shell--nav-open]="sidebarOpen()" [class.admin-shell--guest]="!auth.isAuthenticated()">
   <aside id="admin-sidebar" class="sidebar">
     <a routerLink="/admin" class="brand" (click)="closeSidebar()">
-      <span class="logo-frame">
-        <img src="assets/logo/logo_wa-shop-transparent.png" alt="WA Shop logo" width="40" height="40" />
-      </span>
+      <img class="brand__mark" src="assets/logo/logo-wordmark-white.png" alt="WA Shop logo" height="36" />
       <span class="brand__text">
         <strong>WA Shop</strong>
         <small>Admin</small>
@@ -11,7 +9,7 @@
     </a>
 
     @if (auth.isAuthenticated()) {
-      <nav aria-label="Administración">
+      <nav class="sidebar__nav" aria-label="Administración">
         @for (item of navItems; track item.link) {
           <a
             [routerLink]="item.link"
@@ -42,6 +40,9 @@
                 @case ('orders') {
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293A1 1 0 005.414 17H17"/><circle cx="9" cy="20" r="1"/><circle cx="17" cy="20" r="1"/></svg>
                 }
+                @case ('banners') {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M3 15l5-4 4 3 5-5 4 3"/></svg>
+                }
                 @case ('promotions') {
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M20.59 13.41L11 3.83A2 2 0 009.59 3.24H4a1 1 0 00-1 1v5.59a2 2 0 00.59 1.41l9.58 9.58a2 2 0 002.83 0l4.59-4.59a2 2 0 000-2.82z"/><circle cx="7.5" cy="7.5" r="1.25"/></svg>
                 }
@@ -62,7 +63,8 @@
             {{ item.label }}
           </a>
         }
-        <div class="sidebar__spacer"></div>
+      </nav>
+      <div class="sidebar__footer">
         <a routerLink="/admin/contrasena" routerLinkActive="active" (click)="closeSidebar()">
           <span class="nav-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
@@ -81,9 +83,9 @@
           </span>
           Cerrar sesión
         </button>
-      </nav>
+      </div>
     } @else {
-      <nav aria-label="Administración">
+      <nav class="sidebar__nav" aria-label="Administración">
         <a routerLink="/admin/login">Ingresar</a>
         <a routerLink="/">Ver sitio</a>
       </nav>
@@ -95,21 +97,21 @@
   }
 
   <div class="admin-main">
-    <header class="admin-topbar">
-      <button
-        type="button"
-        class="sidebar-toggle"
-        (click)="toggleSidebar()"
-        [attr.aria-expanded]="sidebarOpen()"
-        aria-controls="admin-sidebar"
-      >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <path d="M4 6h16M4 12h16M4 18h16"/>
-        </svg>
-        <span class="visually-hidden">Menú</span>
-      </button>
-      <div class="admin-topbar__title">Panel administrativo</div>
-      @if (auth.isAuthenticated()) {
+    @if (auth.isAuthenticated()) {
+      <header class="admin-topbar">
+        <button
+          type="button"
+          class="sidebar-toggle"
+          (click)="toggleSidebar()"
+          [attr.aria-expanded]="sidebarOpen()"
+          aria-controls="admin-sidebar"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+          <span class="visually-hidden">Menú</span>
+        </button>
+        <div class="admin-topbar__title">Panel administrativo</div>
         <a class="admin-topbar__bell" routerLink="/admin/consultas" aria-label="Consultas">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
             <path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
@@ -123,9 +125,9 @@
             <small>Admin</small>
           </span>
         </div>
-      }
-    </header>
-    <main class="content">
+      </header>
+    }
+    <main class="content" [class.content--guest]="!auth.isAuthenticated()">
       <router-outlet />
     </main>
   </div>

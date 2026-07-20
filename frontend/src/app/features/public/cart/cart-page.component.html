@@ -1,97 +1,183 @@
 <section class="section container cart-page">
-  <h1>Tu carrito</h1>
+  <header class="cart-page__header">
+    <div>
+      <p class="section__eyebrow">Compra</p>
+      <h1>Tu carrito</h1>
+      @if (cart.cartItems().length > 0) {
+        <p class="cart-page__count">
+          {{ cart.cartItems().length }}
+          {{ cart.cartItems().length === 1 ? 'producto' : 'productos' }}
+        </p>
+      }
+    </div>
+    <a class="cart-page__continue" routerLink="/iphone">Seguir comprando</a>
+  </header>
 
   @if (cart.cartItems().length === 0) {
     <div class="cart-empty">
-      <p>Todavía no agregaste productos al carrito.</p>
+      <div class="cart-empty__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M6 6h15l-1.5 9h-12z" stroke-linejoin="round" />
+          <path d="M6 6 5 3H2" stroke-linecap="round" />
+          <circle cx="9" cy="20" r="1.25" />
+          <circle cx="18" cy="20" r="1.25" />
+        </svg>
+      </div>
+      <h2>Tu carrito está vacío</h2>
+      <p>Explorá el catálogo y agregá el iPhone o accesorio que buscás.</p>
       <a class="btn" routerLink="/iphone">Ver catálogo</a>
     </div>
   } @else {
-    <div class="cart-list">
-      @for (item of cart.cartItems(); track item.productId) {
-        <article class="cart-item">
-          <div class="cart-item__media">
-            @if (item.primaryImageUrl) {
-              <img [src]="item.primaryImageUrl" [alt]="item.name" width="96" height="96" />
-            } @else {
-              <span class="media-frame__fallback">Sin imagen</span>
-            }
-          </div>
-          <div class="cart-item__info">
-            <h3>
-              {{ item.name }}
-              @if (promoLabel(item); as promo) {
-                <span class="cart-item__promo">{{ promo }}</span>
-              }
-            </h3>
-            <p class="cart-item__specs">
-              {{ item.storageCapacity }}
-              @if (item.storageCapacity && item.color) {
-                <span aria-hidden="true"> · </span>
-              }
-              {{ item.color }}
-            </p>
-            <p class="price">{{ item.price | money: item.currency }}</p>
-          </div>
-          <div class="cart-item__qty">
-            <button
-              type="button"
-              (click)="decrement(item.productId, item.quantity)"
-              [disabled]="item.quantity <= 1"
-              aria-label="Restar unidad"
-            >
-              −
-            </button>
-            <span>{{ item.quantity }}</span>
-            <button
-              type="button"
-              (click)="increment(item.productId, item.quantity)"
-              [disabled]="item.quantity >= item.stock || item.quantity >= 10"
-              aria-label="Sumar unidad"
-            >
-              +
-            </button>
-          </div>
-          <p class="cart-item__subtotal">
-            {{ lineSubtotal(item) - lineDiscount(item) | money: item.currency }}
-            @if (lineDiscount(item) > 0) {
-              <span class="cart-item__discount">Promo: -{{ lineDiscount(item) | money: item.currency }}</span>
-            }
+    <div class="cart-layout">
+      <div class="cart-main">
+        <div class="cart-list">
+          @for (item of cart.cartItems(); track item.productId) {
+            <article class="cart-item">
+              <div class="cart-item__media">
+                @if (item.primaryImageUrl) {
+                  <img [src]="item.primaryImageUrl" [alt]="item.name" width="112" height="112" />
+                } @else {
+                  <span class="media-frame__fallback">Sin imagen</span>
+                }
+              </div>
+
+              <div class="cart-item__body">
+                <div class="cart-item__top">
+                  <div class="cart-item__info">
+                    <h3>
+                      {{ item.name }}
+                      @if (promoLabel(item); as promo) {
+                        <span class="cart-item__promo">{{ promo }}</span>
+                      }
+                    </h3>
+                    <p class="cart-item__specs">
+                      {{ item.storageCapacity }}
+                      @if (item.storageCapacity && item.color) {
+                        <span aria-hidden="true"> · </span>
+                      }
+                      {{ item.color }}
+                    </p>
+                    <p class="cart-item__unit">
+                      {{ item.price | money: item.currency }}
+                      <span>c/u</span>
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    class="cart-item__remove"
+                    (click)="remove(item.productId)"
+                    aria-label="Quitar del carrito"
+                  >
+                    Quitar
+                  </button>
+                </div>
+
+                <div class="cart-item__bottom">
+                  <div class="cart-item__qty" role="group" [attr.aria-label]="'Cantidad de ' + item.name">
+                    <button
+                      type="button"
+                      (click)="decrement(item.productId, item.quantity)"
+                      [disabled]="item.quantity <= 1"
+                      aria-label="Restar unidad"
+                    >
+                      −
+                    </button>
+                    <span aria-live="polite">{{ item.quantity }}</span>
+                    <button
+                      type="button"
+                      (click)="increment(item.productId, item.quantity)"
+                      [disabled]="item.quantity >= item.stock || item.quantity >= 10"
+                      aria-label="Sumar unidad"
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  <div class="cart-item__subtotal">
+                    <span class="cart-item__subtotal-value">
+                      {{ lineSubtotal(item) - lineDiscount(item) | money: item.currency }}
+                    </span>
+                    @if (lineDiscount(item) > 0) {
+                      <span class="cart-item__discount">
+                        Promo −{{ lineDiscount(item) | money: item.currency }}
+                      </span>
+                    }
+                  </div>
+                </div>
+              </div>
+            </article>
+          }
+        </div>
+
+        @if (cart.hasMixedCurrency()) {
+          <p class="cart-warning" role="alert">
+            Uno de los productos del carrito no está en pesos uruguayos y solo se puede comprar
+            consultando por WhatsApp. Quitalo del carrito para pagar online.
           </p>
-          <button
-            type="button"
-            class="cart-item__remove"
-            (click)="remove(item.productId)"
-            aria-label="Quitar del carrito"
-          >
-            ✕
-          </button>
-        </article>
-      }
-    </div>
-
-    @if (cart.hasMixedCurrency()) {
-      <p class="cart-warning" role="alert">
-        Uno de los productos del carrito no está en pesos uruguayos y solo se puede comprar
-        consultando por WhatsApp. Quitalo del carrito para pagar online.
-      </p>
-    }
-
-    <div class="cart-summary">
-      <div class="cart-summary__totals">
-        @if (cart.promotionDiscount() > 0) {
-          <p class="cart-summary__subtotal">Subtotal: {{ cart.subtotal() | money: 'UYU' }}</p>
-          <p class="cart-summary__discount">Descuento por promoción: -{{ cart.promotionDiscount() | money: 'UYU' }}</p>
         }
-        <p class="cart-summary__total">
-          Total: <strong>{{ cart.grandTotal() | money: 'UYU' }}</strong>
-        </p>
       </div>
-      @if (cart.hasMixedCurrency()) {
-        <button type="button" class="btn" disabled>Ir a pagar</button>
-      } @else {
-        <a class="btn" routerLink="/checkout">Ir a pagar</a>
-      }
+
+      <aside class="cart-summary" aria-label="Resumen del pedido">
+        <h2>Resumen</h2>
+
+        <div class="cart-coupon">
+          <label for="couponCode">Código de descuento</label>
+          <div class="cart-coupon__row">
+            <input
+              id="couponCode"
+              type="text"
+              [(ngModel)]="couponInput"
+              placeholder="Ej: PRUEBA10"
+              [disabled]="couponBusy()"
+              autocomplete="off"
+            />
+            <button type="button" class="btn btn-secondary" (click)="applyCoupon()" [disabled]="couponBusy()">
+              {{ couponBusy() ? '…' : 'Aplicar' }}
+            </button>
+          </div>
+          @if (couponError()) {
+            <p class="cart-coupon__error" role="alert">{{ couponError() }}</p>
+          }
+          @if (cart.couponCode(); as code) {
+            <p class="cart-coupon__ok">
+              <span>Código <strong>{{ code }}</strong> aplicado</span>
+              <button type="button" class="cart-coupon__clear" (click)="removeCoupon()">Quitar</button>
+            </p>
+          }
+        </div>
+
+        <div class="cart-summary__totals">
+          <div class="cart-summary__row">
+            <span>Subtotal</span>
+            <span>{{ cart.subtotal() | money: 'UYU' }}</span>
+          </div>
+          @if (cart.promotionDiscount() > 0) {
+            <div class="cart-summary__row cart-summary__row--discount">
+              <span>Promociones</span>
+              <span>−{{ cart.promotionDiscount() | money: 'UYU' }}</span>
+            </div>
+          }
+          @if (cart.couponDiscount() > 0) {
+            <div class="cart-summary__row cart-summary__row--discount">
+              <span>Cupón</span>
+              <span>−{{ cart.couponDiscount() | money: 'UYU' }}</span>
+            </div>
+          }
+          <div class="cart-summary__total">
+            <span>Total</span>
+            <strong>{{ cart.grandTotal() | money: 'UYU' }}</strong>
+          </div>
+        </div>
+
+        @if (cart.hasMixedCurrency()) {
+          <button type="button" class="btn cart-summary__cta" disabled>Ir a pagar</button>
+        } @else {
+          <a class="btn cart-summary__cta" routerLink="/checkout">Ir a pagar</a>
+        }
+
+        <p class="cart-summary__note">Pago seguro con Mercado Pago. Envío y retiro a coordinar.</p>
+      </aside>
     </div>
   }
 </section>

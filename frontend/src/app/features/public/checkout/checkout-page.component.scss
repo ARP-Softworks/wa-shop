@@ -18,9 +18,12 @@
   padding: 1.5rem;
 }
 
-.checkout-form label {
+.checkout-form .form-field {
   display: grid;
   gap: 0.35rem;
+}
+
+.checkout-form .form-field label {
   font-weight: 600;
   font-size: 0.9rem;
   color: var(--color-ink);

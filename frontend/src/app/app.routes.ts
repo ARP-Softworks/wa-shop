@@ -20,6 +20,10 @@ import { AdminUserListPageComponent } from './features/admin/users/admin-user-li
 import { AdminUserFormPageComponent } from './features/admin/users/admin-user-form-page.component';
 import { AdminPromotionListPageComponent } from './features/admin/promotions/admin-promotion-list-page.component';
 import { AdminPromotionFormPageComponent } from './features/admin/promotions/admin-promotion-form-page.component';
+import { AdminDiscountCodeListPageComponent } from './features/admin/discount-codes/admin-discount-code-list-page.component';
+import { AdminDiscountCodeFormPageComponent } from './features/admin/discount-codes/admin-discount-code-form-page.component';
+import { AdminHeroBannerListPageComponent } from './features/admin/hero-banners/admin-hero-banner-list-page.component';
+import { AdminHeroBannerFormPageComponent } from './features/admin/hero-banners/admin-hero-banner-form-page.component';
 import { AdminSettingsPageComponent } from './features/admin/settings/admin-settings-page.component';
 import { AdminChangePasswordPageComponent } from './features/admin/account/admin-change-password-page.component';
 import { AdminAuditPageComponent } from './features/admin/audit/admin-audit-page.component';
@@ -299,6 +303,28 @@ export const routes: Routes = [
       {
         path: 'promociones/:id',
         component: AdminPromotionFormPageComponent,
+        canDeactivate: [dirtyFormGuard],
+      },
+      { path: 'codigos-descuento', component: AdminDiscountCodeListPageComponent },
+      {
+        path: 'codigos-descuento/nuevo',
+        component: AdminDiscountCodeFormPageComponent,
+        canDeactivate: [dirtyFormGuard],
+      },
+      {
+        path: 'codigos-descuento/:id',
+        component: AdminDiscountCodeFormPageComponent,
+        canDeactivate: [dirtyFormGuard],
+      },
+      { path: 'banners', component: AdminHeroBannerListPageComponent },
+      {
+        path: 'banners/nuevo',
+        component: AdminHeroBannerFormPageComponent,
+        canDeactivate: [dirtyFormGuard],
+      },
+      {
+        path: 'banners/:id',
+        component: AdminHeroBannerFormPageComponent,
         canDeactivate: [dirtyFormGuard],
       },
       {

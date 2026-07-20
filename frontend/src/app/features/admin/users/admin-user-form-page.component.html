@@ -24,28 +24,33 @@
     <form class="admin-form admin-card" [formGroup]="form" (ngSubmit)="submit()">
       <div class="admin-form__grid">
         <div class="admin-form__field">
-          <label for="firstName">Nombre</label>
+          <label for="firstName">Nombre<span class="required-mark" aria-hidden="true">*</span></label>
           <input id="firstName" type="text" formControlName="firstName" />
           @if (fieldError('firstName'); as err) {
             <p class="admin-form__error">{{ err }}</p>
           }
         </div>
         <div class="admin-form__field">
-          <label for="lastName">Apellido</label>
+          <label for="lastName">Apellido<span class="required-mark" aria-hidden="true">*</span></label>
           <input id="lastName" type="text" formControlName="lastName" />
           @if (fieldError('lastName'); as err) {
             <p class="admin-form__error">{{ err }}</p>
           }
         </div>
         <div class="admin-form__field admin-form__field--full">
-          <label for="email">Email</label>
+          <label for="email">Email<span class="required-mark" aria-hidden="true">*</span></label>
           <input id="email" type="email" formControlName="email" />
           @if (fieldError('email'); as err) {
             <p class="admin-form__error">{{ err }}</p>
           }
         </div>
         <div class="admin-form__field">
-          <label for="password">{{ isEdit() ? 'Nueva contraseña' : 'Contraseña' }}</label>
+          <label for="password">
+            {{ isEdit() ? 'Nueva contraseña' : 'Contraseña' }}
+            @if (!isEdit()) {
+              <span class="required-mark" aria-hidden="true">*</span>
+            }
+          </label>
           <input id="password" type="password" formControlName="password" autocomplete="new-password" />
           @if (isEdit()) {
             <p class="admin-form__hint">Dejar en blanco para no cambiarla.</p>
@@ -55,7 +60,12 @@
           }
         </div>
         <div class="admin-form__field">
-          <label for="confirmPassword">Confirmar contraseña</label>
+          <label for="confirmPassword">
+            Confirmar contraseña
+            @if (!isEdit()) {
+              <span class="required-mark" aria-hidden="true">*</span>
+            }
+          </label>
           <input id="confirmPassword" type="password" formControlName="confirmPassword" autocomplete="new-password" />
           @if (form.hasError('passwordsMismatch') && form.controls.confirmPassword.touched) {
             <p class="admin-form__error">Las contraseñas no coinciden</p>

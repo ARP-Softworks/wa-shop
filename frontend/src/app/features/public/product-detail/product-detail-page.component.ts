@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CatalogApiService } from '../../../core/api/catalog-api.service';
 import { WhatsappLinkService } from '../../../core/whatsapp/whatsapp-link.service';
 import { AnalyticsService } from '../../../core/analytics/analytics.service';
@@ -29,6 +29,7 @@ import { CartService } from '../../../core/cart/cart.service';
 })
 export class ProductDetailPageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly catalogApi = inject(CatalogApiService);
   private readonly whatsapp = inject(WhatsappLinkService);
   private readonly analytics = inject(AnalyticsService);
@@ -36,8 +37,59 @@ export class ProductDetailPageComponent implements OnInit {
 
   readonly detailState = signal<UiState<ProductDetail>>(loadingState());
   readonly related = signal<ProductSummary[]>([]);
+  readonly variants = signal<ProductSummary[]>([]);
   readonly activeImage = signal<ProductImage | null>(null);
   added = false;
+
+  get variantColors(): string[] {
+    return Array.from(
+      new Set(this.variants().map((v) => v.color).filter((c): c is string => !!c))
+    );
+  }
+
+  capacitiesForColor(color: string): string[] {
+    return Array.from(
+      new Set(
+        this.variants()
+          .filter((v) => v.color === color)
+          .map((v) => v.storageCapacity)
+          .filter((c): c is string => !!c)
+      )
+    );
+  }
+
+  isCurrentColor(color: string): boolean {
+    return this.detailState().data?.color === color;
+  }
+
+  isCurrentCapacity(capacity: string): boolean {
+    return this.detailState().data?.storageCapacity === capacity;
+  }
+
+  selectColor(color: string): void {
+    const currentCapacity = this.detailState().data?.storageCapacity;
+    const match =
+      this.variants().find((v) => v.color === color && v.storageCapacity === currentCapacity) ??
+      this.variants().find((v) => v.color === color);
+    if (match) {
+      this.navigateToVariant(match);
+    }
+  }
+
+  selectCapacity(capacity: string): void {
+    const currentColor = this.detailState().data?.color;
+    const match = this.variants().find(
+      (v) => v.color === currentColor && v.storageCapacity === capacity
+    );
+    if (match) {
+      this.navigateToVariant(match);
+    }
+  }
+
+  private navigateToVariant(variant: ProductSummary): void {
+    const base = variant.productType === 'ACCESSORY' ? '/accesorios' : '/iphone';
+    void this.router.navigate([base, variant.slug]);
+  }
 
   ngOnInit(): void {
     this.route.paramMap.subscribe((params) => {
@@ -126,6 +178,7 @@ export class ProductDetailPageComponent implements OnInit {
 
   private load(slug: string): void {
     this.detailState.set(loadingState());
+    this.variants.set([]);
     this.catalogApi.getBySlug(slug).subscribe({
       next: (product) => {
         this.detailState.set(successState(product));
@@ -136,6 +189,9 @@ export class ProductDetailPageComponent implements OnInit {
         this.activeImage.set(main);
         this.analytics.trackProductView(product.id, product.slug);
         this.catalogApi.related(slug).subscribe((items) => this.related.set(items));
+        if (product.productGroupId) {
+          this.catalogApi.variants(slug).subscribe((items) => this.variants.set(items));
+        }
       },
       error: () => this.detailState.set(errorState('No se pudo cargar el producto.')),
     });

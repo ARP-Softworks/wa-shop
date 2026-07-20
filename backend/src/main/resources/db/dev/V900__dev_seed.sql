@@ -175,7 +175,7 @@ INSERT INTO site_settings (
     '55555555-5555-5555-5555-555555555555',
     'WA Shop',
     '59890000000',
-    'https://instagram.com/washop',
+    'https://www.instagram.com/wa.shop.uy/',
     'Montevideo, Uruguay',
     'Lun a Vie 10:00-19:00',
     'hola@washop.uy',

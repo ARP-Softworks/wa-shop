@@ -1,0 +1,85 @@
+<div class="admin-page">
+  <app-admin-breadcrumbs
+    [items]="[
+      { label: 'Códigos de descuento', link: ['/admin/codigos-descuento'] },
+      { label: isEdit() ? 'Editar' : 'Nuevo' },
+    ]"
+  />
+
+  <header class="admin-page__header">
+    <h1>{{ isEdit() ? 'Editar código' : 'Nuevo código de descuento' }}</h1>
+    <a class="btn btn-secondary" routerLink="/admin/codigos-descuento">Volver</a>
+  </header>
+
+  @if (loadState().status === 'loading' || loadState().status === 'error') {
+    <app-state-panel [state]="loadState()" />
+  } @else {
+    @if (successMessage()) {
+      <p class="admin-alert admin-alert--success">{{ successMessage() }}</p>
+    }
+    @if (submitError()) {
+      <p class="admin-alert admin-alert--error">{{ submitError() }}</p>
+    }
+
+    <form class="admin-form admin-card" [formGroup]="form" (ngSubmit)="submit()">
+      @if (isEdit()) {
+        <p class="admin-form__hint">Usos confirmados (pagados): <strong>{{ usedCount() }}</strong></p>
+      }
+
+      <div class="admin-form__grid">
+        <div class="admin-form__field">
+          <label for="code">Código<span class="required-mark" aria-hidden="true">*</span></label>
+          <input id="code" type="text" formControlName="code" placeholder="Ej: VERANO10" />
+          @if (fieldError('code'); as err) {
+            <p class="admin-form__error">{{ err }}</p>
+          }
+        </div>
+
+        <div class="admin-form__field">
+          <label for="discountType">Tipo<span class="required-mark" aria-hidden="true">*</span></label>
+          <select id="discountType" class="ui-select" formControlName="discountType">
+            <option value="PERCENT">Porcentaje</option>
+            <option value="FIXED">Monto fijo (UYU)</option>
+          </select>
+        </div>
+
+        <div class="admin-form__field">
+          <label for="discountValue">Valor<span class="required-mark" aria-hidden="true">*</span></label>
+          <input id="discountValue" type="number" min="0.01" step="0.01" formControlName="discountValue" />
+          @if (fieldError('discountValue'); as err) {
+            <p class="admin-form__error">{{ err }}</p>
+          }
+        </div>
+
+        <div class="admin-form__field">
+          <label for="maxUses">Máximo de usos</label>
+          <input id="maxUses" type="number" min="1" step="1" formControlName="maxUses" placeholder="Ilimitado" />
+          <p class="admin-form__hint">Vacío = sin tope global. Además hay 1 uso por teléfono.</p>
+        </div>
+
+        <div class="admin-form__field">
+          <label for="startsAt">Vigente desde</label>
+          <input id="startsAt" type="datetime-local" formControlName="startsAt" />
+        </div>
+
+        <div class="admin-form__field">
+          <label for="endsAt">Expira</label>
+          <input id="endsAt" type="datetime-local" formControlName="endsAt" />
+        </div>
+
+        <div class="admin-form__field admin-form__field--full admin-form__check">
+          <label>
+            <input type="checkbox" formControlName="active" />
+            Código activo
+          </label>
+        </div>
+      </div>
+
+      <div class="admin-form__actions">
+        <button type="submit" class="btn" [disabled]="submitting()">
+          {{ submitting() ? 'Guardando…' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

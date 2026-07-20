@@ -43,6 +43,18 @@ export class WhatsappLinkService {
     return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
   }
 
+  /** Prompts the customer to reach out and confirm delivery after paying — mirrors OrderEmailService. */
+  buildOrderInquiryUrl(orderId: string): string | null {
+    const phone = this.normalizePhone(this.contentApi.settings()?.whatsappNumber);
+    if (!phone) {
+      return null;
+    }
+    const businessName = this.contentApi.settings()?.businessName || 'WA Shop';
+    const orderCode = `#${orderId.slice(0, 8).toUpperCase()}`;
+    const message = `Hola! Realicé el pedido ${orderCode} en ${businessName} y quiero coordinar la entrega.`;
+    return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+  }
+
   private conditionLabel(condition: ProductCondition): string {
     return condition === 'NEW' ? 'nuevo' : 'usado';
   }

@@ -105,6 +105,7 @@ app:
     checkout-ip-max-per-window: ${ORDER_CHECKOUT_IP_MAX_PER_WINDOW:8}
     checkout-phone-max-per-window: ${ORDER_CHECKOUT_PHONE_MAX_PER_WINDOW:4}
     checkout-window-seconds: ${ORDER_CHECKOUT_WINDOW_SECONDS:900}
+    discount-validate-ip-max-per-window: ${ORDER_DISCOUNT_VALIDATE_IP_MAX_PER_WINDOW:20}
   mail:
     from: ${MAIL_FROM:WA Shop <no-reply@washop.uy>}
   public-base-url: ${APP_PUBLIC_BASE_URL:http://localhost:8080}

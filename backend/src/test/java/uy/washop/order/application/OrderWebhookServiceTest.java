@@ -19,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uy.washop.audit.application.AuditService;
 import uy.washop.audit.domain.AuditAction;
+import uy.washop.discount.infrastructure.DiscountCodeRepository;
 import uy.washop.order.domain.Order;
 import uy.washop.order.domain.OrderStatus;
 import uy.washop.order.infrastructure.OrderItemRepository;
@@ -40,6 +41,7 @@ class OrderWebhookServiceTest {
     @Mock private PaymentProvider paymentProvider;
     @Mock private AuditService auditService;
     @Mock private OrderEmailService orderEmailService;
+    @Mock private DiscountCodeRepository discountCodeRepository;
 
     private OrderWebhookService service;
 
@@ -52,7 +54,8 @@ class OrderWebhookServiceTest {
                 productRepository,
                 paymentProvider,
                 auditService,
-                orderEmailService
+                orderEmailService,
+                discountCodeRepository
         );
     }
 

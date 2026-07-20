@@ -24,14 +24,14 @@
     <form class="admin-form admin-card" [formGroup]="form" (ngSubmit)="submit()">
       <div class="admin-form__grid">
         <div class="admin-form__field admin-form__field--full">
-          <label for="name">Nombre y apellido</label>
+          <label for="name">Nombre y apellido<span class="required-mark" aria-hidden="true">*</span></label>
           <input id="name" type="text" formControlName="name" />
           @if (fieldError('name'); as err) {
             <p class="admin-form__error">{{ err }}</p>
           }
         </div>
         <div class="admin-form__field">
-          <label for="phone">Teléfono</label>
+          <label for="phone">Teléfono<span class="required-mark" aria-hidden="true">*</span></label>
           <input id="phone" type="tel" formControlName="phone" />
           @if (fieldError('phone'); as err) {
             <p class="admin-form__error">{{ err }}</p>

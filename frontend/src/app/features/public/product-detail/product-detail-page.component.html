@@ -70,6 +70,45 @@
           }
         </p>
 
+        @if (variantColors.length > 1 || (isCurrentColor(product.color || '') && capacitiesForColor(product.color || '').length > 1)) {
+          <div class="variant-picker">
+            @if (variantColors.length > 1) {
+              <div class="variant-picker__group">
+                <span class="variant-picker__label">Color:</span>
+                <div class="variant-picker__options">
+                  @for (color of variantColors; track color) {
+                    <button
+                      type="button"
+                      class="variant-chip"
+                      [class.variant-chip--active]="isCurrentColor(color)"
+                      (click)="selectColor(color)"
+                    >
+                      {{ color }}
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+            @if (product.color && capacitiesForColor(product.color).length > 1) {
+              <div class="variant-picker__group">
+                <span class="variant-picker__label">Capacidad:</span>
+                <div class="variant-picker__options">
+                  @for (capacity of capacitiesForColor(product.color); track capacity) {
+                    <button
+                      type="button"
+                      class="variant-chip"
+                      [class.variant-chip--active]="isCurrentCapacity(capacity)"
+                      (click)="selectCapacity(capacity)"
+                    >
+                      {{ capacity }}
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+
         <ul class="specs">
           @if (product.storageCapacity) {
             <li><strong>Capacidad:</strong> {{ product.storageCapacity }}</li>
@@ -85,6 +124,12 @@
           }
           <li><strong>Stock:</strong> {{ stockMessage }}</li>
         </ul>
+
+        @if (product.compatibleModels.length) {
+          <p class="compatible-models">
+            <strong>Compatible con:</strong> {{ product.compatibleModels.join(', ') }}
+          </p>
+        }
 
         @if (product.description) {
           <div class="description">

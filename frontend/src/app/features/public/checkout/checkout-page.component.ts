@@ -70,6 +70,7 @@ export class CheckoutPageComponent implements OnInit {
         customerPhone: value.customerPhone,
         customerEmail: value.customerEmail || null,
         shippingAddress: value.shippingAddress || null,
+        discountCode: this.cart.couponCode(),
         items: this.cart.cartItems().map((item) => ({
           productId: item.productId,
           quantity: item.quantity,

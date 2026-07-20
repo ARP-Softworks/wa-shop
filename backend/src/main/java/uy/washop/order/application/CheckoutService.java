@@ -16,6 +16,10 @@ import uy.washop.config.AppProperties;
 import uy.washop.customer.domain.Customer;
 import uy.washop.customer.domain.PhoneNormalizer;
 import uy.washop.customer.infrastructure.CustomerRepository;
+import uy.washop.discount.application.DiscountCodeApplicationService;
+import uy.washop.discount.domain.DiscountCode;
+import uy.washop.discount.domain.DiscountCodeRedemption;
+import uy.washop.discount.infrastructure.DiscountCodeRedemptionRepository;
 import uy.washop.order.api.dto.OrderCreateRequest;
 import uy.washop.order.api.dto.OrderCreateResponse;
 import uy.washop.order.api.dto.OrderItemRequest;
@@ -55,6 +59,8 @@ public class CheckoutService {
     private final AppProperties appProperties;
     private final SeoUrlService seoUrlService;
     private final PromotionRepository promotionRepository;
+    private final DiscountCodeApplicationService discountCodeApplicationService;
+    private final DiscountCodeRedemptionRepository discountCodeRedemptionRepository;
 
     public CheckoutService(
             ProductRepository productRepository,
@@ -66,7 +72,9 @@ public class CheckoutService {
             AuditService auditService,
             AppProperties appProperties,
             SeoUrlService seoUrlService,
-            PromotionRepository promotionRepository
+            PromotionRepository promotionRepository,
+            DiscountCodeApplicationService discountCodeApplicationService,
+            DiscountCodeRedemptionRepository discountCodeRedemptionRepository
     ) {
         this.productRepository = productRepository;
         this.customerRepository = customerRepository;
@@ -78,6 +86,8 @@ public class CheckoutService {
         this.appProperties = appProperties;
         this.seoUrlService = seoUrlService;
         this.promotionRepository = promotionRepository;
+        this.discountCodeApplicationService = discountCodeApplicationService;
+        this.discountCodeRedemptionRepository = discountCodeRedemptionRepository;
     }
 
     @Transactional
@@ -124,16 +134,36 @@ public class CheckoutService {
         }
 
         Map<UUID, BigDecimal> promotionDiscounts = calculatePromotionDiscounts(orderItems);
-        BigDecimal totalDiscount = PromotionEngine.totalDiscount(promotionDiscounts);
+        BigDecimal totalPromotionDiscount = PromotionEngine.totalDiscount(promotionDiscounts);
+        BigDecimal afterPromotions = subtotal.subtract(totalPromotionDiscount).max(BigDecimal.ZERO);
 
         Customer customer = upsertCustomer(request);
+
+        BigDecimal couponDiscount = BigDecimal.ZERO;
+        DiscountCode appliedCoupon = null;
+        if (StringUtils.hasText(request.discountCode())) {
+            var applied = discountCodeApplicationService.resolveForCheckout(
+                    request.discountCode(),
+                    afterPromotions,
+                    customer.getPhoneNormalized()
+            );
+            appliedCoupon = applied.code();
+            couponDiscount = applied.amount();
+        }
+
+        BigDecimal total = afterPromotions.subtract(couponDiscount).max(BigDecimal.ZERO);
 
         Order order = new Order();
         order.setCustomer(customer);
         order.setStatus(OrderStatus.PENDING_PAYMENT);
         order.setSubtotal(subtotal);
-        order.setPromotionDiscount(totalDiscount);
-        order.setTotal(subtotal.subtract(totalDiscount));
+        order.setPromotionDiscount(totalPromotionDiscount);
+        order.setCouponDiscount(couponDiscount);
+        if (appliedCoupon != null) {
+            order.setDiscountCodeId(appliedCoupon.getId());
+            order.setDiscountCode(appliedCoupon.getCode());
+        }
+        order.setTotal(total);
         order.setCurrency(CurrencyCode.UYU);
         order.setShippingAddress(request.shippingAddress());
         order = orderRepository.save(order);
@@ -141,6 +171,14 @@ public class CheckoutService {
         for (OrderItem orderItem : orderItems) {
             orderItem.setOrder(order);
             orderItemRepository.save(orderItem);
+        }
+
+        if (appliedCoupon != null) {
+            DiscountCodeRedemption redemption = new DiscountCodeRedemption();
+            redemption.setDiscountCode(appliedCoupon);
+            redemption.setOrder(order);
+            redemption.setPhoneNormalized(customer.getPhoneNormalized());
+            discountCodeRedemptionRepository.save(redemption);
         }
 
         OrderStatusHistory history = new OrderStatusHistory();
@@ -238,6 +276,37 @@ public class CheckoutService {
                 })
                 .filter(item -> item.unitPrice().compareTo(BigDecimal.ZERO) > 0)
                 .toList();
+
+        BigDecimal coupon = order.getCouponDiscount() != null ? order.getCouponDiscount() : BigDecimal.ZERO;
+        if (coupon.compareTo(BigDecimal.ZERO) > 0 && !items.isEmpty()) {
+            // Distribute coupon across paid lines proportionally so MP preference total matches order.total.
+            BigDecimal linesTotal = items.stream()
+                    .map(PaymentItem::unitPrice)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            if (linesTotal.compareTo(BigDecimal.ZERO) > 0) {
+                BigDecimal remainingCoupon = coupon.min(linesTotal);
+                List<PaymentItem> adjusted = new ArrayList<>();
+                for (int i = 0; i < items.size(); i++) {
+                    PaymentItem item = items.get(i);
+                    BigDecimal share;
+                    if (i == items.size() - 1) {
+                        share = remainingCoupon;
+                    } else {
+                        share = item.unitPrice()
+                                .multiply(coupon)
+                                .divide(linesTotal, 2, RoundingMode.HALF_UP)
+                                .min(item.unitPrice())
+                                .min(remainingCoupon);
+                        remainingCoupon = remainingCoupon.subtract(share);
+                    }
+                    BigDecimal price = item.unitPrice().subtract(share).max(BigDecimal.ZERO);
+                    if (price.compareTo(BigDecimal.ZERO) > 0) {
+                        adjusted.add(new PaymentItem(item.title(), 1, price, item.currencyId()));
+                    }
+                }
+                items = adjusted;
+            }
+        }
 
         String orderId = order.getId().toString();
         PaymentPreferenceRequest preferenceRequest = new PaymentPreferenceRequest(

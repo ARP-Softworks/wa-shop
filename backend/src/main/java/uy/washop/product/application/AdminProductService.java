@@ -26,13 +26,17 @@ import uy.washop.product.api.dto.ProductSearchCriteria;
 import uy.washop.product.api.dto.ProductWriteRequest;
 import uy.washop.product.api.mapper.ProductMapper;
 import uy.washop.product.domain.Product;
+import uy.washop.product.domain.ProductCompatibleModel;
 import uy.washop.product.domain.ProductCondition;
 import uy.washop.product.domain.ProductFeature;
+import uy.washop.product.domain.ProductGroup;
 import uy.washop.product.domain.ProductImage;
 import uy.washop.product.domain.ProductImageRules;
 import uy.washop.product.domain.ProductRules;
 import uy.washop.product.domain.ProductType;
+import uy.washop.product.infrastructure.ProductCompatibleModelRepository;
 import uy.washop.product.infrastructure.ProductFeatureRepository;
+import uy.washop.product.infrastructure.ProductGroupRepository;
 import uy.washop.product.infrastructure.ProductImageRepository;
 import uy.washop.product.infrastructure.ProductRepository;
 import uy.washop.seo.application.SitemapService;
@@ -48,6 +52,8 @@ public class AdminProductService {
     private final ProductRepository productRepository;
     private final ProductImageRepository productImageRepository;
     private final ProductFeatureRepository productFeatureRepository;
+    private final ProductCompatibleModelRepository productCompatibleModelRepository;
+    private final ProductGroupRepository productGroupRepository;
     private final CategoryRepository categoryRepository;
     private final AuditService auditService;
     private final MediaApplicationService mediaApplicationService;
@@ -60,6 +66,8 @@ public class AdminProductService {
             ProductRepository productRepository,
             ProductImageRepository productImageRepository,
             ProductFeatureRepository productFeatureRepository,
+            ProductCompatibleModelRepository productCompatibleModelRepository,
+            ProductGroupRepository productGroupRepository,
             CategoryRepository categoryRepository,
             AuditService auditService,
             MediaApplicationService mediaApplicationService,
@@ -71,6 +79,8 @@ public class AdminProductService {
         this.productRepository = productRepository;
         this.productImageRepository = productImageRepository;
         this.productFeatureRepository = productFeatureRepository;
+        this.productCompatibleModelRepository = productCompatibleModelRepository;
+        this.productGroupRepository = productGroupRepository;
         this.categoryRepository = categoryRepository;
         this.auditService = auditService;
         this.mediaApplicationService = mediaApplicationService;
@@ -155,8 +165,11 @@ public class AdminProductService {
                 .forEach(productImageRepository::delete);
         productFeatureRepository.findByProductIdOrderByNameAsc(id)
                 .forEach(productFeatureRepository::delete);
+        productCompatibleModelRepository.findByProductIdOrderByModelAsc(id)
+                .forEach(productCompatibleModelRepository::delete);
         productImageRepository.flush();
         productFeatureRepository.flush();
+        productCompatibleModelRepository.flush();
         productRepository.delete(product);
         sitemapService.invalidateCache();
         auditService.record(AuditAction.DELETE, "Product", id, "Producto eliminado: " + slug);
@@ -256,6 +269,24 @@ public class AdminProductService {
         } else {
             product.setCategory(null);
         }
+        if (StringUtils.hasText(request.productGroupName())) {
+            product.setProductGroup(findOrCreateGroup(request.productGroupName().trim()));
+        } else {
+            product.setProductGroup(null);
+        }
+    }
+
+    private ProductGroup findOrCreateGroup(String name) {
+        String slug = name.toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9\\s-]", "")
+                .trim()
+                .replaceAll("\\s+", "-");
+        return productGroupRepository.findBySlug(slug).orElseGet(() -> {
+            ProductGroup group = new ProductGroup();
+            group.setName(name);
+            group.setSlug(slug);
+            return productGroupRepository.save(group);
+        });
     }
 
     private void replaceChildren(Product product, ProductWriteRequest request) {
@@ -269,8 +300,23 @@ public class AdminProductService {
                 .forEach(productFeatureRepository::delete);
         productImageRepository.findByProductIdOrderByPositionAsc(product.getId())
                 .forEach(productImageRepository::delete);
+        productCompatibleModelRepository.findByProductIdOrderByModelAsc(product.getId())
+                .forEach(productCompatibleModelRepository::delete);
         productFeatureRepository.flush();
         productImageRepository.flush();
+        productCompatibleModelRepository.flush();
+
+        if (request.compatibleModels() != null) {
+            for (String model : request.compatibleModels()) {
+                if (!StringUtils.hasText(model)) {
+                    continue;
+                }
+                ProductCompatibleModel compatibleModel = new ProductCompatibleModel();
+                compatibleModel.setProduct(product);
+                compatibleModel.setModel(model.trim());
+                productCompatibleModelRepository.save(compatibleModel);
+            }
+        }
 
         if (request.features() != null) {
             for (ProductFeatureWriteRequest featureRequest : request.features()) {
@@ -311,7 +357,10 @@ public class AdminProductService {
         return ProductMapper.toAdminResponse(
                 product,
                 productImageRepository.findByProductIdOrderByPositionAsc(product.getId()),
-                productFeatureRepository.findByProductIdOrderByNameAsc(product.getId())
+                productFeatureRepository.findByProductIdOrderByNameAsc(product.getId()),
+                productCompatibleModelRepository.findByProductIdOrderByModelAsc(product.getId()).stream()
+                        .map(ProductCompatibleModel::getModel)
+                        .toList()
         );
     }
 

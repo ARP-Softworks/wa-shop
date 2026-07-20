@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { OrderApiService } from '../../../core/api/order-api.service';
+import { WhatsappLinkService } from '../../../core/whatsapp/whatsapp-link.service';
 import { OrderStatus } from '../../../shared/models/catalog.models';
 
 type ResultKind = 'exito' | 'error' | 'pendiente';
@@ -18,11 +19,13 @@ const POLL_DELAY_MS = 2000;
 export class CheckoutResultPageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly orderApi = inject(OrderApiService);
+  private readonly whatsapp = inject(WhatsappLinkService);
 
   kind: ResultKind = 'pendiente';
   status: OrderStatus | null = null;
   checking = true;
   hasOrderId = false;
+  private orderId: string | null = null;
 
   ngOnInit(): void {
     this.kind = (this.route.snapshot.data['kind'] as ResultKind) ?? 'pendiente';
@@ -33,8 +36,13 @@ export class CheckoutResultPageComponent implements OnInit {
       this.checking = false;
       return;
     }
+    this.orderId = orderId;
     this.hasOrderId = true;
     this.pollStatus(orderId, 0);
+  }
+
+  get whatsappUrl(): string | null {
+    return this.orderId ? this.whatsapp.buildOrderInquiryUrl(this.orderId) : this.whatsapp.buildGeneralInquiryUrl();
   }
 
   get title(): string {
@@ -55,7 +63,7 @@ export class CheckoutResultPageComponent implements OnInit {
 
   get description(): string {
     if (this.status === 'PAID' || this.status === 'CONFIRMED') {
-      return 'Te vamos a contactar por WhatsApp para coordinar la entrega.';
+      return 'Para coordinar la entrega, escribinos por WhatsApp confirmando tu número de pedido.';
     }
     if (this.status === 'REJECTED' || this.status === 'CANCELLED' || this.status === 'EXPIRED') {
       return 'Podés volver a intentarlo desde el catálogo, o consultarnos por WhatsApp.';

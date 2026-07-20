@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none" role="img" aria-label="WA Shop">
+  <!-- Soft badge -->
+  <circle cx="100" cy="100" r="86" fill="#ffffff" fill-opacity="0.08"/>
+  <circle cx="100" cy="100" r="86" stroke="#ffffff" stroke-opacity="0.18" stroke-width="1.5"/>
+
+  <!-- Leaf -->
+  <path
+    fill="#ffffff"
+    d="M112 34c12.5-9 29-11 38-5.5C146 45 133 58 116.5 62 107 52.5 104.5 42.5 112 34Z"
+  />
+
+  <!-- Apple outline -->
+  <path
+    stroke="#ffffff"
+    stroke-width="8"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    d="M100 52
+       c-20 0-36.5 10.5-45.5 26
+       C44.5 94 48.5 120 66 136.5
+       c10 9.5 21.5 12 31 7.5
+       c2.2-1 4.8-1 7 0
+       c9.5 4.5 21 2 31-7.5
+       C154.5 120 158.5 94 145.5 78
+       C136.5 62.5 120 52 100 52Z"
+  />
+
+  <!-- WA -->
+  <text
+    x="100"
+    y="118"
+    text-anchor="middle"
+    fill="#ffffff"
+    font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif"
+    font-size="40"
+    font-weight="800"
+    letter-spacing="-1.8"
+  >WA</text>
+</svg>

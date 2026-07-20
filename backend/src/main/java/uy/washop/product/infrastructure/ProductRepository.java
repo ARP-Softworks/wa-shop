@@ -33,6 +33,8 @@ public interface ProductRepository extends JpaRepository<Product, UUID>, JpaSpec
             UUID id
     );
 
+    List<Product> findByProductGroup_IdAndPublishedTrueOrderByPriceAsc(UUID productGroupId);
+
     boolean existsBySlug(String slug);
 
     boolean existsByImei(String imei);

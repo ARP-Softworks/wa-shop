@@ -19,7 +19,13 @@
 
     <div class="checkout-result__actions">
       <a class="btn" routerLink="/iphone">Volver al catálogo</a>
-      <a class="btn btn-secondary" routerLink="/contacto">Consultar por WhatsApp</a>
+      @if (whatsappUrl) {
+        <a class="btn btn-whatsapp" [href]="whatsappUrl" target="_blank" rel="noopener noreferrer">
+          Escribir por WhatsApp
+        </a>
+      } @else {
+        <a class="btn btn-secondary" routerLink="/contacto">Consultar por WhatsApp</a>
+      }
     </div>
   </div>
 </section>

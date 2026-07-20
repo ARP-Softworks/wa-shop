@@ -50,7 +50,7 @@ public class PublicOrderController {
         return checkoutService.getStatus(id);
     }
 
-    static String resolveClientIp(HttpServletRequest request) {
+    public static String resolveClientIp(HttpServletRequest request) {
         String forwarded = request.getHeader("X-Forwarded-For");
         if (StringUtils.hasText(forwarded)) {
             return forwarded.split(",")[0].trim();

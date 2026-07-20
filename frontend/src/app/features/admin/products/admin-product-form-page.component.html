@@ -28,30 +28,107 @@
         <h2>Información básica</h2>
         <div class="admin-form__grid">
           <div class="admin-form__field admin-form__field--full">
-            <label for="name">Nombre</label>
+            <label for="name">Nombre<span class="required-mark" aria-hidden="true">*</span></label>
             <input id="name" type="text" formControlName="name" />
             @if (fieldError('name'); as err) {
               <p class="admin-form__error">{{ err }}</p>
             }
           </div>
           <div class="admin-form__field admin-form__field--full">
-            <label for="slug">Slug</label>
+            <label for="slug">
+              Slug<span class="required-mark" aria-hidden="true">*</span>
+              <span class="admin-help" tabindex="0" aria-describedby="slug-help">
+                <span aria-hidden="true">?</span>
+                <span id="slug-help" class="admin-help__tip" role="tooltip">
+                  Es la parte final de la dirección web del producto (ej: "iphone-13-128-azul"). Se genera
+                  automáticamente a partir del Nombre — normalmente no necesitás tocarlo.
+                </span>
+              </span>
+            </label>
             <input id="slug" type="text" formControlName="slug" />
             @if (fieldError('slug'); as err) {
               <p class="admin-form__error">{{ err }}</p>
             }
           </div>
           <div class="admin-form__field">
-            <label for="model">Modelo</label>
-            <input id="model" type="text" formControlName="model" />
-          </div>
-          <div class="admin-form__field">
-            <label for="productType">Tipo</label>
-            <select id="productType" formControlName="productType">
+            <label for="productType">Tipo<span class="required-mark" aria-hidden="true">*</span></label>
+            <select id="productType" class="ui-select" formControlName="productType">
               <option value="IPHONE">iPhone</option>
               <option value="ACCESSORY">Accesorio</option>
             </select>
           </div>
+          <div class="admin-form__field">
+            <label for="model">Modelo</label>
+            <app-suggest-combo
+              inputId="model"
+              formControlName="model"
+              [options]="iphoneModels"
+              placeholder="Ej: iPhone 15 Pro"
+            />
+          </div>
+          <div class="admin-form__field">
+            <label for="productGroupName">
+              Grupo de variantes (opcional)
+              <span class="admin-help" tabindex="0" aria-describedby="group-help">
+                <span aria-hidden="true">?</span>
+                <span id="group-help" class="admin-help__tip" role="tooltip">
+                  Poné el mismo texto en todos los colores/capacidades de un mismo modelo (por defecto se copia
+                  el Modelo). Así, en la ficha pública, el cliente puede elegir entre los colores y capacidades
+                  que realmente tenés cargados de ese grupo.
+                </span>
+              </span>
+            </label>
+            <input id="productGroupName" type="text" formControlName="productGroupName" />
+          </div>
+          @if (form.controls.productType.value === 'ACCESSORY') {
+            <div class="admin-form__field admin-form__field--full">
+              <label>Compatible con estos modelos de iPhone</label>
+              <div class="model-picker">
+                @if (compatibleModels().length) {
+                  <div class="model-picker__chips">
+                    @for (m of compatibleModels(); track m) {
+                      <span class="model-chip">
+                        {{ m }}
+                        <button
+                          type="button"
+                          class="model-chip__remove"
+                          (click)="removeCompatibleModel(m)"
+                          [attr.aria-label]="'Quitar ' + m"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    }
+                  </div>
+                }
+                <div class="model-picker__search">
+                  <input
+                    type="text"
+                    placeholder="Buscar modelo para agregar…"
+                    [value]="modelSearch()"
+                    (input)="onModelSearchInput($any($event.target).value)"
+                    (focus)="modelPickerOpen.set(true)"
+                    (blur)="modelPickerOpen.set(false)"
+                  />
+                  @if (modelPickerOpen() && modelSuggestions.length) {
+                    <div class="model-picker__suggestions">
+                      @for (m of modelSuggestions; track m) {
+                        <button
+                          type="button"
+                          class="model-picker__suggestion"
+                          (mousedown)="$event.preventDefault()"
+                          (click)="addCompatibleModel(m)"
+                        >
+                          {{ m }}
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+              <p class="admin-form__hint">Buscá y agregá todos los modelos para los que sirve este accesorio.</p>
+            </div>
+          }
           <div class="admin-form__field admin-form__field--full">
             <label for="description">Descripción</label>
             <textarea id="description" formControlName="description" rows="4"></textarea>
@@ -63,19 +140,37 @@
         <h2>Especificaciones</h2>
         <div class="admin-form__grid">
           <div class="admin-form__field">
-            <label for="condition">Condición</label>
-            <select id="condition" formControlName="condition">
+            <label for="condition">Condición<span class="required-mark" aria-hidden="true">*</span></label>
+            <select id="condition" class="ui-select" formControlName="condition">
               <option value="NEW">Nuevo</option>
               <option value="USED">Usado</option>
             </select>
           </div>
           <div class="admin-form__field">
             <label for="storageCapacity">Capacidad</label>
-            <input id="storageCapacity" type="text" formControlName="storageCapacity" placeholder="128 GB" />
+            <app-suggest-combo
+              inputId="storageCapacity"
+              formControlName="storageCapacity"
+              [options]="iphoneCapacities"
+              placeholder="128GB"
+            />
           </div>
           <div class="admin-form__field">
             <label for="color">Color</label>
-            <input id="color" type="text" formControlName="color" />
+            <app-suggest-combo
+              inputId="color"
+              formControlName="color"
+              [options]="colorOptionsForModel()"
+            />
+          </div>
+          <div class="admin-form__field">
+            <label for="categoryId">Categoría</label>
+            <select id="categoryId" class="ui-select" formControlName="categoryId">
+              <option value="">Sin categoría</option>
+              @for (category of categories(); track category.id) {
+                <option [value]="category.id">{{ category.name }}</option>
+              }
+            </select>
           </div>
           <div class="admin-form__field">
             <label for="batteryHealth">Salud de batería (%)</label>
@@ -85,15 +180,6 @@
             }
             <p class="admin-form__hint">Obligatorio para iPhone usados (0–100).</p>
           </div>
-          <div class="admin-form__field">
-            <label for="categoryId">Categoría</label>
-            <select id="categoryId" formControlName="categoryId">
-              <option value="">Sin categoría</option>
-              @for (category of categories(); track category.id) {
-                <option [value]="category.id">{{ category.name }}</option>
-              }
-            </select>
-          </div>
         </div>
       </section>
 
@@ -101,7 +187,7 @@
         <h2>Precio y stock</h2>
         <div class="admin-form__grid">
           <div class="admin-form__field">
-            <label for="price">Precio</label>
+            <label for="price">Precio<span class="required-mark" aria-hidden="true">*</span></label>
             <input id="price" type="number" min="0" step="0.01" formControlName="price" />
             @if (fieldError('price'); as err) {
               <p class="admin-form__error">{{ err }}</p>
@@ -127,14 +213,14 @@
             }
           </div>
           <div class="admin-form__field">
-            <label for="currency">Moneda</label>
-            <select id="currency" formControlName="currency">
+            <label for="currency">Moneda<span class="required-mark" aria-hidden="true">*</span></label>
+            <select id="currency" class="ui-select" formControlName="currency">
               <option value="UYU">UYU</option>
               <option value="USD">USD</option>
             </select>
           </div>
           <div class="admin-form__field">
-            <label for="stock">Stock</label>
+            <label for="stock">Stock<span class="required-mark" aria-hidden="true">*</span></label>
             <input id="stock" type="number" min="0" step="1" formControlName="stock" />
             @if (fieldError('stock'); as err) {
               <p class="admin-form__error">{{ err }}</p>
@@ -151,7 +237,17 @@
         <h2>IMEI (solo admin)</h2>
         <div class="admin-form__grid">
           <div class="admin-form__field admin-form__field--full">
-            <label for="imei">IMEI</label>
+            <label for="imei">
+              IMEI
+              <span class="admin-help" tabindex="0" aria-describedby="imei-help">
+                <span aria-hidden="true">?</span>
+                <span id="imei-help" class="admin-help__tip" role="tooltip">
+                  Es el número de serie único de 15-17 dígitos del equipo físico (se ve marcando *#06# o en
+                  Ajustes › General › Información). Sirve para identificar el equipo puntual que tenés en stock
+                  (por robo, garantía o reclamos) — nunca se muestra en el sitio público, es solo para uso interno.
+                </span>
+              </span>
+            </label>
             <input id="imei" type="text" formControlName="imei" maxlength="17" />
             @if (fieldError('imei'); as err) {
               <p class="admin-form__error">{{ err }}</p>
@@ -242,35 +338,6 @@
         @if (images.length === 0) {
           <p class="admin-page__subtitle">Todavía no hay imágenes en este producto.</p>
         }
-      </section>
-
-      <section class="admin-form__section">
-        <h2>SEO</h2>
-        <div class="admin-form__grid">
-          <div class="admin-form__field admin-form__field--full">
-            <label for="seoTitle">Título SEO (opcional)</label>
-            <input id="seoTitle" type="text" formControlName="seoTitle" maxlength="70" />
-            <p class="admin-form__hint">Máx. 70 caracteres. Si está vacío, se usa el nombre del producto.</p>
-          </div>
-          <div class="admin-form__field admin-form__field--full">
-            <label for="metaDescription">Meta descripción (opcional)</label>
-            <textarea id="metaDescription" formControlName="metaDescription" rows="3" maxlength="320"></textarea>
-            <p class="admin-form__hint">Máx. 320 caracteres.</p>
-          </div>
-          <div class="admin-form__checkboxes">
-            <label>
-              <input type="checkbox" formControlName="indexable" />
-              Indexable en buscadores
-            </label>
-          </div>
-          <div class="admin-form__field admin-form__field--full">
-            <p class="admin-form__hint">Vista previa SERP (solo lectura)</p>
-            <div class="serp-preview" aria-live="polite">
-              <p class="serp-preview__title">{{ serpTitle }}</p>
-              <p class="serp-preview__desc">{{ serpDescription }}</p>
-            </div>
-          </div>
-        </div>
       </section>
 
       <section class="admin-form__section">

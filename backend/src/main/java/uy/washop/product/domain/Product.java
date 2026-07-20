@@ -123,6 +123,10 @@ public class Product extends BaseEntity {
     @Column(name = "promo_pay_quantity")
     private Integer promoPayQuantity;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_group_id")
+    private ProductGroup productGroup;
+
     public String getSlug() {
         return slug;
     }
@@ -317,6 +321,18 @@ public class Product extends BaseEntity {
 
     public void setPromoPayQuantity(Integer promoPayQuantity) {
         this.promoPayQuantity = promoPayQuantity;
+    }
+
+    public ProductGroup getProductGroup() {
+        return productGroup;
+    }
+
+    public void setProductGroup(ProductGroup productGroup) {
+        this.productGroup = productGroup;
+    }
+
+    public UUID getProductGroupId() {
+        return productGroup != null ? productGroup.getId() : null;
     }
 
     public boolean hasActivePromotion() {

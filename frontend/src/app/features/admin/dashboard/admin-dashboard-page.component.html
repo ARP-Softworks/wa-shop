@@ -1,9 +1,9 @@
-<div class="admin-page">
+<div class="admin-page dashboard-page">
   <app-admin-breadcrumbs [items]="breadcrumbs" />
 
   <header class="admin-page__header">
     <div>
-      <h1>Panel administrativo</h1>
+      <h1>Dashboard</h1>
       <p class="admin-page__subtitle">Resumen del catálogo, consultas y servicios.</p>
     </div>
   </header>
@@ -15,143 +15,208 @@
     }
   } @else {
     @if (state().data; as data) {
-    <section class="admin-stats" aria-label="Estadísticas">
-      <article class="admin-stat admin-stat--blue">
-        <span class="admin-stat__icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
-        </span>
-        <p class="admin-stat__value">{{ data.publishedProducts }}</p>
-        <p class="admin-stat__label">Productos publicados</p>
-        <a class="admin-stat__link" routerLink="/admin/productos">Ver productos →</a>
-      </article>
-      <article class="admin-stat admin-stat--green">
-        <span class="admin-stat__icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
-        </span>
-        <p class="admin-stat__value">{{ data.newDevices }}</p>
-        <p class="admin-stat__label">Equipos nuevos</p>
-        <a class="admin-stat__link" routerLink="/admin/productos">Ver productos →</a>
-      </article>
-      <article class="admin-stat admin-stat--orange">
-        <span class="admin-stat__icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
-        </span>
-        <p class="admin-stat__value">{{ data.usedDevices }}</p>
-        <p class="admin-stat__label">Equipos usados</p>
-        <a class="admin-stat__link" routerLink="/admin/productos">Ver productos →</a>
-      </article>
-      <article class="admin-stat admin-stat--sky">
-        <span class="admin-stat__icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M21 15a4 4 0 01-4 4H8l-5 3V7a4 4 0 014-4h10a4 4 0 014 4v8z"/></svg>
-        </span>
-        <p class="admin-stat__value">{{ data.pendingInquiries }}</p>
-        <p class="admin-stat__label">Consultas pendientes</p>
-        <a class="admin-stat__link" routerLink="/admin/consultas">Ver consultas →</a>
-      </article>
-      <article class="admin-stat admin-stat--dark">
-        <span class="admin-stat__icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293A1 1 0 005.414 17H17"/><circle cx="9" cy="20" r="1"/><circle cx="17" cy="20" r="1"/></svg>
-        </span>
-        <p class="admin-stat__value">{{ data.pendingOrders }}</p>
-        <p class="admin-stat__label">Pedidos pendientes</p>
-        <a class="admin-stat__link" routerLink="/admin/pedidos">Ver pedidos →</a>
-      </article>
-    </section>
+      <section class="dashboard-kpis" aria-label="Estadísticas">
+        <article class="dashboard-kpi">
+          <span class="dashboard-kpi__icon dashboard-kpi__icon--blue" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
+          </span>
+          <div class="dashboard-kpi__body">
+            <p class="dashboard-kpi__value">{{ data.publishedProducts }}</p>
+            <p class="dashboard-kpi__label">Productos publicados</p>
+            <a class="dashboard-kpi__link" routerLink="/admin/productos">Ver productos →</a>
+          </div>
+        </article>
 
-    <section class="admin-card">
-      <h2>Productos recientes</h2>
-      @if (data.recentProducts.length === 0) {
-        <p class="admin-form__hint">No hay productos recientes.</p>
-      } @else {
-        <div class="admin-table-wrap">
-          <table class="admin-table">
-            <thead>
-              <tr>
-                <th>Producto</th>
-                <th>Estado</th>
-                <th>Precio</th>
-                <th>Stock</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (product of data.recentProducts; track product.id) {
+        <article class="dashboard-kpi">
+          <span class="dashboard-kpi__icon dashboard-kpi__icon--green" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
+          </span>
+          <div class="dashboard-kpi__body">
+            <p class="dashboard-kpi__value">{{ data.newDevices }}</p>
+            <p class="dashboard-kpi__label">Equipos nuevos</p>
+            <a class="dashboard-kpi__link" routerLink="/admin/productos">Ver productos →</a>
+          </div>
+        </article>
+
+        <article class="dashboard-kpi">
+          <span class="dashboard-kpi__icon dashboard-kpi__icon--orange" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
+          </span>
+          <div class="dashboard-kpi__body">
+            <p class="dashboard-kpi__value">{{ data.usedDevices }}</p>
+            <p class="dashboard-kpi__label">Equipos usados</p>
+            <a class="dashboard-kpi__link" routerLink="/admin/productos">Ver productos →</a>
+          </div>
+        </article>
+
+        <article class="dashboard-kpi">
+          <span class="dashboard-kpi__icon dashboard-kpi__icon--sky" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M21 15a4 4 0 01-4 4H8l-5 3V7a4 4 0 014-4h10a4 4 0 014 4v8z"/></svg>
+          </span>
+          <div class="dashboard-kpi__body">
+            <p class="dashboard-kpi__value">{{ data.pendingInquiries }}</p>
+            <p class="dashboard-kpi__label">Consultas pendientes</p>
+            <a class="dashboard-kpi__link" routerLink="/admin/consultas">Ver consultas →</a>
+          </div>
+        </article>
+
+        <article class="dashboard-kpi">
+          <span class="dashboard-kpi__icon dashboard-kpi__icon--slate" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293A1 1 0 005.414 17H17"/><circle cx="9" cy="20" r="1"/><circle cx="17" cy="20" r="1"/></svg>
+          </span>
+          <div class="dashboard-kpi__body">
+            <p class="dashboard-kpi__value">{{ data.pendingOrders }}</p>
+            <p class="dashboard-kpi__label">Pedidos pendientes</p>
+            <a class="dashboard-kpi__link" routerLink="/admin/pedidos">Ver pedidos →</a>
+          </div>
+        </article>
+      </section>
+
+      <section class="dashboard-panel">
+        <header class="dashboard-panel__header">
+          <h2>Productos recientes</h2>
+          <a class="btn" routerLink="/admin/productos/nuevo">+ Agregar producto</a>
+        </header>
+
+        @if (data.recentProducts.length === 0) {
+          <p class="dashboard-empty">No hay productos recientes.</p>
+        } @else {
+          <div class="dashboard-table-wrap">
+            <table class="dashboard-table">
+              <thead>
                 <tr>
-                  <td data-label="Producto">
-                    <a [routerLink]="['/admin/productos', product.id]">{{ product.name }}</a>
-                    <span class="admin-form__hint">{{ product.condition | conditionLabel }}</span>
-                  </td>
-                  <td data-label="Estado">
-                    <span
-                      class="status-badge"
-                      [class.status-badge--published]="product.published"
-                      [class.status-badge--draft]="!product.published"
-                    >
-                      {{ product.published ? 'Publicado' : 'Borrador' }}
-                    </span>
-                  </td>
-                  <td data-label="Precio">{{ product.price | money: product.currency }}</td>
-                  <td data-label="Stock">{{ product.stock }}</td>
+                  <th class="dashboard-table__col-image">Imagen</th>
+                  <th>Nombre</th>
+                  <th>Estado</th>
+                  <th>Capacidad</th>
+                  <th>Color</th>
+                  <th>Batería</th>
+                  <th>Precio</th>
+                  <th>Stock</th>
+                  <th>Publicación</th>
+                  <th></th>
                 </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      }
-    </section>
+              </thead>
+              <tbody>
+                @for (product of data.recentProducts; track product.id) {
+                  <tr>
+                    <td class="dashboard-table__col-image" data-label="Imagen">
+                      @if (product.primaryImageUrl) {
+                        <img
+                          class="dashboard-table__thumb"
+                          [src]="product.primaryImageUrl"
+                          [alt]="product.name"
+                          width="48"
+                          height="48"
+                        />
+                      } @else {
+                        <span class="dashboard-table__thumb dashboard-table__thumb--empty" aria-hidden="true"></span>
+                      }
+                    </td>
+                    <td data-label="Nombre">
+                      <a class="dashboard-table__name" [routerLink]="['/admin/productos', product.id]">
+                        {{ product.name }}
+                      </a>
+                    </td>
+                    <td data-label="Estado">
+                      <span
+                        class="status-badge"
+                        [class.status-badge--new]="product.condition === 'NEW'"
+                        [class.status-badge--used]="product.condition === 'USED'"
+                      >
+                        {{ product.condition | conditionLabel }}
+                      </span>
+                    </td>
+                    <td data-label="Capacidad">{{ product.storageCapacity || '—' }}</td>
+                    <td data-label="Color">{{ product.color || '—' }}</td>
+                    <td data-label="Batería">
+                      {{ product.batteryHealth != null ? product.batteryHealth + '%' : '—' }}
+                    </td>
+                    <td data-label="Precio" class="dashboard-table__price">
+                      {{ product.price | money: product.currency }}
+                    </td>
+                    <td data-label="Stock">{{ product.stock }}</td>
+                    <td data-label="Publicación">
+                      <span
+                        class="status-badge"
+                        [class.status-badge--published]="product.published"
+                        [class.status-badge--draft]="!product.published"
+                      >
+                        {{ product.published ? 'Publicado' : 'Borrador' }}
+                      </span>
+                    </td>
+                    <td data-label="" class="dashboard-table__actions">
+                      <a
+                        class="dashboard-table__edit"
+                        [routerLink]="['/admin/productos', product.id]"
+                        aria-label="Editar producto"
+                        title="Editar"
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+                          <path d="M12 20h9"/>
+                          <path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/>
+                        </svg>
+                      </a>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
 
-    <section class="admin-card">
-      <h2>Consultas recientes</h2>
-      @if (data.recentInquiries.length === 0) {
-        <p class="admin-form__hint">No hay consultas recientes.</p>
-      } @else {
-        <div class="admin-table-wrap">
-          <table class="admin-table">
-            <thead>
-              <tr>
-                <th>Cliente</th>
-                <th>Producto</th>
-                <th>Estado</th>
-                <th>Fecha</th>
-              </tr>
-            </thead>
-            <tbody>
+      <div class="dashboard-bottom">
+        <section class="dashboard-panel">
+          <header class="dashboard-panel__header">
+            <h2>Consultas recientes</h2>
+            <a class="dashboard-panel__link" routerLink="/admin/consultas">Ver todas →</a>
+          </header>
+          @if (data.recentInquiries.length === 0) {
+            <p class="dashboard-empty">No hay consultas recientes.</p>
+          } @else {
+            <ul class="dashboard-list">
               @for (inquiry of data.recentInquiries; track inquiry.id) {
-                <tr>
-                  <td data-label="Cliente">
+                <li class="dashboard-list__item">
+                  <div>
                     <a [routerLink]="['/admin/consultas', inquiry.id]">{{ inquiry.customerName }}</a>
-                  </td>
-                  <td data-label="Producto">{{ inquiry.productName || '—' }}</td>
-                  <td data-label="Estado">
-                    <span class="status-badge" [ngClass]="statusClass(inquiry.status)">
-                      {{ inquiry.status | inquiryStatusLabel }}
-                    </span>
-                  </td>
-                  <td data-label="Fecha">{{ inquiry.createdAt | date: 'short' }}</td>
-                </tr>
+                    <p>{{ inquiry.productName || 'Consulta general' }}</p>
+                  </div>
+                  <span class="status-badge" [ngClass]="statusClass(inquiry.status)">
+                    {{ inquiry.status | inquiryStatusLabel }}
+                  </span>
+                </li>
               }
-            </tbody>
-          </table>
-        </div>
-      }
-    </section>
-
-    <section class="admin-card">
-      <h2>Servicios técnicos activos</h2>
-      @if (data.activeServices.length === 0) {
-        <p class="admin-form__hint">No hay servicios activos.</p>
-      } @else {
-        <ul class="service-list">
-          @for (service of data.activeServices; track service.id) {
-            <li>
-              <strong>{{ service.name }}</strong>
-              @if (service.price != null && service.currency) {
-                <span> — {{ service.price | money: service.currency }}</span>
-              }
-            </li>
+            </ul>
           }
-        </ul>
-      }
-    </section>
+        </section>
+
+        <section class="dashboard-panel">
+          <header class="dashboard-panel__header">
+            <h2>Servicio técnico</h2>
+            <a class="dashboard-panel__link" routerLink="/admin/servicios">Ver todos →</a>
+          </header>
+          @if (data.activeServices.length === 0) {
+            <p class="dashboard-empty">No hay servicios activos.</p>
+          } @else {
+            <ul class="dashboard-list">
+              @for (service of data.activeServices; track service.id) {
+                <li class="dashboard-list__item">
+                  <div>
+                    <strong>{{ service.name }}</strong>
+                    @if (service.estimatedTime) {
+                      <p>{{ service.estimatedTime }}</p>
+                    }
+                  </div>
+                  @if (service.price != null && service.currency) {
+                    <span class="dashboard-list__meta">{{ service.price | money: service.currency }}</span>
+                  }
+                </li>
+              }
+            </ul>
+          }
+        </section>
+      </div>
     }
   }
 </div>

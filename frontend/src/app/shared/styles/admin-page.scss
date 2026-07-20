@@ -186,11 +186,17 @@
 }
 
 .admin-filters label {
-  display: grid;
-  gap: var(--space-1);
+  display: block;
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--color-ink);
+}
+
+.admin-filters label > input,
+.admin-filters label > select {
+  display: block;
+  width: 100%;
+  margin-top: var(--space-1);
 }
 
 .admin-filters input,
@@ -207,6 +213,19 @@
   background: var(--color-surface);
   color: var(--color-ink);
   transition: border-color 140ms ease;
+}
+
+.admin-filters select,
+.admin-form select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2364748b' d='M1.4 1.4 6 6l4.6-4.6L12 2.8 6 8.8 0 2.8z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center;
+  background-size: 0.7rem;
+  padding-right: 2.25rem;
+  min-height: 2.65rem;
+  cursor: pointer;
 }
 
 .admin-filters input:focus,
@@ -328,8 +347,21 @@
 
 .admin-form__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-3);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .admin-form__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .admin-form__grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .admin-form__field {
@@ -356,6 +388,52 @@
   margin: 0;
   font-size: 0.85rem;
   color: var(--color-muted);
+}
+
+.admin-help {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-left: var(--space-1);
+  border-radius: 50%;
+  background: var(--color-bg-deep);
+  color: var(--color-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: help;
+  vertical-align: middle;
+}
+
+.admin-help__tip {
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  top: 140%;
+  width: 18rem;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--color-ink);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 400;
+  line-height: 1.4;
+  text-transform: none;
+  letter-spacing: normal;
+  box-shadow: var(--shadow-card);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 120ms ease;
+  pointer-events: none;
+}
+
+.admin-help:hover .admin-help__tip,
+.admin-help:focus .admin-help__tip,
+.admin-help:focus-visible .admin-help__tip {
+  opacity: 1;
+  visibility: visible;
 }
 
 .serp-preview {

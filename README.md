@@ -84,6 +84,7 @@ Copiar `.env.example` a `.env` y completar valores. **No commitear secretos.**
 | `ORDER_CHECKOUT_IP_MAX_PER_WINDOW` | Máx. checkouts por IP en la ventana | `8` |
 | `ORDER_CHECKOUT_PHONE_MAX_PER_WINDOW` | Máx. checkouts por teléfono en la ventana | `4` |
 | `ORDER_CHECKOUT_WINDOW_SECONDS` | Ventana deslizante del rate limit de checkout (segundos) | `900` |
+| `ORDER_DISCOUNT_VALIDATE_IP_MAX_PER_WINDOW` | Máx. validaciones de cupón por IP en la ventana | `20` |
 | `MERCADOPAGO_ACCESS_TOKEN` | Access token MP (solo servidor) | |
 | `MERCADOPAGO_PUBLIC_KEY` | Public key MP | |
 | `MERCADOPAGO_WEBHOOK_SECRET` | Secret para verificar firmas del webhook MP | |

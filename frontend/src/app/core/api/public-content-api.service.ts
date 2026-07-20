@@ -4,6 +4,7 @@ import { Observable, catchError, of, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   Category,
+  PublicHeroBanner,
   PublicPromotion,
   PublicSiteSettings,
   TechnicalServiceItem,
@@ -46,6 +47,12 @@ export class PublicContentApiService {
 
   getPromotions(): Observable<PublicPromotion[]> {
     return this.http.get<PublicPromotion[]>(`${this.baseUrl}/promotions`).pipe(
+      catchError(() => of([]))
+    );
+  }
+
+  getHeroBanners(): Observable<PublicHeroBanner[]> {
+    return this.http.get<PublicHeroBanner[]>(`${this.baseUrl}/hero-banners`).pipe(
       catchError(() => of([]))
     );
   }

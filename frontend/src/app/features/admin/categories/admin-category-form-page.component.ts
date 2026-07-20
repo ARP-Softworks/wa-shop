@@ -82,18 +82,6 @@ export class AdminCategoryFormPageComponent implements OnInit, OnDestroy, CanCom
     return confirmAction('Hay cambios sin guardar. ¿Salir de todos modos?');
   }
 
-  get serpTitle(): string {
-    return this.form.controls.seoTitle.value?.trim() || this.form.controls.name.value?.trim() || 'Título';
-  }
-
-  get serpDescription(): string {
-    return (
-      this.form.controls.metaDescription.value?.trim() ||
-      this.form.controls.description.value?.trim() ||
-      'Descripción que verán los buscadores…'
-    );
-  }
-
   submit(): void {
     this.submitError.set('');
     this.fieldErrors.set({});

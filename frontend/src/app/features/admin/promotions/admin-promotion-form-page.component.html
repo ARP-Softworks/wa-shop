@@ -30,7 +30,7 @@
 
       <div class="admin-form__grid">
         <div class="admin-form__field admin-form__field--full">
-          <label for="name">Nombre</label>
+          <label for="name">Nombre<span class="required-mark" aria-hidden="true">*</span></label>
           <input id="name" type="text" formControlName="name" placeholder="Ej: 3 fundas, la más barata gratis" />
           @if (fieldError('name'); as err) {
             <p class="admin-form__error">{{ err }}</p>
@@ -38,8 +38,8 @@
         </div>
 
         <div class="admin-form__field">
-          <label for="triggerCategoryId">Comprá — categoría</label>
-          <select id="triggerCategoryId" formControlName="triggerCategoryId">
+          <label for="triggerCategoryId">Comprá — categoría<span class="required-mark" aria-hidden="true">*</span></label>
+          <select id="triggerCategoryId" class="ui-select" formControlName="triggerCategoryId">
             <option value="" disabled>Seleccioná una categoría</option>
             @for (category of categories(); track category.id) {
               <option [value]="category.id">{{ category.name }}</option>
@@ -50,7 +50,7 @@
           }
         </div>
         <div class="admin-form__field">
-          <label for="triggerQuantity">Comprá — cantidad</label>
+          <label for="triggerQuantity">Comprá — cantidad<span class="required-mark" aria-hidden="true">*</span></label>
           <input id="triggerQuantity" type="number" min="1" step="1" formControlName="triggerQuantity" />
           @if (fieldError('triggerQuantity'); as err) {
             <p class="admin-form__error">{{ err }}</p>
@@ -58,8 +58,8 @@
         </div>
 
         <div class="admin-form__field">
-          <label for="rewardCategoryId">Llevate — categoría</label>
-          <select id="rewardCategoryId" formControlName="rewardCategoryId">
+          <label for="rewardCategoryId">Llevate — categoría<span class="required-mark" aria-hidden="true">*</span></label>
+          <select id="rewardCategoryId" class="ui-select" formControlName="rewardCategoryId">
             <option value="" disabled>Seleccioná una categoría</option>
             @for (category of categories(); track category.id) {
               <option [value]="category.id">{{ category.name }}</option>
@@ -70,7 +70,7 @@
           }
         </div>
         <div class="admin-form__field">
-          <label for="rewardQuantity">Llevate — cantidad</label>
+          <label for="rewardQuantity">Llevate — cantidad<span class="required-mark" aria-hidden="true">*</span></label>
           <input id="rewardQuantity" type="number" min="1" step="1" formControlName="rewardQuantity" />
           @if (fieldError('rewardQuantity'); as err) {
             <p class="admin-form__error">{{ err }}</p>
@@ -78,7 +78,7 @@
         </div>
 
         <div class="admin-form__field">
-          <label for="discountPercent">Descuento (%)</label>
+          <label for="discountPercent">Descuento (%)<span class="required-mark" aria-hidden="true">*</span></label>
           <input id="discountPercent" type="number" min="1" max="100" step="1" formControlName="discountPercent" />
           <p class="admin-form__hint">100% = gratis.</p>
           @if (fieldError('discountPercent'); as err) {

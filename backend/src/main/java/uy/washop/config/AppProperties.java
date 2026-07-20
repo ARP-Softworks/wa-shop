@@ -340,6 +340,8 @@ public class AppProperties {
         private int checkoutPhoneMaxPerWindow = 4;
         /** Sliding window length for checkout rate limiting (seconds). */
         private int checkoutWindowSeconds = 900;
+        /** Max discount-code validate attempts per IP inside the same window. */
+        private int discountValidateIpMaxPerWindow = 20;
 
         public int getPendingExpiryMinutes() {
             return pendingExpiryMinutes;
@@ -371,6 +373,14 @@ public class AppProperties {
 
         public void setCheckoutWindowSeconds(int checkoutWindowSeconds) {
             this.checkoutWindowSeconds = checkoutWindowSeconds;
+        }
+
+        public int getDiscountValidateIpMaxPerWindow() {
+            return discountValidateIpMaxPerWindow;
+        }
+
+        public void setDiscountValidateIpMaxPerWindow(int discountValidateIpMaxPerWindow) {
+            this.discountValidateIpMaxPerWindow = discountValidateIpMaxPerWindow;
         }
     }
 

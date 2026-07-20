@@ -12,6 +12,7 @@ public record OrderCreateRequest(
         @NotBlank @Size(max = 40) String customerPhone,
         @Email @Size(max = 320) String customerEmail,
         @Size(max = 2000) String shippingAddress,
+        @Size(max = 40) String discountCode,
         @NotEmpty @Valid List<OrderItemRequest> items
 ) {
 }

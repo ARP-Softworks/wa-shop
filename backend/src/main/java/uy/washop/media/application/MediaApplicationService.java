@@ -13,6 +13,7 @@ import uy.washop.audit.domain.AuditAction;
 import uy.washop.media.api.dto.MediaUploadResponse;
 import uy.washop.media.application.MediaFileValidator.ValidatedMediaFile;
 import uy.washop.media.domain.StoredMedia;
+import uy.washop.banner.infrastructure.HeroBannerRepository;
 import uy.washop.product.infrastructure.ProductImageRepository;
 import uy.washop.settings.infrastructure.SiteSettingsRepository;
 import uy.washop.shared.exception.BusinessConflictException;
@@ -26,6 +27,7 @@ public class MediaApplicationService {
     private final MediaFileValidator mediaFileValidator;
     private final ProductImageRepository productImageRepository;
     private final SiteSettingsRepository siteSettingsRepository;
+    private final HeroBannerRepository heroBannerRepository;
     private final AuditService auditService;
 
     public MediaApplicationService(
@@ -33,12 +35,14 @@ public class MediaApplicationService {
             MediaFileValidator mediaFileValidator,
             ProductImageRepository productImageRepository,
             SiteSettingsRepository siteSettingsRepository,
+            HeroBannerRepository heroBannerRepository,
             AuditService auditService
     ) {
         this.mediaStorageService = mediaStorageService;
         this.mediaFileValidator = mediaFileValidator;
         this.productImageRepository = productImageRepository;
         this.siteSettingsRepository = siteSettingsRepository;
+        this.heroBannerRepository = heroBannerRepository;
         this.auditService = auditService;
     }
 
@@ -128,7 +132,8 @@ public class MediaApplicationService {
 
     public boolean isReferenced(String publicId) {
         return productImageRepository.existsByPublicId(publicId)
-                || siteSettingsRepository.existsByLogoPublicId(publicId);
+                || siteSettingsRepository.existsByLogoPublicId(publicId)
+                || heroBannerRepository.existsByImagePublicId(publicId);
     }
 
     private static String sanitizeFolder(String folder) {

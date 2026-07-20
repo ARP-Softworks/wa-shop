@@ -46,6 +46,18 @@ public class Order extends BaseEntity {
     private BigDecimal promotionDiscount = BigDecimal.ZERO;
 
     @NotNull
+    @DecimalMin("0.00")
+    @Column(name = "coupon_discount", nullable = false, precision = 12, scale = 2)
+    private BigDecimal couponDiscount = BigDecimal.ZERO;
+
+    @Column(name = "discount_code_id")
+    private UUID discountCodeId;
+
+    @Size(max = 40)
+    @Column(name = "discount_code", length = 40)
+    private String discountCode;
+
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 3)
     private CurrencyCode currency;
@@ -110,6 +122,30 @@ public class Order extends BaseEntity {
 
     public void setPromotionDiscount(BigDecimal promotionDiscount) {
         this.promotionDiscount = promotionDiscount;
+    }
+
+    public BigDecimal getCouponDiscount() {
+        return couponDiscount;
+    }
+
+    public void setCouponDiscount(BigDecimal couponDiscount) {
+        this.couponDiscount = couponDiscount;
+    }
+
+    public UUID getDiscountCodeId() {
+        return discountCodeId;
+    }
+
+    public void setDiscountCodeId(UUID discountCodeId) {
+        this.discountCodeId = discountCodeId;
+    }
+
+    public String getDiscountCode() {
+        return discountCode;
+    }
+
+    public void setDiscountCode(String discountCode) {
+        this.discountCode = discountCode;
     }
 
     public CurrencyCode getCurrency() {

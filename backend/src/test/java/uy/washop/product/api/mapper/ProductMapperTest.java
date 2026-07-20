@@ -18,7 +18,7 @@ class ProductMapperTest {
     void publicResponseExcludesImei() {
         Product product = productWithImei();
 
-        ProductPublicResponse response = ProductMapper.toPublicResponse(product, List.of(), List.of());
+        ProductPublicResponse response = ProductMapper.toPublicResponse(product, List.of(), List.of(), List.of());
 
         assertThat(response.getClass().getRecordComponents())
                 .extracting(component -> component.getName())
@@ -39,7 +39,7 @@ class ProductMapperTest {
         image.setPosition(0);
         image.setMainImage(true);
 
-        ProductPublicResponse response = ProductMapper.toPublicResponse(product, List.of(image), List.of());
+        ProductPublicResponse response = ProductMapper.toPublicResponse(product, List.of(image), List.of(), List.of());
 
         assertThat(response.images()).hasSize(1);
         assertThat(response.images().getFirst().getClass().getRecordComponents())
@@ -52,7 +52,7 @@ class ProductMapperTest {
     void adminResponseIncludesImei() {
         Product product = productWithImei();
 
-        ProductAdminResponse response = ProductMapper.toAdminResponse(product, List.of(), List.of());
+        ProductAdminResponse response = ProductMapper.toAdminResponse(product, List.of(), List.of(), List.of());
 
         assertThat(response.imei()).isEqualTo("356938035643809");
     }

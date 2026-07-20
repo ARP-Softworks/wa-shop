@@ -18,6 +18,7 @@ public record ProductWriteRequest(
         @NotBlank @Size(max = 200) String name,
         @NotBlank @Size(max = 220) String slug,
         @Size(max = 120) String model,
+        @Size(max = 200) String productGroupName,
         String description,
         @NotNull ProductType productType,
         @NotNull ProductCondition condition,
@@ -39,6 +40,7 @@ public record ProductWriteRequest(
         @Size(max = 320) String metaDescription,
         Boolean indexable,
         @Valid List<ProductFeatureWriteRequest> features,
-        @Valid List<ProductImageWriteRequest> images
+        @Valid List<ProductImageWriteRequest> images,
+        List<String> compatibleModels
 ) {
 }

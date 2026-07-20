@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import uy.washop.audit.application.AuditService;
 import uy.washop.audit.domain.AuditAction;
+import uy.washop.discount.infrastructure.DiscountCodeRepository;
 import uy.washop.order.domain.Order;
 import uy.washop.order.domain.OrderItem;
 import uy.washop.order.domain.OrderStatus;
@@ -32,6 +33,7 @@ public class OrderWebhookService {
     private final PaymentProvider paymentProvider;
     private final AuditService auditService;
     private final OrderEmailService orderEmailService;
+    private final DiscountCodeRepository discountCodeRepository;
 
     public OrderWebhookService(
             OrderRepository orderRepository,
@@ -40,7 +42,8 @@ public class OrderWebhookService {
             ProductRepository productRepository,
             PaymentProvider paymentProvider,
             AuditService auditService,
-            OrderEmailService orderEmailService
+            OrderEmailService orderEmailService,
+            DiscountCodeRepository discountCodeRepository
     ) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
@@ -49,6 +52,7 @@ public class OrderWebhookService {
         this.paymentProvider = paymentProvider;
         this.auditService = auditService;
         this.orderEmailService = orderEmailService;
+        this.discountCodeRepository = discountCodeRepository;
     }
 
     @Transactional
@@ -151,6 +155,16 @@ public class OrderWebhookService {
         );
 
         if (newStatus == OrderStatus.PAID) {
+            if (order.getDiscountCodeId() != null) {
+                int updated = discountCodeRepository.incrementUsedCountIfAvailable(order.getDiscountCodeId());
+                if (updated == 0) {
+                    log.warn(
+                            "Order {} paid with discount code {} but used_count could not be incremented",
+                            order.getId(),
+                            order.getDiscountCode()
+                    );
+                }
+            }
             orderEmailService.sendOrderConfirmedEmails(order, orderItemRepository.findByOrderId(order.getId()));
         }
     }

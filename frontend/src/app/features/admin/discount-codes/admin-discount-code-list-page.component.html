@@ -1,0 +1,74 @@
+<div class="admin-page">
+  <app-admin-breadcrumbs [items]="[{ label: 'Códigos de descuento' }]" />
+
+  <header class="admin-page__header">
+    <div>
+      <h1>Códigos de descuento</h1>
+      <p class="admin-page__subtitle">
+        Cupones con vencimiento, tope de usos y control por teléfono en el checkout.
+      </p>
+    </div>
+    <a class="btn" routerLink="/admin/codigos-descuento/nuevo">Nuevo código</a>
+  </header>
+
+  @if (actionError()) {
+    <p class="admin-alert admin-alert--error" role="alert">{{ actionError() }}</p>
+  }
+
+  @if (state().status === 'loading' || state().status === 'error' || state().status === 'empty') {
+    <app-state-panel [state]="state()" />
+    @if (state().status === 'error') {
+      <button type="button" (click)="load()">Reintentar</button>
+    }
+  } @else {
+    @if (state().data; as codes) {
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Descuento</th>
+              <th>Usos</th>
+              <th>Vigencia</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (code of codes; track code.id) {
+              <tr>
+                <td data-label="Código"><strong>{{ code.code }}</strong></td>
+                <td data-label="Descuento">{{ formatValue(code) }}</td>
+                <td data-label="Usos">{{ formatUses(code) }}</td>
+                <td data-label="Vigencia">
+                  @if (code.endsAt) {
+                    Hasta {{ code.endsAt | date: 'dd/MM/yyyy HH:mm' }}
+                  } @else if (code.startsAt) {
+                    Desde {{ code.startsAt | date: 'dd/MM/yyyy HH:mm' }}
+                  } @else {
+                    Sin límite
+                  }
+                </td>
+                <td data-label="Estado">
+                  <span
+                    class="status-badge"
+                    [class.status-badge--published]="code.active"
+                    [class.status-badge--draft]="!code.active"
+                  >
+                    {{ code.active ? 'Activo' : 'Inactivo' }}
+                  </span>
+                </td>
+                <td data-label="Acciones">
+                  <div class="admin-table__actions">
+                    <a class="btn btn-secondary" [routerLink]="['/admin/codigos-descuento', code.id]">Editar</a>
+                    <button type="button" class="btn btn-danger" (click)="deleteCode(code)">Eliminar</button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</div>

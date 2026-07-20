@@ -26,7 +26,7 @@
         <h2>Contacto y marca</h2>
         <div class="admin-form__grid">
           <div class="admin-form__field admin-form__field--full">
-            <label for="businessName">Nombre del negocio</label>
+            <label for="businessName">Nombre del negocio<span class="required-mark" aria-hidden="true">*</span></label>
             <input id="businessName" type="text" formControlName="businessName" />
             @if (fieldError('businessName'); as err) {
               <p class="admin-form__error">{{ err }}</p>

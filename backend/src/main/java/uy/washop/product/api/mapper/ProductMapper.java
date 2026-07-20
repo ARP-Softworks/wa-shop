@@ -69,7 +69,8 @@ public final class ProductMapper {
     public static ProductPublicResponse toPublicResponse(
             Product product,
             List<ProductImage> images,
-            List<ProductFeature> features
+            List<ProductFeature> features,
+            List<String> compatibleModels
     ) {
         List<ProductPublicImageResponse> imageResponses =
                 images.stream().map(ProductMapper::toPublicImageResponse).toList();
@@ -84,6 +85,7 @@ public final class ProductMapper {
                 product.getSlug(),
                 product.getName(),
                 product.getModel(),
+                product.getProductGroupId(),
                 product.getDescription(),
                 product.getProductType(),
                 product.getCondition(),
@@ -104,6 +106,7 @@ public final class ProductMapper {
                 primaryImageUrl,
                 imageResponses,
                 features.stream().map(ProductMapper::toFeatureResponse).toList(),
+                compatibleModels,
                 product.getSeoTitle(),
                 product.getMetaDescription(),
                 product.isIndexable(),
@@ -115,13 +118,16 @@ public final class ProductMapper {
     public static ProductAdminResponse toAdminResponse(
             Product product,
             List<ProductImage> images,
-            List<ProductFeature> features
+            List<ProductFeature> features,
+            List<String> compatibleModels
     ) {
         return new ProductAdminResponse(
                 product.getId(),
                 product.getSlug(),
                 product.getName(),
                 product.getModel(),
+                product.getProductGroupId(),
+                product.getProductGroup() != null ? product.getProductGroup().getName() : null,
                 product.getDescription(),
                 product.getProductType(),
                 product.getCondition(),
@@ -142,6 +148,7 @@ public final class ProductMapper {
                 product.getCategory() != null ? product.getCategory().getName() : null,
                 images.stream().map(ProductMapper::toImageResponse).toList(),
                 features.stream().map(ProductMapper::toFeatureResponse).toList(),
+                compatibleModels,
                 product.getSeoTitle(),
                 product.getMetaDescription(),
                 product.isIndexable(),
