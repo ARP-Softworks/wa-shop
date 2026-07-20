@@ -23,16 +23,20 @@ CREATE INDEX idx_discount_codes_active ON discount_codes (active);
 
 CREATE TABLE discount_code_redemptions (
     id                 UUID PRIMARY KEY,
-    discount_code_id   UUID NOT NULL REFERENCES discount_codes(id) ON DELETE CASCADE,
-    order_id           UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    discount_code_id   UUID NOT NULL,
+    order_id           UUID NOT NULL,
     phone_normalized   VARCHAR(40) NOT NULL,
     created_at         TIMESTAMP WITH TIME ZONE NOT NULL,
-    CONSTRAINT uq_discount_redemption_order UNIQUE (order_id)
+    CONSTRAINT uq_discount_redemption_order UNIQUE (order_id),
+    CONSTRAINT fk_discount_redemptions_code FOREIGN KEY (discount_code_id) REFERENCES discount_codes(id) ON DELETE CASCADE,
+    CONSTRAINT fk_discount_redemptions_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
 );
 
 CREATE INDEX idx_discount_redemptions_code_phone ON discount_code_redemptions (discount_code_id, phone_normalized);
 
-ALTER TABLE orders
-    ADD COLUMN discount_code_id UUID REFERENCES discount_codes(id) ON DELETE SET NULL,
-    ADD COLUMN discount_code VARCHAR(40),
-    ADD COLUMN coupon_discount NUMERIC(12, 2) NOT NULL DEFAULT 0.00;
+-- Split ALTER statements for H2 (tests) compatibility with PostgreSQL MODE.
+ALTER TABLE orders ADD COLUMN discount_code_id UUID;
+ALTER TABLE orders ADD COLUMN discount_code VARCHAR(40);
+ALTER TABLE orders ADD COLUMN coupon_discount NUMERIC(12, 2) NOT NULL DEFAULT 0.00;
+ALTER TABLE orders ADD CONSTRAINT fk_orders_discount_code
+    FOREIGN KEY (discount_code_id) REFERENCES discount_codes(id) ON DELETE SET NULL;
