@@ -39,12 +39,12 @@
 
         <div class="admin-form__field">
           <label for="triggerCategoryId">Comprá — categoría<span class="required-mark" aria-hidden="true">*</span></label>
-          <select id="triggerCategoryId" class="ui-select" formControlName="triggerCategoryId">
-            <option value="" disabled>Seleccioná una categoría</option>
-            @for (category of categories(); track category.id) {
-              <option [value]="category.id">{{ category.name }}</option>
-            }
-          </select>
+          <app-ui-select
+            inputId="triggerCategoryId"
+            formControlName="triggerCategoryId"
+            [options]="categoryOptions()"
+            placeholder="Seleccioná una categoría"
+          />
           @if (fieldError('triggerCategoryId'); as err) {
             <p class="admin-form__error">{{ err }}</p>
           }
@@ -59,12 +59,12 @@
 
         <div class="admin-form__field">
           <label for="rewardCategoryId">Llevate — categoría<span class="required-mark" aria-hidden="true">*</span></label>
-          <select id="rewardCategoryId" class="ui-select" formControlName="rewardCategoryId">
-            <option value="" disabled>Seleccioná una categoría</option>
-            @for (category of categories(); track category.id) {
-              <option [value]="category.id">{{ category.name }}</option>
-            }
-          </select>
+          <app-ui-select
+            inputId="rewardCategoryId"
+            formControlName="rewardCategoryId"
+            [options]="categoryOptions()"
+            placeholder="Seleccioná una categoría"
+          />
           @if (fieldError('rewardCategoryId'); as err) {
             <p class="admin-form__error">{{ err }}</p>
           }

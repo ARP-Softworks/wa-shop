@@ -53,6 +53,7 @@
     }
 
     <p class="price">
+      <span class="price__from">Desde</span>
       {{ product.price | money: product.currency }}
       @if (product.previousPrice) {
         <span class="price__previous">{{ product.previousPrice | money: product.currency }}</span>
@@ -61,11 +62,7 @@
 
     <div class="card__actions">
       <a class="btn card__cta" [routerLink]="detailLink">Ver detalle</a>
-      @if (canAddToCart) {
-        <button type="button" class="btn btn-secondary card__cta" (click)="addToCart($event)">
-          {{ added ? 'Agregado ✓' : 'Agregar al carrito' }}
-        </button>
-      } @else if (!compact && whatsappUrl) {
+      @if (!compact && whatsappUrl) {
         <a
           class="btn btn-secondary card__cta"
           [href]="whatsappUrl"

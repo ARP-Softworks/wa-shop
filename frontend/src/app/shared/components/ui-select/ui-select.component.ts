@@ -1,43 +1,47 @@
 import { Component, ElementRef, HostListener, computed, forwardRef, input, signal } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
+export interface UiSelectOption {
+  value: string;
+  label: string;
+}
+
 @Component({
-  selector: 'app-suggest-combo',
+  selector: 'app-ui-select',
   standalone: true,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => SuggestComboComponent),
+      useExisting: forwardRef(() => UiSelectComponent),
       multi: true,
     },
   ],
   template: `
     <div class="combo" [class.is-open]="open()">
-      <input
-        class="ui-select combo__input"
-        type="text"
+      <button
+        type="button"
+        class="ui-select combo__trigger"
         [id]="inputId()"
-        [placeholder]="placeholder()"
         [disabled]="disabled()"
-        [value]="value()"
-        (input)="onInput($event)"
-        (focus)="openPanel()"
+        (click)="toggle()"
         (keydown)="onKeydown($event)"
-        autocomplete="off"
         role="combobox"
         [attr.aria-expanded]="open()"
-        aria-autocomplete="list"
-      />
-      @if (open() && filtered().length > 0) {
+        aria-haspopup="listbox"
+      >
+        <span [class.combo__placeholder]="!selectedLabel()">{{ selectedLabel() || placeholder() }}</span>
+      </button>
+      @if (open() && options().length > 0) {
         <ul class="combo-panel" role="listbox">
-          @for (option of filtered(); track option; let i = $index) {
+          @for (option of options(); track option.value; let i = $index) {
             <li
               role="option"
               class="combo-option"
               [class.is-active]="i === highlight()"
-              (mousedown)="select(option); $event.preventDefault()"
+              [attr.aria-selected]="option.value === value()"
+              (mousedown)="select(option.value); $event.preventDefault()"
             >
-              {{ option }}
+              {{ option.label }}
             </li>
           }
         </ul>
@@ -49,16 +53,12 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
       :host {
         display: block;
       }
-
-      .combo__input {
-        width: 100%;
-      }
     `,
   ],
 })
-export class SuggestComboComponent implements ControlValueAccessor {
-  readonly options = input<string[]>([]);
-  readonly placeholder = input('');
+export class UiSelectComponent implements ControlValueAccessor {
+  readonly options = input<UiSelectOption[]>([]);
+  readonly placeholder = input('Seleccionar');
   readonly inputId = input('');
 
   readonly value = signal('');
@@ -66,14 +66,7 @@ export class SuggestComboComponent implements ControlValueAccessor {
   readonly highlight = signal(0);
   readonly disabled = signal(false);
 
-  readonly filtered = computed(() => {
-    const q = this.value().trim().toLowerCase();
-    const opts = this.options();
-    if (!q) {
-      return opts.slice(0, 12);
-    }
-    return opts.filter((o) => o.toLowerCase().includes(q)).slice(0, 12);
-  });
+  readonly selectedLabel = computed(() => this.options().find((o) => o.value === this.value())?.label ?? '');
 
   private onChange: (value: string) => void = () => undefined;
   private onTouched: () => void = () => undefined;
@@ -96,34 +89,38 @@ export class SuggestComboComponent implements ControlValueAccessor {
     this.disabled.set(isDisabled);
   }
 
-  onInput(event: Event): void {
-    const next = (event.target as HTMLInputElement).value;
-    this.value.set(next);
-    this.onChange(next);
-    this.open.set(true);
-    this.highlight.set(0);
+  toggle(): void {
+    if (this.disabled()) return;
+    if (this.open()) {
+      this.close();
+    } else {
+      this.highlight.set(Math.max(this.options().findIndex((o) => o.value === this.value()), 0));
+      this.open.set(true);
+    }
   }
 
-  openPanel(): void {
-    this.open.set(true);
+  close(): void {
+    if (this.open()) {
+      this.open.set(false);
+      this.onTouched();
+    }
   }
 
-  select(option: string): void {
-    this.value.set(option);
-    this.onChange(option);
-    this.open.set(false);
-    this.onTouched();
+  select(value: string): void {
+    this.value.set(value);
+    this.onChange(value);
+    this.close();
   }
 
   onKeydown(event: KeyboardEvent): void {
+    const opts = this.options();
     if (!this.open()) {
-      if (event.key === 'ArrowDown') {
-        this.open.set(true);
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter') {
+        this.toggle();
         event.preventDefault();
       }
       return;
     }
-    const opts = this.filtered();
     if (event.key === 'ArrowDown') {
       this.highlight.set(Math.min(this.highlight() + 1, Math.max(opts.length - 1, 0)));
       event.preventDefault();
@@ -131,18 +128,18 @@ export class SuggestComboComponent implements ControlValueAccessor {
       this.highlight.set(Math.max(this.highlight() - 1, 0));
       event.preventDefault();
     } else if (event.key === 'Enter' && opts[this.highlight()]) {
-      this.select(opts[this.highlight()]);
+      this.select(opts[this.highlight()].value);
       event.preventDefault();
     } else if (event.key === 'Escape') {
-      this.open.set(false);
+      this.close();
+      event.preventDefault();
     }
   }
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     if (!this.host.nativeElement.contains(event.target as Node)) {
-      this.open.set(false);
-      this.onTouched();
+      this.close();
     }
   }
 }

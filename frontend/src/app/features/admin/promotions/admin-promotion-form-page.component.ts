@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AdminCategoryApiService } from '../../../core/api/admin-category-api.service';
@@ -6,6 +6,7 @@ import { AdminPromotionApiService } from '../../../core/api/admin-promotion-api.
 import { CanComponentDeactivate } from '../../../core/auth/can-deactivate.guard';
 import { AdminBreadcrumbsComponent } from '../../../shared/components/admin-breadcrumbs/admin-breadcrumbs.component';
 import { StatePanelComponent } from '../../../shared/components/state-panel/state-panel.component';
+import { UiSelectComponent } from '../../../shared/components/ui-select/ui-select.component';
 import { AdminCategory, AdminPromotion } from '../../../shared/models/admin.models';
 import { loadingState, successState, UiState } from '../../../shared/models/ui-state';
 import { apiErrorMessage, mapFieldErrors, parseApiError } from '../../../shared/utils/api-error.util';
@@ -14,7 +15,7 @@ import { confirmAction } from '../../../shared/utils/confirm.util';
 @Component({
   selector: 'app-admin-promotion-form-page',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, AdminBreadcrumbsComponent, StatePanelComponent],
+  imports: [ReactiveFormsModule, RouterLink, AdminBreadcrumbsComponent, StatePanelComponent, UiSelectComponent],
   templateUrl: './admin-promotion-form-page.component.html',
   styleUrl: './admin-promotion-form-page.component.scss',
 })
@@ -33,6 +34,8 @@ export class AdminPromotionFormPageComponent implements OnInit, CanComponentDeac
   readonly fieldErrors = signal<Record<string, string>>({});
   readonly successMessage = signal('');
   readonly submitting = signal(false);
+
+  readonly categoryOptions = computed(() => this.categories().map((c) => ({ value: c.id, label: c.name })));
 
   readonly form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(200)]],

@@ -1,6 +1,7 @@
 package uy.washop.product.api.mapper;
 
 import java.util.List;
+import java.util.Map;
 import uy.washop.product.api.dto.AdminProductSummaryResponse;
 import uy.washop.product.api.dto.ProductAdminResponse;
 import uy.washop.product.api.dto.ProductFeatureResponse;
@@ -8,16 +9,23 @@ import uy.washop.product.api.dto.ProductImageResponse;
 import uy.washop.product.api.dto.ProductPublicImageResponse;
 import uy.washop.product.api.dto.ProductPublicResponse;
 import uy.washop.product.api.dto.ProductPublicSummaryResponse;
+import uy.washop.product.api.dto.ProductVariantAdminResponse;
+import uy.washop.product.api.dto.ProductVariantPublicResponse;
 import uy.washop.product.domain.Product;
 import uy.washop.product.domain.ProductFeature;
 import uy.washop.product.domain.ProductImage;
+import uy.washop.product.domain.ProductVariant;
 
 public final class ProductMapper {
 
     private ProductMapper() {
     }
 
-    public static AdminProductSummaryResponse toAdminSummary(Product product, String primaryImageUrl) {
+    public static AdminProductSummaryResponse toAdminSummary(
+            Product product,
+            String primaryImageUrl,
+            int variantCount
+    ) {
         return new AdminProductSummaryResponse(
                 product.getId(),
                 product.getSlug(),
@@ -33,7 +41,7 @@ public final class ProductMapper {
                 product.getPromoPayQuantity(),
                 product.getCurrency(),
                 product.getStock(),
-                product.getImei(),
+                variantCount,
                 product.isPublished(),
                 product.isFeatured(),
                 primaryImageUrl,
@@ -68,24 +76,30 @@ public final class ProductMapper {
 
     public static ProductPublicResponse toPublicResponse(
             Product product,
-            List<ProductImage> images,
+            List<ProductVariant> variants,
+            Map<java.util.UUID, List<ProductImage>> imagesByVariant,
             List<ProductFeature> features,
             List<String> compatibleModels
     ) {
-        List<ProductPublicImageResponse> imageResponses =
-                images.stream().map(ProductMapper::toPublicImageResponse).toList();
-        String primaryImageUrl = imageResponses.stream()
-                .filter(ProductPublicImageResponse::mainImage)
-                .map(ProductPublicImageResponse::url)
+        List<ProductVariantPublicResponse> variantResponses = variants.stream()
+                .map(variant -> toPublicVariant(
+                        variant,
+                        imagesByVariant.getOrDefault(variant.getId(), List.of())
+                ))
+                .toList();
+
+        String primaryImageUrl = variantResponses.stream()
+                .filter(ProductVariantPublicResponse::published)
+                .map(ProductVariantPublicResponse::primaryImageUrl)
+                .filter(url -> url != null && !url.isBlank())
                 .findFirst()
-                .orElse(imageResponses.isEmpty() ? null : imageResponses.getFirst().url());
+                .orElse(variantResponses.isEmpty() ? null : variantResponses.getFirst().primaryImageUrl());
 
         return new ProductPublicResponse(
                 product.getId(),
                 product.getSlug(),
                 product.getName(),
                 product.getModel(),
-                product.getProductGroupId(),
                 product.getDescription(),
                 product.getProductType(),
                 product.getCondition(),
@@ -104,7 +118,7 @@ public final class ProductMapper {
                 product.getCategoryId(),
                 product.getCategory() != null ? product.getCategory().getName() : null,
                 primaryImageUrl,
-                imageResponses,
+                variantResponses,
                 features.stream().map(ProductMapper::toFeatureResponse).toList(),
                 compatibleModels,
                 product.getSeoTitle(),
@@ -117,17 +131,23 @@ public final class ProductMapper {
 
     public static ProductAdminResponse toAdminResponse(
             Product product,
-            List<ProductImage> images,
+            List<ProductVariant> variants,
+            Map<java.util.UUID, List<ProductImage>> imagesByVariant,
             List<ProductFeature> features,
             List<String> compatibleModels
     ) {
+        List<ProductVariantAdminResponse> variantResponses = variants.stream()
+                .map(variant -> toAdminVariant(
+                        variant,
+                        imagesByVariant.getOrDefault(variant.getId(), List.of())
+                ))
+                .toList();
+
         return new ProductAdminResponse(
                 product.getId(),
                 product.getSlug(),
                 product.getName(),
                 product.getModel(),
-                product.getProductGroupId(),
-                product.getProductGroup() != null ? product.getProductGroup().getName() : null,
                 product.getDescription(),
                 product.getProductType(),
                 product.getCondition(),
@@ -141,12 +161,12 @@ public final class ProductMapper {
                 product.getCurrency(),
                 product.getStock(),
                 product.getWarranty(),
-                product.getImei(),
                 product.isPublished(),
                 product.isFeatured(),
                 product.getCategoryId(),
                 product.getCategory() != null ? product.getCategory().getName() : null,
-                images.stream().map(ProductMapper::toImageResponse).toList(),
+                variantResponses.size(),
+                variantResponses,
                 features.stream().map(ProductMapper::toFeatureResponse).toList(),
                 compatibleModels,
                 product.getSeoTitle(),
@@ -155,6 +175,51 @@ public final class ProductMapper {
                 product.getPublishedAt(),
                 product.getCreatedAt(),
                 product.getUpdatedAt()
+        );
+    }
+
+    public static ProductVariantAdminResponse toAdminVariant(ProductVariant variant, List<ProductImage> images) {
+        return new ProductVariantAdminResponse(
+                variant.getId(),
+                variant.getCondition(),
+                variant.getStorageCapacity(),
+                variant.getColor(),
+                variant.getBatteryHealth(),
+                variant.getPrice(),
+                variant.getPreviousPrice(),
+                variant.getCurrency(),
+                variant.getStock(),
+                variant.getWarranty(),
+                variant.getImei(),
+                variant.isPublished(),
+                images.stream().map(ProductMapper::toImageResponse).toList(),
+                variant.getCreatedAt(),
+                variant.getUpdatedAt()
+        );
+    }
+
+    public static ProductVariantPublicResponse toPublicVariant(ProductVariant variant, List<ProductImage> images) {
+        List<ProductPublicImageResponse> imageResponses =
+                images.stream().map(ProductMapper::toPublicImageResponse).toList();
+        String primaryImageUrl = imageResponses.stream()
+                .filter(ProductPublicImageResponse::mainImage)
+                .map(ProductPublicImageResponse::url)
+                .findFirst()
+                .orElse(imageResponses.isEmpty() ? null : imageResponses.getFirst().url());
+        return new ProductVariantPublicResponse(
+                variant.getId(),
+                variant.getCondition(),
+                variant.getStorageCapacity(),
+                variant.getColor(),
+                variant.getBatteryHealth(),
+                variant.getPrice(),
+                variant.getPreviousPrice(),
+                variant.getCurrency(),
+                variant.getStock(),
+                variant.getWarranty(),
+                variant.isPublished(),
+                primaryImageUrl,
+                imageResponses
         );
     }
 

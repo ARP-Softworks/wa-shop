@@ -12,7 +12,7 @@ public record DiscountCodeResponse(
         DiscountType discountType,
         BigDecimal discountValue,
         Integer maxUses,
-        int usedCount,
+        long usedCount,
         Instant startsAt,
         Instant endsAt,
         Instant createdAt,

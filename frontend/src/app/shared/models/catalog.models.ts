@@ -18,6 +18,22 @@ export interface ProductFeature {
   value: string;
 }
 
+export interface ProductVariantPublic {
+  id: string;
+  condition: ProductCondition;
+  storageCapacity: string | null;
+  color: string | null;
+  batteryHealth: number | null;
+  price: number;
+  previousPrice: number | null;
+  currency: CurrencyCode;
+  stock: number;
+  warranty: string | null;
+  published: boolean;
+  primaryImageUrl: string | null;
+  images: ProductImage[];
+}
+
 export interface ProductSummary {
   id: string;
   slug: string;
@@ -46,8 +62,7 @@ export interface ProductDetail extends ProductSummary {
   published: boolean;
   categoryId: string | null;
   categoryName: string | null;
-  productGroupId: string | null;
-  images: ProductImage[];
+  variants: ProductVariantPublic[];
   features: ProductFeature[];
   compatibleModels: string[];
   seoTitle?: string | null;
@@ -128,6 +143,7 @@ export interface PublicSiteSettings {
 }
 
 export interface CartItem {
+  variantId: string;
   productId: string;
   slug: string;
   name: string;
@@ -224,7 +240,7 @@ export function buildCategoryCartLines(items: CartItem[]): CategoryCartLine[] {
   return items
     .filter((item) => item.categoryId != null)
     .map((item) => ({
-      key: item.productId,
+      key: item.variantId,
       categoryId: item.categoryId as string,
       quantity: item.quantity,
       effectiveUnitPrice: calculateLineSubtotal(item.price, item.quantity, item.promoBuyQuantity, item.promoPayQuantity) / item.quantity,
@@ -244,7 +260,7 @@ export interface OrderCreateRequest {
   customerEmail?: string | null;
   shippingAddress?: string | null;
   discountCode?: string | null;
-  items: { productId: string; quantity: number }[];
+  items: { variantId: string; quantity: number }[];
 }
 
 export interface OrderCreateResponse {

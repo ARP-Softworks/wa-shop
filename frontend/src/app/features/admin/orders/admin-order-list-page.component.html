@@ -11,17 +11,7 @@
   <form class="admin-filters" [formGroup]="filters">
     <label>
       Estado
-      <select class="ui-select" formControlName="status">
-        <option value="">Todos</option>
-        <option value="PENDING_PAYMENT">Pendiente de pago</option>
-        <option value="PAID">Pagado</option>
-        <option value="CONFIRMED">Confirmado</option>
-        <option value="SHIPPED">Enviado</option>
-        <option value="DELIVERED">Entregado</option>
-        <option value="CANCELLED">Cancelado</option>
-        <option value="REJECTED">Rechazado</option>
-        <option value="EXPIRED">Expirado</option>
-      </select>
+      <app-ui-select formControlName="status" [options]="statusOptions" />
     </label>
   </form>
 

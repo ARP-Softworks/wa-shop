@@ -178,6 +178,26 @@ public class OrderEmailService {
     }
 
     private String orderSummaryBlock(Order order, String rows) {
+        String currency = order.getCurrency().name();
+        StringBuilder discountRows = new StringBuilder();
+        if (order.getPromotionDiscount() != null && order.getPromotionDiscount().signum() > 0) {
+            discountRows.append(discountRow("Descuento por promoción", order.getPromotionDiscount(), currency));
+        }
+        if (order.getCouponDiscount() != null && order.getCouponDiscount().signum() > 0) {
+            String label = StringUtils.hasText(order.getDiscountCode())
+                    ? "Código " + order.getDiscountCode()
+                    : "Código de descuento";
+            discountRows.append(discountRow(label, order.getCouponDiscount(), currency));
+        }
+        if (!discountRows.isEmpty()) {
+            discountRows.append("""
+                    <tr>
+                      <td colspan="2" style="padding:6px 16px;color:#64748b;border-top:1px solid #e2e8f0;">Subtotal</td>
+                      <td style="padding:6px 16px;text-align:right;color:#64748b;border-top:1px solid #e2e8f0;">%s</td>
+                    </tr>
+                    """.formatted(formatMoney(order.getSubtotal(), currency)));
+        }
+
         return """
                 <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin:0 0 16px;">
                   <div style="background:#f1f5f9;padding:12px 16px;font-size:13px;color:#64748b;">
@@ -195,6 +215,7 @@ public class OrderEmailService {
                       %s
                     </tbody>
                     <tfoot>
+                      %s
                       <tr>
                         <td colspan="2" style="padding:12px 16px;font-weight:700;border-top:1px solid #e2e8f0;">Total</td>
                         <td style="padding:12px 16px;text-align:right;font-weight:700;border-top:1px solid #e2e8f0;">%s</td>
@@ -206,8 +227,18 @@ public class OrderEmailService {
                 orderCode(order),
                 DATE_FORMAT.format(order.getCreatedAt()),
                 rows,
-                formatMoney(order.getTotal(), order.getCurrency().name())
+                discountRows.toString(),
+                formatMoney(order.getTotal(), currency)
         );
+    }
+
+    private String discountRow(String label, BigDecimal amount, String currency) {
+        return """
+                <tr>
+                  <td colspan="2" style="padding:6px 16px;color:#16a34a;border-top:1px solid #e2e8f0;">%s</td>
+                  <td style="padding:6px 16px;text-align:right;color:#16a34a;border-top:1px solid #e2e8f0;">−%s</td>
+                </tr>
+                """.formatted(escape(label), formatMoney(amount, currency));
     }
 
     private String itemRows(List<OrderItem> items, Order order) {

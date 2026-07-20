@@ -8,15 +8,17 @@ describe('WhatsappLinkService', () => {
     } as unknown as PublicContentApiService;
 
     const service = new WhatsappLinkService(contentApi);
-    const url = service.buildProductInquiryUrl({
-      name: 'iPhone 14',
-      condition: 'USED',
-      storageCapacity: '128GB',
-      color: 'Midnight',
-      batteryHealth: 92,
-      currency: 'UYU',
-      price: 28990,
-    });
+    const url = service.buildProductInquiryUrl(
+      { name: 'iPhone 14' },
+      {
+        condition: 'USED',
+        storageCapacity: '128GB',
+        color: 'Midnight',
+        batteryHealth: 92,
+        currency: 'UYU',
+        price: 28990,
+      }
+    );
 
     expect(url).toContain('https://wa.me/59891234567?text=');
     const text = decodeURIComponent(url!.split('text=')[1]);
@@ -35,15 +37,17 @@ describe('WhatsappLinkService', () => {
     } as unknown as PublicContentApiService;
 
     const service = new WhatsappLinkService(contentApi);
-    const url = service.buildProductInquiryUrl({
-      name: 'iPhone 15',
-      condition: 'NEW',
-      storageCapacity: null,
-      color: null,
-      batteryHealth: null,
-      currency: 'UYU',
-      price: 42990,
-    });
+    const url = service.buildProductInquiryUrl(
+      { name: 'iPhone 15' },
+      {
+        condition: 'NEW',
+        storageCapacity: null,
+        color: null,
+        batteryHealth: null,
+        currency: 'UYU',
+        price: 42990,
+      }
+    );
 
     const text = decodeURIComponent(url!.split('text=')[1]);
     expect(text).not.toContain('color');

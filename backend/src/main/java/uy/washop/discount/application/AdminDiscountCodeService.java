@@ -13,6 +13,7 @@ import uy.washop.discount.api.dto.DiscountCodeWriteRequest;
 import uy.washop.discount.api.mapper.DiscountCodeMapper;
 import uy.washop.discount.domain.DiscountCode;
 import uy.washop.discount.domain.DiscountType;
+import uy.washop.discount.infrastructure.DiscountCodeRedemptionRepository;
 import uy.washop.discount.infrastructure.DiscountCodeRepository;
 import uy.washop.shared.exception.BusinessConflictException;
 import uy.washop.shared.exception.ResourceNotFoundException;
@@ -21,23 +22,30 @@ import uy.washop.shared.exception.ResourceNotFoundException;
 public class AdminDiscountCodeService {
 
     private final DiscountCodeRepository discountCodeRepository;
+    private final DiscountCodeRedemptionRepository redemptionRepository;
     private final AuditService auditService;
 
-    public AdminDiscountCodeService(DiscountCodeRepository discountCodeRepository, AuditService auditService) {
+    public AdminDiscountCodeService(
+            DiscountCodeRepository discountCodeRepository,
+            DiscountCodeRedemptionRepository redemptionRepository,
+            AuditService auditService
+    ) {
         this.discountCodeRepository = discountCodeRepository;
+        this.redemptionRepository = redemptionRepository;
         this.auditService = auditService;
     }
 
     @Transactional(readOnly = true)
     public List<DiscountCodeResponse> listAll() {
         return discountCodeRepository.findAllByOrderByCreatedAtDesc().stream()
-                .map(DiscountCodeMapper::toResponse)
+                .map(entity -> DiscountCodeMapper.toResponse(entity, usedCount(entity.getId())))
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public DiscountCodeResponse getById(UUID id) {
-        return DiscountCodeMapper.toResponse(require(id));
+        DiscountCode entity = require(id);
+        return DiscountCodeMapper.toResponse(entity, usedCount(id));
     }
 
     @Transactional
@@ -52,7 +60,7 @@ public class AdminDiscountCodeService {
         apply(entity, request, code);
         entity = discountCodeRepository.save(entity);
         auditService.record(AuditAction.CREATE, "DiscountCode", entity.getId(), "Código " + entity.getCode());
-        return DiscountCodeMapper.toResponse(entity);
+        return DiscountCodeMapper.toResponse(entity, 0);
     }
 
     @Transactional
@@ -66,7 +74,11 @@ public class AdminDiscountCodeService {
         apply(entity, request, code);
         entity = discountCodeRepository.save(entity);
         auditService.record(AuditAction.UPDATE, "DiscountCode", entity.getId(), "Código " + entity.getCode());
-        return DiscountCodeMapper.toResponse(entity);
+        return DiscountCodeMapper.toResponse(entity, usedCount(id));
+    }
+
+    private long usedCount(UUID codeId) {
+        return redemptionRepository.countActiveByCode(codeId, DiscountCodeApplicationService.INACTIVE_ORDER_STATUSES);
     }
 
     @Transactional

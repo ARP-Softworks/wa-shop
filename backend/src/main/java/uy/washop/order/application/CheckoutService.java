@@ -36,7 +36,8 @@ import uy.washop.payment.application.PaymentPreference;
 import uy.washop.payment.application.PaymentPreferenceRequest;
 import uy.washop.payment.application.PaymentProvider;
 import uy.washop.product.domain.Product;
-import uy.washop.product.infrastructure.ProductRepository;
+import uy.washop.product.domain.ProductVariant;
+import uy.washop.product.infrastructure.ProductVariantRepository;
 import uy.washop.promotion.application.CategoryCartLine;
 import uy.washop.promotion.application.PromotionEngine;
 import uy.washop.promotion.domain.Promotion;
@@ -49,7 +50,8 @@ import uy.washop.shared.exception.ResourceNotFoundException;
 @Service
 public class CheckoutService {
 
-    private final ProductRepository productRepository;
+    private final ProductVariantRepository productVariantRepository;
+    private final VariantStockService variantStockService;
     private final CustomerRepository customerRepository;
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
@@ -63,7 +65,8 @@ public class CheckoutService {
     private final DiscountCodeRedemptionRepository discountCodeRedemptionRepository;
 
     public CheckoutService(
-            ProductRepository productRepository,
+            ProductVariantRepository productVariantRepository,
+            VariantStockService variantStockService,
             CustomerRepository customerRepository,
             OrderRepository orderRepository,
             OrderItemRepository orderItemRepository,
@@ -76,7 +79,8 @@ public class CheckoutService {
             DiscountCodeApplicationService discountCodeApplicationService,
             DiscountCodeRedemptionRepository discountCodeRedemptionRepository
     ) {
-        this.productRepository = productRepository;
+        this.productVariantRepository = productVariantRepository;
+        this.variantStockService = variantStockService;
         this.customerRepository = customerRepository;
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
@@ -98,36 +102,38 @@ public class CheckoutService {
 
         Map<UUID, Integer> requestedQuantities = new LinkedHashMap<>();
         for (OrderItemRequest item : request.items()) {
-            requestedQuantities.merge(item.productId(), item.quantity(), Integer::sum);
+            requestedQuantities.merge(item.variantId(), item.quantity(), Integer::sum);
         }
 
         List<OrderItem> orderItems = new ArrayList<>();
         BigDecimal subtotal = BigDecimal.ZERO;
 
         for (Map.Entry<UUID, Integer> entry : requestedQuantities.entrySet()) {
-            Product product = productRepository.findById(entry.getKey())
-                    .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado"));
-            if (!product.isPublished()) {
+            ProductVariant variant = productVariantRepository.findById(entry.getKey())
+                    .orElseThrow(() -> new ResourceNotFoundException("Variante no encontrada"));
+            Product product = variant.getProduct();
+            if (!product.isPublished() || !variant.isPublished()) {
                 throw new BusinessConflictException("El producto " + product.getName() + " ya no está disponible");
             }
-            if (product.getCurrency() != CurrencyCode.UYU) {
+            if (variant.getCurrency() != CurrencyCode.UYU) {
                 throw new BusinessConflictException(
-                        product.getName() + " solo se puede comprar consultando por WhatsApp"
+                        displayName(product, variant) + " solo se puede comprar consultando por WhatsApp"
                 );
             }
             int quantity = entry.getValue();
-            int affected = productRepository.reserveStock(product.getId(), quantity);
+            int affected = variantStockService.reserve(variant.getId(), quantity);
             if (affected == 0) {
-                throw new BusinessConflictException("Stock insuficiente para " + product.getName());
+                throw new BusinessConflictException("Stock insuficiente para " + displayName(product, variant));
             }
 
-            BigDecimal lineSubtotal = calculateLineSubtotal(product, quantity);
+            BigDecimal lineSubtotal = calculateLineSubtotal(product, variant, quantity);
             subtotal = subtotal.add(lineSubtotal);
 
             OrderItem orderItem = new OrderItem();
             orderItem.setProduct(product);
-            orderItem.setProductName(product.getName());
-            orderItem.setUnitPrice(product.getPrice());
+            orderItem.setVariant(variant);
+            orderItem.setProductName(displayName(product, variant));
+            orderItem.setUnitPrice(variant.getPrice());
             orderItem.setQuantity(quantity);
             orderItem.setSubtotal(lineSubtotal);
             orderItems.add(orderItem);
@@ -210,8 +216,8 @@ public class CheckoutService {
     }
 
     /** Applies "buy X pay Y" promos (2x1, 3x2, ...): full-price for the non-bundled remainder. */
-    static BigDecimal calculateLineSubtotal(Product product, int quantity) {
-        BigDecimal unitPrice = product.getPrice();
+    static BigDecimal calculateLineSubtotal(Product product, ProductVariant variant, int quantity) {
+        BigDecimal unitPrice = variant.getPrice();
         if (!product.hasActivePromotion()) {
             return unitPrice.multiply(BigDecimal.valueOf(quantity));
         }
@@ -230,9 +236,9 @@ public class CheckoutService {
             return Map.of();
         }
         List<CategoryCartLine> lines = orderItems.stream()
-                .filter(oi -> oi.getProduct().getCategoryId() != null)
+                .filter(oi -> oi.getProduct().getCategoryId() != null && oi.getVariantId() != null)
                 .map(oi -> new CategoryCartLine(
-                        oi.getProduct().getId(),
+                        oi.getVariantId(),
                         oi.getProduct().getCategoryId(),
                         oi.getQuantity(),
                         oi.getSubtotal().divide(BigDecimal.valueOf(oi.getQuantity()), 4, RoundingMode.HALF_UP)
@@ -262,15 +268,10 @@ public class CheckoutService {
     private PaymentPreference createPreference(
             Order order, List<OrderItem> orderItems, Customer customer, Map<UUID, BigDecimal> promotionDiscounts
     ) {
-        // Quantity is always sent as 1 with the (already promo-discounted) line subtotal as the
-        // unit price — this guarantees the amount Mercado Pago charges exactly matches
-        // order.getTotal(), with no rounding drift from dividing a promo price across units.
-        // Cross-category promotion discounts are subtracted per line rather than sent as a
-        // separate negative item — Mercado Pago rejects zero/negative unit prices, so a line
-        // fully covered by a promotion (100% off) is dropped instead of sent as $0.
         List<PaymentItem> items = orderItems.stream()
                 .map(oi -> {
-                    BigDecimal discount = promotionDiscounts.getOrDefault(oi.getProduct().getId(), BigDecimal.ZERO);
+                    UUID discountKey = oi.getVariantId() != null ? oi.getVariantId() : oi.getProductId();
+                    BigDecimal discount = promotionDiscounts.getOrDefault(discountKey, BigDecimal.ZERO);
                     BigDecimal adjustedPrice = oi.getSubtotal().subtract(discount).max(BigDecimal.ZERO);
                     return new PaymentItem(oi.getProductName() + " × " + oi.getQuantity(), 1, adjustedPrice, "UYU");
                 })
@@ -279,7 +280,6 @@ public class CheckoutService {
 
         BigDecimal coupon = order.getCouponDiscount() != null ? order.getCouponDiscount() : BigDecimal.ZERO;
         if (coupon.compareTo(BigDecimal.ZERO) > 0 && !items.isEmpty()) {
-            // Distribute coupon across paid lines proportionally so MP preference total matches order.total.
             BigDecimal linesTotal = items.stream()
                     .map(PaymentItem::unitPrice)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -321,5 +321,16 @@ public class CheckoutService {
                         + "/api/public/mercadopago/webhook"
         );
         return paymentProvider.createPreference(preferenceRequest);
+    }
+
+    private static String displayName(Product product, ProductVariant variant) {
+        StringBuilder name = new StringBuilder(product.getName());
+        if (StringUtils.hasText(variant.getColor())) {
+            name.append(" — ").append(variant.getColor());
+        }
+        if (StringUtils.hasText(variant.getStorageCapacity())) {
+            name.append(" / ").append(variant.getStorageCapacity());
+        }
+        return name.toString();
     }
 }

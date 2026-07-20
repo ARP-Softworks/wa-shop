@@ -37,10 +37,7 @@
 
         <div class="admin-form__field">
           <label for="discountType">Tipo<span class="required-mark" aria-hidden="true">*</span></label>
-          <select id="discountType" class="ui-select" formControlName="discountType">
-            <option value="PERCENT">Porcentaje</option>
-            <option value="FIXED">Monto fijo (UYU)</option>
-          </select>
+          <app-ui-select inputId="discountType" formControlName="discountType" [options]="discountTypeOptions" />
         </div>
 
         <div class="admin-form__field">

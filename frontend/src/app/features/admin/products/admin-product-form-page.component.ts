@@ -1,9 +1,10 @@
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
   AbstractControl,
   FormArray,
   FormBuilder,
+  FormGroup,
   ReactiveFormsModule,
   ValidationErrors,
   Validators,
@@ -16,9 +17,11 @@ import { AdminBreadcrumbsComponent } from '../../../shared/components/admin-brea
 import { AdminMediaUploaderComponent } from '../../../shared/components/admin-media-uploader/admin-media-uploader.component';
 import { SuggestComboComponent } from '../../../shared/components/suggest-combo/suggest-combo.component';
 import { StatePanelComponent } from '../../../shared/components/state-panel/state-panel.component';
+import { UiSelectComponent } from '../../../shared/components/ui-select/ui-select.component';
 import {
   AdminCategory,
   AdminProductDetail,
+  AdminProductVariant,
   MediaUploadResponse,
   ProductImageWrite,
   ProductWriteRequest,
@@ -36,13 +39,14 @@ interface ProductFormRouteData {
   basePath?: string;
 }
 
-function batteryRequiredValidator(control: AbstractControl): ValidationErrors | null {
-  const parent = control.parent;
-  if (!parent) {
+function variantBatteryValidator(control: AbstractControl): ValidationErrors | null {
+  const variant = control.parent;
+  if (!variant) {
     return null;
   }
-  const productType = parent.get('productType')?.value as ProductType;
-  const condition = parent.get('condition')?.value as ProductCondition;
+  const root = variant.parent?.parent;
+  const productType = (root?.get('productType')?.value ?? 'IPHONE') as ProductType;
+  const condition = variant.get('condition')?.value as ProductCondition;
   const value = control.value;
 
   if (productType === 'IPHONE' && condition === 'USED') {
@@ -67,6 +71,7 @@ function batteryRequiredValidator(control: AbstractControl): ValidationErrors | 
     StatePanelComponent,
     AdminMediaUploaderComponent,
     SuggestComboComponent,
+    UiSelectComponent,
   ],
   templateUrl: './admin-product-form-page.component.html',
   styleUrl: './admin-product-form-page.component.scss',
@@ -93,33 +98,42 @@ export class AdminProductFormPageComponent implements OnInit, OnDestroy, CanComp
   readonly compatibleModels = signal<string[]>([]);
   readonly modelSearch = signal('');
   readonly modelPickerOpen = signal(false);
+  readonly selectedVariantIndex = signal(0);
 
   readonly iphoneModels = IPHONE_MODELS;
   readonly iphoneCapacities = IPHONE_CAPACITIES;
 
+  readonly productTypeOptions = [
+    { value: 'IPHONE', label: 'iPhone' },
+    { value: 'ACCESSORY', label: 'Accesorio' },
+  ];
+
+  readonly conditionOptions = [
+    { value: 'NEW', label: 'Nuevo' },
+    { value: 'USED', label: 'Usado' },
+  ];
+
+  readonly currencyOptions = [
+    { value: 'UYU', label: 'UYU' },
+    { value: 'USD', label: 'USD' },
+  ];
+
+  readonly categoryOptions = computed(() => [
+    { value: '', label: 'Sin categoría' },
+    ...this.categories().map((c) => ({ value: c.id, label: c.name })),
+  ]);
+
   private slugManuallyEdited = false;
-  private groupManuallyEdited = false;
   private subscriptions = new Subscription();
 
   readonly form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(200)]],
     slug: ['', [Validators.required, Validators.maxLength(220)]],
     model: ['', Validators.maxLength(120)],
-    productGroupName: ['', Validators.maxLength(200)],
     description: [''],
     productType: ['IPHONE' as ProductType, Validators.required],
-    condition: ['NEW' as ProductCondition, Validators.required],
-    storageCapacity: ['', Validators.maxLength(40)],
-    color: ['', Validators.maxLength(80)],
-    batteryHealth: this.fb.control<number | null>(null, [batteryRequiredValidator]),
-    price: [0, [Validators.required, Validators.min(0)]],
-    previousPrice: this.fb.control<number | null>(null, Validators.min(0)),
     promoBuyQuantity: this.fb.control<number | null>(null, Validators.min(1)),
     promoPayQuantity: this.fb.control<number | null>(null, Validators.min(1)),
-    currency: ['UYU' as CurrencyCode, Validators.required],
-    stock: [0, [Validators.required, Validators.min(0)]],
-    warranty: ['', Validators.maxLength(200)],
-    imei: ['', Validators.maxLength(17)],
     published: [false],
     featured: [false],
     categoryId: [''],
@@ -127,7 +141,7 @@ export class AdminProductFormPageComponent implements OnInit, OnDestroy, CanComp
     metaDescription: ['', Validators.maxLength(320)],
     indexable: [true],
     features: this.fb.array([] as ReturnType<typeof this.createFeatureGroup>[]),
-    images: this.fb.array([] as ReturnType<typeof this.createImageGroup>[]),
+    variants: this.fb.array([] as ReturnType<typeof this.createVariantGroup>[]),
   });
 
   ngOnInit(): void {
@@ -149,6 +163,7 @@ export class AdminProductFormPageComponent implements OnInit, OnDestroy, CanComp
       this.productId.set(id);
       this.loadProduct(id);
     } else {
+      this.addVariant();
       this.loadState.set(successState({} as AdminProductDetail));
     }
 
@@ -169,28 +184,8 @@ export class AdminProductFormPageComponent implements OnInit, OnDestroy, CanComp
     );
 
     this.subscriptions.add(
-      this.form.controls.model.valueChanges.subscribe((model) => {
-        if (!this.groupManuallyEdited) {
-          this.form.controls.productGroupName.setValue(model, { emitEvent: false });
-        }
-      })
-    );
-
-    this.subscriptions.add(
-      this.form.controls.productGroupName.valueChanges.subscribe(() => {
-        this.groupManuallyEdited = true;
-      })
-    );
-
-    this.subscriptions.add(
       this.form.controls.productType.valueChanges.subscribe(() => {
-        this.form.controls.batteryHealth.updateValueAndValidity();
-      })
-    );
-
-    this.subscriptions.add(
-      this.form.controls.condition.valueChanges.subscribe(() => {
-        this.form.controls.batteryHealth.updateValueAndValidity();
+        this.refreshVariantBatteryValidators();
       })
     );
   }
@@ -210,8 +205,16 @@ export class AdminProductFormPageComponent implements OnInit, OnDestroy, CanComp
     return this.form.controls.features;
   }
 
-  get images(): FormArray {
-    return this.form.controls.images;
+  get variants(): FormArray {
+    return this.form.controls.variants;
+  }
+
+  variantGroup(index: number): FormGroup {
+    return this.variants.at(index) as FormGroup;
+  }
+
+  variantImages(index: number): FormArray {
+    return this.variantGroup(index).get('images') as FormArray;
   }
 
   mediaFolder(): string {
@@ -257,10 +260,32 @@ export class AdminProductFormPageComponent implements OnInit, OnDestroy, CanComp
     this.form.markAsDirty();
   }
 
+  addVariant(variant?: AdminProductVariant): void {
+    this.variants.push(this.createVariantGroup(variant));
+    this.selectedVariantIndex.set(this.variants.length - 1);
+    this.form.markAsDirty();
+  }
+
+  removeVariant(index: number): void {
+    if (this.variants.length <= 1) {
+      this.submitError.set('El producto debe tener al menos una variante.');
+      return;
+    }
+    this.variants.removeAt(index);
+    this.selectedVariantIndex.set(Math.max(0, Math.min(index, this.variants.length - 1)));
+    this.form.markAsDirty();
+  }
+
+  selectVariant(index: number): void {
+    this.selectedVariantIndex.set(index);
+  }
+
   onImageUploaded(response: MediaUploadResponse): void {
     this.imageUploadError.set('');
-    const isFirst = this.images.length === 0;
-    this.images.push(
+    const index = this.selectedVariantIndex();
+    const images = this.variantImages(index);
+    const isFirst = images.length === 0;
+    images.push(
       this.createImageGroup({
         url: response.url,
         publicId: response.publicId,
@@ -279,30 +304,32 @@ export class AdminProductFormPageComponent implements OnInit, OnDestroy, CanComp
     this.imageUploadError.set(message);
   }
 
-  removeImage(index: number): void {
-    const wasMain = !!this.images.at(index).get('mainImage')?.value;
-    this.images.removeAt(index);
-    if (wasMain && this.images.length > 0) {
-      this.setMainImage(0);
+  removeImage(variantIndex: number, imageIndex: number): void {
+    const images = this.variantImages(variantIndex);
+    const wasMain = !!images.at(imageIndex).get('mainImage')?.value;
+    images.removeAt(imageIndex);
+    if (wasMain && images.length > 0) {
+      this.setMainImage(variantIndex, 0);
     }
     this.form.markAsDirty();
   }
 
-  setMainImage(index: number): void {
-    this.images.controls.forEach((control, i) => {
-      control.get('mainImage')?.setValue(i === index);
+  setMainImage(variantIndex: number, imageIndex: number): void {
+    this.variantImages(variantIndex).controls.forEach((control, i) => {
+      control.get('mainImage')?.setValue(i === imageIndex);
     });
     this.form.markAsDirty();
   }
 
-  moveImage(index: number, delta: number): void {
-    const target = index + delta;
-    if (target < 0 || target >= this.images.length) {
+  moveImage(variantIndex: number, imageIndex: number, delta: number): void {
+    const images = this.variantImages(variantIndex);
+    const target = imageIndex + delta;
+    if (target < 0 || target >= images.length) {
       return;
     }
-    const current = this.images.at(index);
-    this.images.removeAt(index);
-    this.images.insert(target, current);
+    const current = images.at(imageIndex);
+    images.removeAt(imageIndex);
+    images.insert(target, current);
     this.form.markAsDirty();
   }
 
@@ -314,6 +341,10 @@ export class AdminProductFormPageComponent implements OnInit, OnDestroy, CanComp
     this.form.markAllAsTouched();
     if (this.form.invalid) {
       this.submitError.set('Revisá los campos marcados.');
+      return;
+    }
+    if (this.variants.length === 0) {
+      this.submitError.set('Agregá al menos una variante.');
       return;
     }
 
@@ -367,6 +398,23 @@ export class AdminProductFormPageComponent implements OnInit, OnDestroy, CanComp
     return 'Valor inválido';
   }
 
+  variantFieldError(variantIndex: number, field: string): string | null {
+    const control = this.variantGroup(variantIndex).get(field);
+    if (!control?.touched || !control.invalid) {
+      return null;
+    }
+    if (control.hasError('required')) {
+      return 'Campo obligatorio';
+    }
+    if (control.hasError('min')) {
+      return 'El valor debe ser mayor o igual a 0';
+    }
+    if (control.hasError('range')) {
+      return 'Debe estar entre 0 y 100';
+    }
+    return 'Valor inválido';
+  }
+
   private loadCategories(): void {
     this.categoryApi.list().subscribe({
       next: (items) => this.categories.set(items.filter((c) => c.active)),
@@ -381,7 +429,6 @@ export class AdminProductFormPageComponent implements OnInit, OnDestroy, CanComp
         this.loadState.set(successState(product));
         this.patchFormFromProduct(product);
         this.slugManuallyEdited = true;
-        this.groupManuallyEdited = true;
       },
       error: (error) => {
         this.loadState.set({
@@ -398,13 +445,130 @@ export class AdminProductFormPageComponent implements OnInit, OnDestroy, CanComp
     }
     product.features.forEach((f) => this.addFeature(f.name, f.value));
 
-    while (this.images.length) {
-      this.images.removeAt(0);
+    while (this.variants.length) {
+      this.variants.removeAt(0);
     }
-    [...product.images]
+    const variants = product.variants?.length ? product.variants : [];
+    if (variants.length === 0) {
+      this.addVariant();
+    } else {
+      variants.forEach((variant) => this.variants.push(this.createVariantGroup(variant)));
+    }
+    this.selectedVariantIndex.set(0);
+
+    this.form.patchValue({
+      name: product.name,
+      slug: product.slug,
+      model: product.model ?? '',
+      description: product.description ?? '',
+      productType: product.productType,
+      promoBuyQuantity: product.promoBuyQuantity,
+      promoPayQuantity: product.promoPayQuantity,
+      published: product.published,
+      featured: product.featured,
+      categoryId: product.categoryId ?? '',
+      seoTitle: product.seoTitle ?? '',
+      metaDescription: product.metaDescription ?? '',
+      indexable: product.indexable ?? true,
+    });
+    this.compatibleModels.set(product.compatibleModels ?? []);
+    this.refreshVariantBatteryValidators();
+    this.form.markAsPristine();
+  }
+
+  private buildWriteRequest(): ProductWriteRequest {
+    const raw = this.form.getRawValue();
+    return {
+      name: raw.name.trim(),
+      slug: raw.slug.trim(),
+      model: raw.model.trim() || null,
+      description: raw.description.trim() || null,
+      productType: raw.productType,
+      promoBuyQuantity: raw.promoBuyQuantity != null ? Math.trunc(Number(raw.promoBuyQuantity)) : null,
+      promoPayQuantity: raw.promoPayQuantity != null ? Math.trunc(Number(raw.promoPayQuantity)) : null,
+      published: raw.published,
+      featured: raw.featured,
+      categoryId: raw.categoryId || null,
+      seoTitle: raw.seoTitle.trim() || null,
+      metaDescription: raw.metaDescription.trim() || null,
+      indexable: raw.indexable,
+      features: raw.features
+        .filter((f) => f.name.trim() && f.value.trim())
+        .map((f) => ({ name: f.name.trim(), value: f.value.trim() })),
+      compatibleModels: raw.productType === 'ACCESSORY' ? this.compatibleModels() : [],
+      variants: raw.variants.map((variant) => {
+        const images: ProductImageWrite[] = variant.images.map((item, index) => ({
+          url: item.url.trim(),
+          publicId: item.publicId.trim() || null,
+          altText: item.altText.trim() || null,
+          position: index,
+          mainImage: !!item.mainImage,
+          format: item.format || null,
+          sizeBytes: item.sizeBytes,
+          width: item.width,
+          height: item.height,
+        }));
+        if (images.length > 0 && !images.some((img) => img.mainImage)) {
+          images[0].mainImage = true;
+        }
+        return {
+          id: variant.id || null,
+          condition: variant.condition,
+          storageCapacity: variant.storageCapacity.trim() || null,
+          color: variant.color.trim() || null,
+          batteryHealth: variant.batteryHealth,
+          price: Number(variant.price),
+          previousPrice: variant.previousPrice != null ? Number(variant.previousPrice) : null,
+          currency: variant.currency,
+          stock: Math.trunc(Number(variant.stock)),
+          warranty: variant.warranty.trim() || null,
+          imei: variant.imei.trim() || null,
+          published: variant.published,
+          images,
+        };
+      }),
+    };
+  }
+
+  private refreshVariantBatteryValidators(): void {
+    this.variants.controls.forEach((control) => {
+      control.get('batteryHealth')?.updateValueAndValidity({ emitEvent: false });
+    });
+  }
+
+  private createFeatureGroup(name = '', value = '') {
+    return this.fb.nonNullable.group({
+      name: [name, Validators.required],
+      value: [value, Validators.required],
+    });
+  }
+
+  private createVariantGroup(variant?: AdminProductVariant) {
+    const group = this.fb.nonNullable.group({
+      id: [variant?.id ?? ''],
+      condition: [(variant?.condition ?? 'NEW') as ProductCondition, Validators.required],
+      storageCapacity: [variant?.storageCapacity ?? '', Validators.maxLength(40)],
+      color: [variant?.color ?? '', Validators.maxLength(80)],
+      batteryHealth: this.fb.control<number | null>(variant?.batteryHealth ?? null, [variantBatteryValidator]),
+      price: [variant?.price ?? 0, [Validators.required, Validators.min(0)]],
+      previousPrice: this.fb.control<number | null>(variant?.previousPrice ?? null, Validators.min(0)),
+      currency: [(variant?.currency ?? 'UYU') as CurrencyCode, Validators.required],
+      stock: [variant?.stock ?? 0, [Validators.required, Validators.min(0)]],
+      warranty: [variant?.warranty ?? '', Validators.maxLength(200)],
+      imei: [variant?.imei ?? '', Validators.maxLength(17)],
+      published: [variant?.published ?? true],
+      images: this.fb.array([] as ReturnType<typeof this.createImageGroup>[]),
+    });
+
+    group.controls.condition.valueChanges.subscribe(() => {
+      group.controls.batteryHealth.updateValueAndValidity();
+    });
+
+    const images = group.controls.images;
+    [...(variant?.images ?? [])]
       .sort((a, b) => a.position - b.position)
       .forEach((img) =>
-        this.images.push(
+        images.push(
           this.createImageGroup({
             url: img.url,
             publicId: img.publicId,
@@ -418,92 +582,7 @@ export class AdminProductFormPageComponent implements OnInit, OnDestroy, CanComp
         )
       );
 
-    this.form.patchValue({
-      name: product.name,
-      slug: product.slug,
-      model: product.model ?? '',
-      productGroupName: product.productGroupName ?? '',
-      description: product.description ?? '',
-      productType: product.productType,
-      condition: product.condition,
-      storageCapacity: product.storageCapacity ?? '',
-      color: product.color ?? '',
-      batteryHealth: product.batteryHealth,
-      price: product.price,
-      previousPrice: product.previousPrice,
-      promoBuyQuantity: product.promoBuyQuantity,
-      promoPayQuantity: product.promoPayQuantity,
-      currency: product.currency,
-      stock: product.stock,
-      warranty: product.warranty ?? '',
-      imei: product.imei ?? '',
-      published: product.published,
-      featured: product.featured,
-      categoryId: product.categoryId ?? '',
-      seoTitle: product.seoTitle ?? '',
-      metaDescription: product.metaDescription ?? '',
-      indexable: product.indexable ?? true,
-    });
-    this.compatibleModels.set(product.compatibleModels ?? []);
-    this.form.markAsPristine();
-  }
-
-  private buildWriteRequest(): ProductWriteRequest {
-    const raw = this.form.getRawValue();
-    const images: ProductImageWrite[] = raw.images.map((item, index) => ({
-      url: item.url.trim(),
-      publicId: item.publicId.trim() || null,
-      altText: item.altText.trim() || null,
-      position: index,
-      mainImage: !!item.mainImage,
-      format: item.format || null,
-      sizeBytes: item.sizeBytes,
-      width: item.width,
-      height: item.height,
-    }));
-
-    if (images.length > 0 && !images.some((img) => img.mainImage)) {
-      images[0].mainImage = true;
-    }
-
-    return {
-      name: raw.name.trim(),
-      slug: raw.slug.trim(),
-      model: raw.model.trim() || null,
-      productGroupName: raw.productGroupName.trim() || null,
-      description: raw.description.trim() || null,
-      productType: raw.productType,
-      condition: raw.condition,
-      storageCapacity: raw.storageCapacity.trim() || null,
-      color: raw.color.trim() || null,
-      batteryHealth: raw.batteryHealth,
-      price: Number(raw.price),
-      previousPrice: raw.previousPrice != null ? Number(raw.previousPrice) : null,
-      promoBuyQuantity: raw.promoBuyQuantity != null ? Math.trunc(Number(raw.promoBuyQuantity)) : null,
-      promoPayQuantity: raw.promoPayQuantity != null ? Math.trunc(Number(raw.promoPayQuantity)) : null,
-      currency: raw.currency,
-      stock: Math.trunc(Number(raw.stock)),
-      warranty: raw.warranty.trim() || null,
-      imei: raw.imei.trim() || null,
-      published: raw.published,
-      featured: raw.featured,
-      categoryId: raw.categoryId || null,
-      seoTitle: raw.seoTitle.trim() || null,
-      metaDescription: raw.metaDescription.trim() || null,
-      indexable: raw.indexable,
-      features: raw.features
-        .filter((f) => f.name.trim() && f.value.trim())
-        .map((f) => ({ name: f.name.trim(), value: f.value.trim() })),
-      images,
-      compatibleModels: raw.productType === 'ACCESSORY' ? this.compatibleModels() : [],
-    };
-  }
-
-  private createFeatureGroup(name = '', value = '') {
-    return this.fb.nonNullable.group({
-      name: [name, Validators.required],
-      value: [value, Validators.required],
-    });
+    return group;
   }
 
   private createImageGroup(data: {

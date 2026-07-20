@@ -1,5 +1,7 @@
 package uy.washop.product.application;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -18,11 +20,13 @@ import uy.washop.product.domain.Product;
 import uy.washop.product.domain.ProductCompatibleModel;
 import uy.washop.product.domain.ProductFeature;
 import uy.washop.product.domain.ProductImage;
+import uy.washop.product.domain.ProductVariant;
 import uy.washop.product.infrastructure.ProductCompatibleModelRepository;
 import uy.washop.product.infrastructure.ProductFeatureRepository;
 import uy.washop.product.infrastructure.ProductImageRepository;
 import uy.washop.product.infrastructure.ProductRepository;
 import uy.washop.product.infrastructure.ProductSpecifications;
+import uy.washop.product.infrastructure.ProductVariantRepository;
 import uy.washop.shared.api.PageResponse;
 import uy.washop.shared.exception.ResourceNotFoundException;
 
@@ -30,6 +34,7 @@ import uy.washop.shared.exception.ResourceNotFoundException;
 public class PublicCatalogService {
 
     private final ProductRepository productRepository;
+    private final ProductVariantRepository productVariantRepository;
     private final ProductImageRepository productImageRepository;
     private final ProductFeatureRepository productFeatureRepository;
     private final ProductCompatibleModelRepository productCompatibleModelRepository;
@@ -37,12 +42,14 @@ public class PublicCatalogService {
 
     public PublicCatalogService(
             ProductRepository productRepository,
+            ProductVariantRepository productVariantRepository,
             ProductImageRepository productImageRepository,
             ProductFeatureRepository productFeatureRepository,
             ProductCompatibleModelRepository productCompatibleModelRepository,
             PrimaryImageUrlLoader primaryImageUrlLoader
     ) {
         this.productRepository = productRepository;
+        this.productVariantRepository = productVariantRepository;
         this.productImageRepository = productImageRepository;
         this.productFeatureRepository = productFeatureRepository;
         this.productCompatibleModelRepository = productCompatibleModelRepository;
@@ -86,7 +93,8 @@ public class PublicCatalogService {
     public List<ProductPublicSummaryResponse> related(String slugOrId) {
         Product product = resolvePublished(slugOrId);
         List<Product> related = productRepository
-                .findTop4ByPublishedTrueAndProductTypeAndIdNotOrderByFeaturedDescCreatedAtDesc(
+                .findTop4ByPublishedTrueAndStockGreaterThanAndProductTypeAndIdNotOrderByFeaturedDescCreatedAtDesc(
+                        0,
                         product.getProductType(),
                         product.getId()
                 );
@@ -94,22 +102,6 @@ public class PublicCatalogService {
                 related.stream().map(Product::getId).toList()
         );
         return related.stream()
-                .map(item -> ProductMapper.toPublicSummary(item, primaryImages.get(item.getId())))
-                .toList();
-    }
-
-    @Transactional(readOnly = true)
-    public List<ProductPublicSummaryResponse> variants(String slugOrId) {
-        Product product = resolvePublished(slugOrId);
-        if (product.getProductGroupId() == null) {
-            return List.of();
-        }
-        List<Product> siblings = productRepository
-                .findByProductGroup_IdAndPublishedTrueOrderByPriceAsc(product.getProductGroupId());
-        Map<UUID, String> primaryImages = primaryImageUrlLoader.load(
-                siblings.stream().map(Product::getId).toList()
-        );
-        return siblings.stream()
                 .map(item -> ProductMapper.toPublicSummary(item, primaryImages.get(item.getId())))
                 .toList();
     }
@@ -127,13 +119,33 @@ public class PublicCatalogService {
     }
 
     private ProductPublicResponse toDetail(Product product) {
-        List<ProductImage> images = productImageRepository.findByProductIdOrderByPositionAsc(product.getId());
+        List<ProductVariant> variants = productVariantRepository
+                .findByProduct_IdAndPublishedTrueAndStockGreaterThanOrderByPriceAsc(product.getId(), 0);
+        if (variants.isEmpty()) {
+            throw new ResourceNotFoundException("Producto no encontrado");
+        }
+        Map<UUID, List<ProductImage>> imagesByVariant = loadImagesByVariant(variants);
         List<ProductFeature> features = productFeatureRepository.findByProductIdOrderByNameAsc(product.getId());
         List<String> compatibleModels = productCompatibleModelRepository
                 .findByProductIdOrderByModelAsc(product.getId()).stream()
                 .map(ProductCompatibleModel::getModel)
                 .toList();
-        return ProductMapper.toPublicResponse(product, images, features, compatibleModels);
+        return ProductMapper.toPublicResponse(product, variants, imagesByVariant, features, compatibleModels);
+    }
+
+    private Map<UUID, List<ProductImage>> loadImagesByVariant(List<ProductVariant> variants) {
+        if (variants.isEmpty()) {
+            return Map.of();
+        }
+        List<UUID> variantIds = variants.stream().map(ProductVariant::getId).toList();
+        Map<UUID, List<ProductImage>> map = new HashMap<>();
+        for (ProductImage image : productImageRepository.findByVariant_IdInOrderByPositionAsc(variantIds)) {
+            if (image.getVariant() == null) {
+                continue;
+            }
+            map.computeIfAbsent(image.getVariant().getId(), ignored -> new ArrayList<>()).add(image);
+        }
+        return map;
     }
 
     private static int clampSize(int size) {

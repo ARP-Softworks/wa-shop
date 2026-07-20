@@ -23,7 +23,6 @@ import uy.washop.order.infrastructure.OrderItemRepository;
 import uy.washop.order.infrastructure.OrderRepository;
 import uy.washop.order.infrastructure.OrderStatusHistoryRepository;
 import uy.washop.notification.application.OrderEmailService;
-import uy.washop.product.infrastructure.ProductRepository;
 import uy.washop.shared.api.PageResponse;
 import uy.washop.shared.exception.ResourceNotFoundException;
 
@@ -37,7 +36,7 @@ public class AdminOrderService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final OrderStatusHistoryRepository historyRepository;
-    private final ProductRepository productRepository;
+    private final VariantStockService variantStockService;
     private final AuditService auditService;
     private final OrderEmailService orderEmailService;
 
@@ -45,14 +44,14 @@ public class AdminOrderService {
             OrderRepository orderRepository,
             OrderItemRepository orderItemRepository,
             OrderStatusHistoryRepository historyRepository,
-            ProductRepository productRepository,
+            VariantStockService variantStockService,
             AuditService auditService,
             OrderEmailService orderEmailService
     ) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.historyRepository = historyRepository;
-        this.productRepository = productRepository;
+        this.variantStockService = variantStockService;
         this.auditService = auditService;
         this.orderEmailService = orderEmailService;
     }
@@ -101,9 +100,7 @@ public class AdminOrderService {
                     && (request.status() == OrderStatus.CANCELLED || request.status() == OrderStatus.REJECTED);
             if (releasingStock) {
                 for (OrderItem item : orderItemRepository.findByOrderId(id)) {
-                    if (item.getProductId() != null) {
-                        productRepository.restoreStock(item.getProductId(), item.getQuantity());
-                    }
+                    variantStockService.restore(item);
                 }
             }
 

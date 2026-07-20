@@ -21,6 +21,10 @@ public class ProductImage extends BaseEntity {
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "variant_id")
+    private ProductVariant variant;
+
     @NotBlank
     @Column(nullable = false, columnDefinition = "TEXT")
     private String url;
@@ -57,6 +61,14 @@ public class ProductImage extends BaseEntity {
 
     public void setProduct(Product product) {
         this.product = product;
+    }
+
+    public ProductVariant getVariant() {
+        return variant;
+    }
+
+    public void setVariant(ProductVariant variant) {
+        this.variant = variant;
     }
 
     public String getUrl() {

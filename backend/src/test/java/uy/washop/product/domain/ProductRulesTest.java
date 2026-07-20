@@ -20,30 +20,31 @@ class ProductRulesTest {
 
     @Test
     void rejectsBatteryHealthOnNewIphone() {
-        Product product = baseProduct(ProductType.IPHONE, ProductCondition.NEW);
-        product.setBatteryHealth(90);
-
-        assertThatThrownBy(() -> ProductRules.validateBatteryHealth(product))
+        assertThatThrownBy(() -> ProductRules.validateBatteryHealth(
+                        ProductType.IPHONE, ProductCondition.NEW, 90))
                 .isInstanceOf(BusinessConflictException.class)
                 .hasMessageContaining("batería");
     }
 
     @Test
     void rejectsBatteryHealthOnAccessory() {
-        Product product = baseProduct(ProductType.ACCESSORY, ProductCondition.NEW);
-        product.setBatteryHealth(80);
-
-        assertThatThrownBy(() -> ProductRules.validateBatteryHealth(product))
+        assertThatThrownBy(() -> ProductRules.validateBatteryHealth(
+                        ProductType.ACCESSORY, ProductCondition.NEW, 80))
                 .isInstanceOf(BusinessConflictException.class);
     }
 
     @Test
-    void rejectsPreviousPriceNotGreaterThanCurrent() {
-        Product product = baseProduct(ProductType.IPHONE, ProductCondition.USED);
-        product.setPrice(new BigDecimal("1000.00"));
-        product.setPreviousPrice(new BigDecimal("1000.00"));
+    void requiresBatteryHealthOnUsedIphone() {
+        assertThatThrownBy(() -> ProductRules.validateBatteryHealth(
+                        ProductType.IPHONE, ProductCondition.USED, null))
+                .isInstanceOf(BusinessConflictException.class)
+                .hasMessageContaining("obligatoria");
+    }
 
-        assertThatThrownBy(() -> ProductRules.validatePreviousPrice(product))
+    @Test
+    void rejectsPreviousPriceNotGreaterThanCurrent() {
+        assertThatThrownBy(() -> ProductRules.validatePreviousPrice(
+                        new BigDecimal("1000.00"), new BigDecimal("1000.00")))
                 .isInstanceOf(BusinessConflictException.class)
                 .hasMessageContaining("precio anterior");
     }

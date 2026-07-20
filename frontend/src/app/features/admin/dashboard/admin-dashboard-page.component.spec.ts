@@ -16,6 +16,7 @@ describe('AdminDashboardPageComponent', () => {
         newDevices: 1,
         usedDevices: 1,
         pendingInquiries: 0,
+        pendingOrders: 0,
         activeTechnicalServices: 3,
         recentProducts: [],
         recentInquiries: [],

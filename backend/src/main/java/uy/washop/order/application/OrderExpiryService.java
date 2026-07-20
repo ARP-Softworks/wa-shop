@@ -18,8 +18,6 @@ import uy.washop.order.domain.OrderStatusHistory;
 import uy.washop.order.infrastructure.OrderItemRepository;
 import uy.washop.order.infrastructure.OrderRepository;
 import uy.washop.order.infrastructure.OrderStatusHistoryRepository;
-import uy.washop.product.infrastructure.ProductRepository;
-
 /** Releases stock reserved by carts abandoned mid-checkout (never paid). */
 @Service
 public class OrderExpiryService {
@@ -29,7 +27,7 @@ public class OrderExpiryService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final OrderStatusHistoryRepository historyRepository;
-    private final ProductRepository productRepository;
+    private final VariantStockService variantStockService;
     private final AuditService auditService;
     private final AppProperties appProperties;
 
@@ -37,14 +35,14 @@ public class OrderExpiryService {
             OrderRepository orderRepository,
             OrderItemRepository orderItemRepository,
             OrderStatusHistoryRepository historyRepository,
-            ProductRepository productRepository,
+            VariantStockService variantStockService,
             AuditService auditService,
             AppProperties appProperties
     ) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.historyRepository = historyRepository;
-        this.productRepository = productRepository;
+        this.variantStockService = variantStockService;
         this.auditService = auditService;
         this.appProperties = appProperties;
     }
@@ -58,9 +56,7 @@ public class OrderExpiryService {
         List<Order> abandoned = orderRepository.findByStatusAndCreatedAtBefore(OrderStatus.PENDING_PAYMENT, threshold);
         for (Order order : abandoned) {
             for (OrderItem item : orderItemRepository.findByOrderId(order.getId())) {
-                if (item.getProductId() != null) {
-                    productRepository.restoreStock(item.getProductId(), item.getQuantity());
-                }
+                variantStockService.restore(item);
             }
             order.setStatus(OrderStatus.EXPIRED);
             orderRepository.save(order);

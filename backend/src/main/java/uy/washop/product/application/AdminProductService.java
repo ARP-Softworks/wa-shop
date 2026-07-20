@@ -1,11 +1,17 @@
 package uy.washop.product.application;
 
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
-import java.time.Instant;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -23,24 +29,24 @@ import uy.washop.product.api.dto.ProductAdminResponse;
 import uy.washop.product.api.dto.ProductFeatureWriteRequest;
 import uy.washop.product.api.dto.ProductImageWriteRequest;
 import uy.washop.product.api.dto.ProductSearchCriteria;
+import uy.washop.product.api.dto.ProductVariantWriteRequest;
 import uy.washop.product.api.dto.ProductWriteRequest;
 import uy.washop.product.api.mapper.ProductMapper;
 import uy.washop.product.domain.Product;
 import uy.washop.product.domain.ProductCompatibleModel;
-import uy.washop.product.domain.ProductCondition;
 import uy.washop.product.domain.ProductFeature;
-import uy.washop.product.domain.ProductGroup;
 import uy.washop.product.domain.ProductImage;
 import uy.washop.product.domain.ProductImageRules;
 import uy.washop.product.domain.ProductRules;
 import uy.washop.product.domain.ProductType;
+import uy.washop.product.domain.ProductVariant;
 import uy.washop.product.infrastructure.ProductCompatibleModelRepository;
 import uy.washop.product.infrastructure.ProductFeatureRepository;
-import uy.washop.product.infrastructure.ProductGroupRepository;
 import uy.washop.product.infrastructure.ProductImageRepository;
 import uy.washop.product.infrastructure.ProductRepository;
-import uy.washop.seo.application.SitemapService;
+import uy.washop.product.infrastructure.ProductVariantRepository;
 import uy.washop.seo.application.SeoUrlService;
+import uy.washop.seo.application.SitemapService;
 import uy.washop.seo.application.UrlRedirectService;
 import uy.washop.shared.api.PageResponse;
 import uy.washop.shared.exception.BusinessConflictException;
@@ -50,10 +56,10 @@ import uy.washop.shared.exception.ResourceNotFoundException;
 public class AdminProductService {
 
     private final ProductRepository productRepository;
+    private final ProductVariantRepository productVariantRepository;
     private final ProductImageRepository productImageRepository;
     private final ProductFeatureRepository productFeatureRepository;
     private final ProductCompatibleModelRepository productCompatibleModelRepository;
-    private final ProductGroupRepository productGroupRepository;
     private final CategoryRepository categoryRepository;
     private final AuditService auditService;
     private final MediaApplicationService mediaApplicationService;
@@ -64,10 +70,10 @@ public class AdminProductService {
 
     public AdminProductService(
             ProductRepository productRepository,
+            ProductVariantRepository productVariantRepository,
             ProductImageRepository productImageRepository,
             ProductFeatureRepository productFeatureRepository,
             ProductCompatibleModelRepository productCompatibleModelRepository,
-            ProductGroupRepository productGroupRepository,
             CategoryRepository categoryRepository,
             AuditService auditService,
             MediaApplicationService mediaApplicationService,
@@ -77,10 +83,10 @@ public class AdminProductService {
             SitemapService sitemapService
     ) {
         this.productRepository = productRepository;
+        this.productVariantRepository = productVariantRepository;
         this.productImageRepository = productImageRepository;
         this.productFeatureRepository = productFeatureRepository;
         this.productCompatibleModelRepository = productCompatibleModelRepository;
-        this.productGroupRepository = productGroupRepository;
         this.categoryRepository = categoryRepository;
         this.auditService = auditService;
         this.mediaApplicationService = mediaApplicationService;
@@ -102,9 +108,18 @@ public class AdminProductService {
                 adminSpec(criteria, published),
                 PageRequest.of(Math.max(page, 0), Math.min(Math.max(size, 1), 48), resolveSort(sort))
         );
-        Map<UUID, String> images = primaryImageUrlLoader.load(result.getContent().stream().map(Product::getId).toList());
+        List<UUID> productIds = result.getContent().stream().map(Product::getId).toList();
+        Map<UUID, String> images = primaryImageUrlLoader.load(productIds);
+        Map<UUID, Long> variantCounts = productIds.isEmpty()
+                ? Map.of()
+                : productVariantRepository.findByProduct_IdIn(productIds).stream()
+                        .collect(Collectors.groupingBy(v -> v.getProduct().getId(), Collectors.counting()));
         List<AdminProductSummaryResponse> content = result.getContent().stream()
-                .map(product -> ProductMapper.toAdminSummary(product, images.get(product.getId())))
+                .map(product -> ProductMapper.toAdminSummary(
+                        product,
+                        images.get(product.getId()),
+                        variantCounts.getOrDefault(product.getId(), 0L).intValue()
+                ))
                 .toList();
         return new PageResponse<>(
                 content,
@@ -124,9 +139,13 @@ public class AdminProductService {
     public ProductAdminResponse create(ProductWriteRequest request) {
         validateWrite(request, null);
         Product product = new Product();
-        apply(product, request);
+        applyParent(product, request);
+        seedListingFieldsFromVariants(product, request.variants());
         product = productRepository.save(product);
-        replaceChildren(product, request);
+        replaceFeaturesAndCompatible(product, request);
+        syncVariants(product, request.variants());
+        syncParentListingFields(product);
+        productRepository.save(product);
         sitemapService.invalidateCache();
         auditService.record(AuditAction.CREATE, "Product", product.getId(), "Producto creado: " + product.getSlug());
         return toAdmin(product);
@@ -138,7 +157,7 @@ public class AdminProductService {
         validateWrite(request, id);
         String previousSlug = product.getSlug();
         ProductType previousType = product.getProductType();
-        apply(product, request);
+        applyParent(product, request);
         if (!previousSlug.equals(product.getSlug()) || previousType != product.getProductType()) {
             urlRedirectService.redirectSlugChange(
                     seoUrlService.productPath(previousType, previousSlug),
@@ -146,7 +165,10 @@ public class AdminProductService {
             );
         }
         product = productRepository.save(product);
-        replaceChildren(product, request);
+        replaceFeaturesAndCompatible(product, request);
+        syncVariants(product, request.variants());
+        syncParentListingFields(product);
+        productRepository.save(product);
         sitemapService.invalidateCache();
         auditService.record(AuditAction.UPDATE, "Product", product.getId(), "Producto actualizado: " + product.getSlug());
         return toAdmin(product);
@@ -156,24 +178,35 @@ public class AdminProductService {
     public void delete(UUID id) {
         Product product = requireProduct(id);
         String slug = product.getSlug();
-        List<String> publicIds = productImageRepository.findByProductIdOrderByPositionAsc(id).stream()
-                .map(ProductImage::getPublicId)
-                .filter(StringUtils::hasText)
-                .distinct()
-                .toList();
-        productImageRepository.findByProductIdOrderByPositionAsc(id)
-                .forEach(productImageRepository::delete);
+        List<ProductVariant> variants = productVariantRepository.findByProduct_IdOrderByPriceAsc(id);
+        List<String> publicIds = new ArrayList<>();
+        for (ProductVariant variant : variants) {
+            productImageRepository.findByVariantIdOrderByPositionAsc(variant.getId()).forEach(image -> {
+                if (StringUtils.hasText(image.getPublicId())) {
+                    publicIds.add(image.getPublicId());
+                }
+                productImageRepository.delete(image);
+            });
+            productVariantRepository.delete(variant);
+        }
+        productImageRepository.findByProductIdOrderByPositionAsc(id).forEach(image -> {
+            if (StringUtils.hasText(image.getPublicId())) {
+                publicIds.add(image.getPublicId());
+            }
+            productImageRepository.delete(image);
+        });
         productFeatureRepository.findByProductIdOrderByNameAsc(id)
                 .forEach(productFeatureRepository::delete);
         productCompatibleModelRepository.findByProductIdOrderByModelAsc(id)
                 .forEach(productCompatibleModelRepository::delete);
         productImageRepository.flush();
+        productVariantRepository.flush();
         productFeatureRepository.flush();
         productCompatibleModelRepository.flush();
         productRepository.delete(product);
         sitemapService.invalidateCache();
         auditService.record(AuditAction.DELETE, "Product", id, "Producto eliminado: " + slug);
-        publicIds.forEach(mediaApplicationService::tryDeleteIfUnreferenced);
+        publicIds.stream().distinct().forEach(mediaApplicationService::tryDeleteIfUnreferenced);
     }
 
     @Transactional
@@ -201,64 +234,62 @@ public class AdminProductService {
             }
         });
 
-        if (StringUtils.hasText(request.imei())) {
-            productRepository.findByImei(request.imei()).ifPresent(existing -> {
-                if (currentId == null || !existing.getId().equals(currentId)) {
-                    throw new BusinessConflictException("Ya existe un producto con ese IMEI");
+        ProductRules.validatePromotion(request.promoBuyQuantity(), request.promoPayQuantity());
+
+        Set<UUID> seenVariantIds = new HashSet<>();
+        for (ProductVariantWriteRequest variant : request.variants()) {
+            ProductRules.validateVariant(
+                    request.productType(),
+                    variant.condition(),
+                    variant.batteryHealth(),
+                    variant.price(),
+                    variant.previousPrice()
+            );
+            if (variant.id() != null) {
+                if (!seenVariantIds.add(variant.id())) {
+                    throw new BusinessConflictException("Hay variantes duplicadas en la solicitud");
                 }
-            });
-        }
-
-        if (request.condition() == ProductCondition.USED
-                && request.productType() == ProductType.IPHONE
-                && request.batteryHealth() == null) {
-            throw new BusinessConflictException("La salud de batería es obligatoria para iPhone usados");
-        }
-
-        Product probe = new Product();
-        probe.setProductType(request.productType());
-        probe.setCondition(request.condition());
-        probe.setBatteryHealth(request.batteryHealth());
-        probe.setPrice(request.price());
-        probe.setPreviousPrice(request.previousPrice());
-        probe.setPromoBuyQuantity(request.promoBuyQuantity());
-        probe.setPromoPayQuantity(request.promoPayQuantity());
-        ProductRules.validateAll(probe);
-
-        List<ProductImage> images = new ArrayList<>();
-        if (request.images() != null) {
-            for (ProductImageWriteRequest imageRequest : request.images()) {
-                ProductImage image = new ProductImage();
-                image.setMainImage(imageRequest.mainImage());
-                images.add(image);
+                ProductVariant existing = productVariantRepository.findById(variant.id())
+                        .orElseThrow(() -> new ResourceNotFoundException("Variante no encontrada"));
+                if (currentId == null || !existing.getProduct().getId().equals(currentId)) {
+                    throw new BusinessConflictException("La variante no pertenece a este producto");
+                }
             }
+            if (StringUtils.hasText(variant.imei())) {
+                boolean conflict = variant.id() == null
+                        ? productVariantRepository.existsByImei(variant.imei())
+                        : productVariantRepository.existsByImeiAndIdNot(variant.imei(), variant.id());
+                if (conflict) {
+                    throw new BusinessConflictException("Ya existe una variante con ese IMEI");
+                }
+            }
+            List<ProductImage> images = new ArrayList<>();
+            if (variant.images() != null) {
+                for (ProductImageWriteRequest imageRequest : variant.images()) {
+                    ProductImage image = new ProductImage();
+                    image.setMainImage(imageRequest.mainImage());
+                    images.add(image);
+                }
+            }
+            ProductImageRules.validateSingleMainImage(images);
         }
-        ProductImageRules.validateSingleMainImage(images);
     }
 
-    private void apply(Product product, ProductWriteRequest request) {
+    private void applyParent(Product product, ProductWriteRequest request) {
         product.setName(request.name().trim());
         product.setSlug(request.slug().trim().toLowerCase(Locale.ROOT));
         product.setModel(blankToNull(request.model()));
         product.setDescription(request.description());
         product.setProductType(request.productType());
-        product.setCondition(request.condition());
-        product.setStorageCapacity(blankToNull(request.storageCapacity()));
-        product.setColor(blankToNull(request.color()));
-        product.setBatteryHealth(request.batteryHealth());
-        product.setPrice(request.price());
-        product.setPreviousPrice(request.previousPrice());
         product.setPromoBuyQuantity(request.promoBuyQuantity());
         product.setPromoPayQuantity(request.promoPayQuantity());
-        product.setCurrency(request.currency());
-        product.setStock(request.stock());
-        product.setWarranty(blankToNull(request.warranty()));
-        product.setImei(blankToNull(request.imei()));
         product.setPublished(request.published());
         product.setFeatured(request.featured());
         product.setSeoTitle(blankToNull(request.seoTitle()));
         product.setMetaDescription(blankToNull(request.metaDescription()));
         product.setIndexable(request.indexable() == null || request.indexable());
+        product.setProductGroup(null);
+        product.setImei(null);
         if (request.published() && product.getPublishedAt() == null) {
             product.setPublishedAt(Instant.now());
         }
@@ -269,41 +300,151 @@ public class AdminProductService {
         } else {
             product.setCategory(null);
         }
-        if (StringUtils.hasText(request.productGroupName())) {
-            product.setProductGroup(findOrCreateGroup(request.productGroupName().trim()));
-        } else {
-            product.setProductGroup(null);
+    }
+
+    private void syncVariants(Product product, List<ProductVariantWriteRequest> requests) {
+        List<ProductVariant> existing = productVariantRepository.findByProduct_IdOrderByPriceAsc(product.getId());
+        Map<UUID, ProductVariant> existingById = existing.stream()
+                .collect(Collectors.toMap(ProductVariant::getId, Function.identity()));
+        Set<UUID> keptIds = new HashSet<>();
+        List<String> previousPublicIds = new ArrayList<>();
+        for (ProductVariant variant : existing) {
+            productImageRepository.findByVariantIdOrderByPositionAsc(variant.getId()).forEach(image -> {
+                if (StringUtils.hasText(image.getPublicId())) {
+                    previousPublicIds.add(image.getPublicId());
+                }
+            });
         }
-    }
 
-    private ProductGroup findOrCreateGroup(String name) {
-        String slug = name.toLowerCase(Locale.ROOT)
-                .replaceAll("[^a-z0-9\\s-]", "")
-                .trim()
-                .replaceAll("\\s+", "-");
-        return productGroupRepository.findBySlug(slug).orElseGet(() -> {
-            ProductGroup group = new ProductGroup();
-            group.setName(name);
-            group.setSlug(slug);
-            return productGroupRepository.save(group);
-        });
-    }
+        Set<String> keptPublicIds = new HashSet<>();
+        for (ProductVariantWriteRequest request : requests) {
+            ProductVariant variant;
+            if (request.id() != null) {
+                variant = existingById.get(request.id());
+                if (variant == null) {
+                    throw new ResourceNotFoundException("Variante no encontrada");
+                }
+                keptIds.add(request.id());
+            } else {
+                variant = new ProductVariant();
+                variant.setProduct(product);
+            }
+            applyVariant(variant, request);
+            variant = productVariantRepository.save(variant);
+            keptIds.add(variant.getId());
+            keptPublicIds.addAll(replaceVariantImages(product, variant, request.images()));
+        }
 
-    private void replaceChildren(Product product, ProductWriteRequest request) {
-        List<String> previousPublicIds = productImageRepository.findByProductIdOrderByPositionAsc(product.getId()).stream()
-                .map(ProductImage::getPublicId)
-                .filter(StringUtils::hasText)
+        for (ProductVariant variant : existing) {
+            if (!keptIds.contains(variant.getId())) {
+                productImageRepository.findByVariantIdOrderByPositionAsc(variant.getId())
+                        .forEach(productImageRepository::delete);
+                productVariantRepository.delete(variant);
+            }
+        }
+        productImageRepository.flush();
+        productVariantRepository.flush();
+
+        previousPublicIds.stream()
+                .filter(id -> !keptPublicIds.contains(id))
                 .distinct()
-                .toList();
+                .forEach(mediaApplicationService::tryDeleteIfUnreferenced);
+    }
 
+    private void applyVariant(ProductVariant variant, ProductVariantWriteRequest request) {
+        variant.setCondition(request.condition());
+        variant.setStorageCapacity(blankToNull(request.storageCapacity()));
+        variant.setColor(blankToNull(request.color()));
+        variant.setBatteryHealth(request.batteryHealth());
+        variant.setPrice(request.price());
+        variant.setPreviousPrice(request.previousPrice());
+        variant.setCurrency(request.currency());
+        variant.setStock(request.stock());
+        variant.setWarranty(blankToNull(request.warranty()));
+        variant.setImei(blankToNull(request.imei()));
+        variant.setPublished(request.published());
+    }
+
+    private Set<String> replaceVariantImages(
+            Product product,
+            ProductVariant variant,
+            List<ProductImageWriteRequest> images
+    ) {
+        productImageRepository.findByVariantIdOrderByPositionAsc(variant.getId())
+                .forEach(productImageRepository::delete);
+        productImageRepository.flush();
+        Set<String> keptPublicIds = new HashSet<>();
+        if (images == null) {
+            return keptPublicIds;
+        }
+        for (ProductImageWriteRequest imageRequest : images) {
+            ProductImage image = new ProductImage();
+            image.setProduct(product);
+            image.setVariant(variant);
+            image.setUrl(imageRequest.url().trim());
+            image.setPublicId(blankToNull(imageRequest.publicId()));
+            image.setAltText(blankToNull(imageRequest.altText()));
+            image.setPosition(imageRequest.position());
+            image.setMainImage(imageRequest.mainImage());
+            image.setFormat(blankToNull(imageRequest.format()));
+            image.setSizeBytes(imageRequest.sizeBytes());
+            image.setWidth(imageRequest.width());
+            image.setHeight(imageRequest.height());
+            productImageRepository.save(image);
+            if (StringUtils.hasText(image.getPublicId())) {
+                keptPublicIds.add(image.getPublicId());
+            }
+        }
+        return keptPublicIds;
+    }
+
+    private void seedListingFieldsFromVariants(Product product, List<ProductVariantWriteRequest> variants) {
+        ProductVariantWriteRequest representative = variants.stream()
+                .min(Comparator
+                        .comparing((ProductVariantWriteRequest v) -> !v.published())
+                        .thenComparing(ProductVariantWriteRequest::price))
+                .orElseThrow();
+        product.setCondition(representative.condition());
+        product.setStorageCapacity(blankToNull(representative.storageCapacity()));
+        product.setColor(blankToNull(representative.color()));
+        product.setBatteryHealth(representative.batteryHealth());
+        product.setPrice(representative.price());
+        product.setPreviousPrice(representative.previousPrice());
+        product.setCurrency(representative.currency());
+        product.setWarranty(blankToNull(representative.warranty()));
+        product.setStock(variants.stream().mapToInt(ProductVariantWriteRequest::stock).sum());
+        product.setImei(null);
+    }
+
+    private void syncParentListingFields(Product product) {
+        List<ProductVariant> variants = productVariantRepository.findByProduct_IdOrderByPriceAsc(product.getId());
+        if (variants.isEmpty()) {
+            throw new BusinessConflictException("El producto debe tener al menos una variante");
+        }
+        ProductVariant representative = variants.stream()
+                .min(Comparator
+                        .comparing((ProductVariant v) -> !v.isPublished())
+                        .thenComparing(ProductVariant::getPrice)
+                        .thenComparing(ProductVariant::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder())))
+                .orElseThrow();
+        product.setCondition(representative.getCondition());
+        product.setStorageCapacity(representative.getStorageCapacity());
+        product.setColor(representative.getColor());
+        product.setBatteryHealth(representative.getBatteryHealth());
+        product.setPrice(representative.getPrice());
+        product.setPreviousPrice(representative.getPreviousPrice());
+        product.setCurrency(representative.getCurrency());
+        product.setWarranty(representative.getWarranty());
+        product.setStock(variants.stream().mapToInt(ProductVariant::getStock).sum());
+        product.setImei(null);
+    }
+
+    private void replaceFeaturesAndCompatible(Product product, ProductWriteRequest request) {
         productFeatureRepository.findByProductIdOrderByNameAsc(product.getId())
                 .forEach(productFeatureRepository::delete);
-        productImageRepository.findByProductIdOrderByPositionAsc(product.getId())
-                .forEach(productImageRepository::delete);
         productCompatibleModelRepository.findByProductIdOrderByModelAsc(product.getId())
                 .forEach(productCompatibleModelRepository::delete);
         productFeatureRepository.flush();
-        productImageRepository.flush();
         productCompatibleModelRepository.flush();
 
         if (request.compatibleModels() != null) {
@@ -327,41 +468,35 @@ public class AdminProductService {
                 productFeatureRepository.save(feature);
             }
         }
-        java.util.Set<String> keptPublicIds = new java.util.HashSet<>();
-        if (request.images() != null) {
-            for (ProductImageWriteRequest imageRequest : request.images()) {
-                ProductImage image = new ProductImage();
-                image.setProduct(product);
-                image.setUrl(imageRequest.url().trim());
-                image.setPublicId(blankToNull(imageRequest.publicId()));
-                image.setAltText(blankToNull(imageRequest.altText()));
-                image.setPosition(imageRequest.position());
-                image.setMainImage(imageRequest.mainImage());
-                image.setFormat(blankToNull(imageRequest.format()));
-                image.setSizeBytes(imageRequest.sizeBytes());
-                image.setWidth(imageRequest.width());
-                image.setHeight(imageRequest.height());
-                productImageRepository.save(image);
-                if (StringUtils.hasText(image.getPublicId())) {
-                    keptPublicIds.add(image.getPublicId());
-                }
-            }
-        }
-
-        previousPublicIds.stream()
-                .filter(id -> !keptPublicIds.contains(id))
-                .forEach(mediaApplicationService::tryDeleteIfUnreferenced);
     }
 
     private ProductAdminResponse toAdmin(Product product) {
+        List<ProductVariant> variants = productVariantRepository.findByProduct_IdOrderByPriceAsc(product.getId());
+        Map<UUID, List<ProductImage>> imagesByVariant = loadImagesByVariant(variants);
         return ProductMapper.toAdminResponse(
                 product,
-                productImageRepository.findByProductIdOrderByPositionAsc(product.getId()),
+                variants,
+                imagesByVariant,
                 productFeatureRepository.findByProductIdOrderByNameAsc(product.getId()),
                 productCompatibleModelRepository.findByProductIdOrderByModelAsc(product.getId()).stream()
                         .map(ProductCompatibleModel::getModel)
                         .toList()
         );
+    }
+
+    private Map<UUID, List<ProductImage>> loadImagesByVariant(List<ProductVariant> variants) {
+        if (variants.isEmpty()) {
+            return Map.of();
+        }
+        List<UUID> variantIds = variants.stream().map(ProductVariant::getId).toList();
+        Map<UUID, List<ProductImage>> map = new HashMap<>();
+        for (ProductImage image : productImageRepository.findByVariant_IdInOrderByPositionAsc(variantIds)) {
+            if (image.getVariant() == null) {
+                continue;
+            }
+            map.computeIfAbsent(image.getVariant().getId(), ignored -> new ArrayList<>()).add(image);
+        }
+        return map;
     }
 
     private Product requireProduct(UUID id) {

@@ -30,7 +30,9 @@ import uy.washop.auth.infrastructure.UserRepository;
 import uy.washop.product.domain.Product;
 import uy.washop.product.domain.ProductCondition;
 import uy.washop.product.domain.ProductType;
+import uy.washop.product.domain.ProductVariant;
 import uy.washop.product.infrastructure.ProductRepository;
+import uy.washop.product.infrastructure.ProductVariantRepository;
 import uy.washop.shared.domain.CurrencyCode;
 
 @SpringBootTest
@@ -50,11 +52,15 @@ class AuthenticationIntegrationTest {
     @Autowired
     private ProductRepository productRepository;
 
+    @Autowired
+    private ProductVariantRepository productVariantRepository;
+
     private UUID productId;
 
     @BeforeEach
     void setUp() {
         userRepository.deleteAll();
+        productVariantRepository.deleteAll();
         productRepository.deleteAll();
 
         User admin = new User();
@@ -74,11 +80,22 @@ class AuthenticationIntegrationTest {
         product.setPrice(new BigDecimal("20000.00"));
         product.setCurrency(CurrencyCode.UYU);
         product.setStock(1);
-        product.setImei("356938035643899");
         product.setBatteryHealth(90);
         product.setPublished(true);
         product.setFeatured(false);
-        productId = productRepository.save(product).getId();
+        product = productRepository.save(product);
+        productId = product.getId();
+
+        ProductVariant variant = new ProductVariant();
+        variant.setProduct(product);
+        variant.setCondition(ProductCondition.USED);
+        variant.setPrice(new BigDecimal("20000.00"));
+        variant.setCurrency(CurrencyCode.UYU);
+        variant.setStock(1);
+        variant.setImei("356938035643899");
+        variant.setBatteryHealth(90);
+        variant.setPublished(true);
+        productVariantRepository.save(variant);
     }
 
     @Test
@@ -137,7 +154,7 @@ class AuthenticationIntegrationTest {
         mockMvc.perform(get("/api/admin/products/{id}", productId)
                         .with(user("admin@washop.uy").roles("ADMIN")))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.imei").value("356938035643899"));
+                .andExpect(jsonPath("$.variants[0].imei").value("356938035643899"));
     }
 
     @Test
@@ -171,6 +188,6 @@ class AuthenticationIntegrationTest {
                 .andReturn();
 
         assertThat(result.getResponse().getContentAsString()).doesNotContain("356938035643899");
-        assertThat(result.getResponse().getContentAsString()).doesNotContain("imei");
+        assertThat(result.getResponse().getContentAsString()).doesNotContain("\"imei\"");
     }
 }

@@ -58,11 +58,29 @@ export interface AdminProductSummary {
   promoPayQuantity: number | null;
   currency: CurrencyCode;
   stock: number;
-  imei: string | null;
+  variantCount: number;
   published: boolean;
   featured: boolean;
   primaryImageUrl: string | null;
   updatedAt: string;
+}
+
+export interface AdminProductVariant {
+  id: string;
+  condition: ProductCondition;
+  storageCapacity: string | null;
+  color: string | null;
+  batteryHealth: number | null;
+  price: number;
+  previousPrice: number | null;
+  currency: CurrencyCode;
+  stock: number;
+  warranty: string | null;
+  imei: string | null;
+  published: boolean;
+  images: AdminProductImage[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface AdminProductDetail {
@@ -70,8 +88,6 @@ export interface AdminProductDetail {
   slug: string;
   name: string;
   model: string | null;
-  productGroupId: string | null;
-  productGroupName: string | null;
   description: string | null;
   productType: ProductType;
   condition: ProductCondition;
@@ -85,12 +101,12 @@ export interface AdminProductDetail {
   currency: CurrencyCode;
   stock: number;
   warranty: string | null;
-  imei: string | null;
   published: boolean;
   featured: boolean;
   categoryId: string | null;
   categoryName: string | null;
-  images: AdminProductImage[];
+  variantCount: number;
+  variants: AdminProductVariant[];
   features: ProductFeature[];
   compatibleModels: string[];
   seoTitle?: string | null;
@@ -117,25 +133,30 @@ export interface ProductImageWrite {
   height?: number | null;
 }
 
-export interface ProductWriteRequest {
-  name: string;
-  slug: string;
-  model?: string | null;
-  productGroupName?: string | null;
-  description?: string | null;
-  productType: ProductType;
+export interface ProductVariantWriteRequest {
+  id?: string | null;
   condition: ProductCondition;
   storageCapacity?: string | null;
   color?: string | null;
   batteryHealth?: number | null;
   price: number;
   previousPrice?: number | null;
-  promoBuyQuantity?: number | null;
-  promoPayQuantity?: number | null;
   currency: CurrencyCode;
   stock: number;
   warranty?: string | null;
   imei?: string | null;
+  published: boolean;
+  images: ProductImageWrite[];
+}
+
+export interface ProductWriteRequest {
+  name: string;
+  slug: string;
+  model?: string | null;
+  description?: string | null;
+  productType: ProductType;
+  promoBuyQuantity?: number | null;
+  promoPayQuantity?: number | null;
   published: boolean;
   featured: boolean;
   categoryId?: string | null;
@@ -143,8 +164,8 @@ export interface ProductWriteRequest {
   metaDescription?: string | null;
   indexable?: boolean;
   features: ProductFeatureWrite[];
-  images: ProductImageWrite[];
   compatibleModels?: string[];
+  variants: ProductVariantWriteRequest[];
 }
 
 export interface AdminProductSearchParams {
@@ -363,6 +384,9 @@ export interface AdminOrderDetail {
   customerEmail: string | null;
   status: OrderStatus;
   subtotal: number;
+  promotionDiscount: number;
+  discountCode: string | null;
+  couponDiscount: number;
   total: number;
   currency: CurrencyCode;
   shippingAddress: string | null;

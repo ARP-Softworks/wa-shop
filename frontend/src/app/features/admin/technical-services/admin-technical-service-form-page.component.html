@@ -47,10 +47,7 @@
         </div>
         <div class="admin-form__field">
           <label for="currency">Moneda</label>
-          <select id="currency" class="ui-select" formControlName="currency">
-            <option value="UYU">UYU</option>
-            <option value="USD">USD</option>
-          </select>
+          <app-ui-select inputId="currency" formControlName="currency" [options]="currencyOptions" />
         </div>
         <div class="admin-form__field admin-form__field--full">
           <label for="estimatedTime">Tiempo estimado</label>

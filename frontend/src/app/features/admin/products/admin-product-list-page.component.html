@@ -20,19 +20,11 @@
     </label>
     <label>
       Condición
-      <select class="ui-select" formControlName="condition">
-        <option value="">Todas</option>
-        <option value="NEW">Nuevo</option>
-        <option value="USED">Usado</option>
-      </select>
+      <app-ui-select formControlName="condition" [options]="conditionOptions" />
     </label>
     <label>
       Publicación
-      <select class="ui-select" formControlName="published">
-        <option value="">Todas</option>
-        <option value="true">Publicados</option>
-        <option value="false">Borradores</option>
-      </select>
+      <app-ui-select formControlName="published" [options]="publishedOptions" />
     </label>
   </form>
 
@@ -77,6 +69,9 @@
                 </td>
                 <td data-label="Nombre">
                   <a class="products-table__name" [routerLink]="editLink(product.id)">{{ product.name }}</a>
+                  @if (product.variantCount > 1) {
+                    <span class="products-table__variants">{{ product.variantCount }} variantes</span>
+                  }
                 </td>
                 <td data-label="Condición">
                   <span

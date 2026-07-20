@@ -42,6 +42,9 @@ public final class OrderMapper {
                 order.getCustomer() != null ? order.getCustomer().getEmail() : null,
                 order.getStatus(),
                 order.getSubtotal(),
+                order.getPromotionDiscount(),
+                order.getDiscountCode(),
+                order.getCouponDiscount(),
                 order.getTotal(),
                 order.getCurrency(),
                 order.getShippingAddress(),
@@ -60,6 +63,7 @@ public final class OrderMapper {
         return new OrderItemResponse(
                 item.getId(),
                 item.getProductId(),
+                item.getVariantId(),
                 item.getProductName(),
                 item.getUnitPrice(),
                 item.getQuantity(),

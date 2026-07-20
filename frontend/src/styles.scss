@@ -427,6 +427,79 @@ select:disabled,
   cursor: not-allowed;
 }
 
+/*
+ * Shared dropdown-panel look for every custom combo (app-ui-select, app-suggest-combo).
+ * Native <select> can't be restyled cross-browser when open, so fixed-option dropdowns
+ * use this same panel instead of a native <select> to look identical everywhere.
+ */
+.combo {
+  position: relative;
+  display: block;
+}
+
+.combo__trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  text-align: left;
+  font: inherit;
+  color: var(--color-ink);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.7rem 0.85rem;
+  background-color: var(--color-surface);
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+/*
+ * .combo__trigger is a <button>, so it also matches the global `button, .btn`
+ * primary-button styling (blue fill, white text) — including on :hover, where
+ * `button:hover` otherwise wins by specificity over the non-hover rule above.
+ * Explicitly cancel it here so the trigger keeps looking like a plain input.
+ */
+.combo__trigger:hover {
+  background-color: var(--color-surface);
+  border-color: #cbd5e1;
+  color: var(--color-ink);
+  transform: none;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 8%);
+}
+
+.combo__placeholder {
+  color: #94a3b8;
+}
+
+.combo-panel {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 0.25rem);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 0.35rem;
+  list-style: none;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 10px 30px rgb(15 23 42 / 10%);
+  max-height: 14rem;
+  overflow: auto;
+}
+
+.combo-option {
+  padding: 0.55rem 0.7rem;
+  border-radius: 0.4rem;
+  cursor: pointer;
+  color: var(--color-ink);
+  font-size: 0.9375rem;
+}
+
+.combo-option:hover,
+.combo-option.is-active {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
 /* ——— Tables (shared public/admin) ——— */
 .table-wrap {
   overflow-x: auto;
@@ -479,14 +552,15 @@ table.data-table th {
  * CSS Grid on a <label> that wraps caption + control splits text and .required-mark
  * into separate rows. Prefer .form-field with a sibling label, or block flow.
  */
-label:has(> input, > textarea, > select, > .password-field) {
+label:has(> input, > textarea, > select, > .password-field, > app-ui-select) {
   display: block;
 }
 
-label:has(> input, > textarea, > select, > .password-field) > input,
-label:has(> input, > textarea, > select, > .password-field) > textarea,
-label:has(> input, > textarea, > select, > .password-field) > select,
-label:has(> input, > textarea, > select, > .password-field) > .password-field {
+label:has(> input, > textarea, > select, > .password-field, > app-ui-select) > input,
+label:has(> input, > textarea, > select, > .password-field, > app-ui-select) > textarea,
+label:has(> input, > textarea, > select, > .password-field, > app-ui-select) > select,
+label:has(> input, > textarea, > select, > .password-field, > app-ui-select) > .password-field,
+label:has(> input, > textarea, > select, > .password-field, > app-ui-select) > app-ui-select {
   display: block;
   width: 100%;
   margin-top: 0.35rem;

@@ -14,6 +14,7 @@ import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.util.UUID;
 import uy.washop.product.domain.Product;
+import uy.washop.product.domain.ProductVariant;
 import uy.washop.shared.domain.BaseEntity;
 
 @Entity
@@ -27,6 +28,10 @@ public class OrderItem extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
     private Product product;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "variant_id")
+    private ProductVariant variant;
 
     @NotBlank
     @Size(max = 200)
@@ -65,6 +70,18 @@ public class OrderItem extends BaseEntity {
 
     public UUID getProductId() {
         return product != null ? product.getId() : null;
+    }
+
+    public ProductVariant getVariant() {
+        return variant;
+    }
+
+    public void setVariant(ProductVariant variant) {
+        this.variant = variant;
+    }
+
+    public UUID getVariantId() {
+        return variant != null ? variant.getId() : null;
     }
 
     public String getProductName() {

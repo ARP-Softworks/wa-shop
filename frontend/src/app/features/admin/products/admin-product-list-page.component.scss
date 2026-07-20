@@ -107,6 +107,13 @@
   color: var(--color-accent-dark, #1d4ed8);
 }
 
+.products-table__variants {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
 .products-table__price {
   font-weight: 700;
   font-variant-numeric: tabular-nums;

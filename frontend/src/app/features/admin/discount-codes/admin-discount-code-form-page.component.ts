@@ -5,6 +5,7 @@ import { AdminDiscountCodeApiService } from '../../../core/api/admin-discount-co
 import { CanComponentDeactivate } from '../../../core/auth/can-deactivate.guard';
 import { AdminBreadcrumbsComponent } from '../../../shared/components/admin-breadcrumbs/admin-breadcrumbs.component';
 import { StatePanelComponent } from '../../../shared/components/state-panel/state-panel.component';
+import { UiSelectComponent } from '../../../shared/components/ui-select/ui-select.component';
 import { AdminDiscountCode, DiscountType } from '../../../shared/models/admin.models';
 import { loadingState, successState, UiState } from '../../../shared/models/ui-state';
 import { apiErrorMessage, mapFieldErrors, parseApiError } from '../../../shared/utils/api-error.util';
@@ -13,7 +14,7 @@ import { confirmAction } from '../../../shared/utils/confirm.util';
 @Component({
   selector: 'app-admin-discount-code-form-page',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, AdminBreadcrumbsComponent, StatePanelComponent],
+  imports: [ReactiveFormsModule, RouterLink, AdminBreadcrumbsComponent, StatePanelComponent, UiSelectComponent],
   templateUrl: './admin-discount-code-form-page.component.html',
   styleUrl: './admin-discount-code-form-page.component.scss',
 })
@@ -31,6 +32,11 @@ export class AdminDiscountCodeFormPageComponent implements OnInit, CanComponentD
   readonly fieldErrors = signal<Record<string, string>>({});
   readonly successMessage = signal('');
   readonly submitting = signal(false);
+
+  readonly discountTypeOptions = [
+    { value: 'PERCENT', label: 'Porcentaje' },
+    { value: 'FIXED', label: 'Monto fijo (UYU)' },
+  ];
 
   readonly form = this.fb.nonNullable.group({
     code: ['', [Validators.required, Validators.maxLength(40)]],

@@ -6,6 +6,7 @@ import { AdminTechnicalServiceApiService } from '../../../core/api/admin-technic
 import { CanComponentDeactivate } from '../../../core/auth/can-deactivate.guard';
 import { AdminBreadcrumbsComponent } from '../../../shared/components/admin-breadcrumbs/admin-breadcrumbs.component';
 import { StatePanelComponent } from '../../../shared/components/state-panel/state-panel.component';
+import { UiSelectComponent } from '../../../shared/components/ui-select/ui-select.component';
 import { AdminTechnicalService } from '../../../shared/models/admin.models';
 import { CurrencyCode } from '../../../shared/models/catalog.models';
 import { loadingState, successState, UiState } from '../../../shared/models/ui-state';
@@ -16,7 +17,7 @@ import { slugify } from '../../../shared/utils/slugify.util';
 @Component({
   selector: 'app-admin-technical-service-form-page',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, AdminBreadcrumbsComponent, StatePanelComponent],
+  imports: [ReactiveFormsModule, RouterLink, AdminBreadcrumbsComponent, StatePanelComponent, UiSelectComponent],
   templateUrl: './admin-technical-service-form-page.component.html',
   styleUrl: './admin-technical-service-form-page.component.scss',
 })
@@ -33,6 +34,11 @@ export class AdminTechnicalServiceFormPageComponent implements OnInit, OnDestroy
   readonly fieldErrors = signal<Record<string, string>>({});
   readonly successMessage = signal('');
   readonly submitting = signal(false);
+
+  readonly currencyOptions = [
+    { value: 'UYU', label: 'UYU' },
+    { value: 'USD', label: 'USD' },
+  ];
 
   private slugManuallyEdited = false;
   private subscriptions = new Subscription();

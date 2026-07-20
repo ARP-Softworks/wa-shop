@@ -80,12 +80,7 @@
         <div class="admin-form__grid">
           <div class="admin-form__field">
             <label for="status">Estado</label>
-            <select id="status" class="ui-select" formControlName="status">
-              <option value="NEW">Nueva</option>
-              <option value="IN_PROGRESS">En progreso</option>
-              <option value="RESPONDED">Respondida</option>
-              <option value="CLOSED">Cerrada</option>
-            </select>
+            <app-ui-select inputId="status" formControlName="status" [options]="statusOptions" />
           </div>
           <div class="admin-form__field admin-form__field--full">
             <label for="note">Nota del cambio</label>

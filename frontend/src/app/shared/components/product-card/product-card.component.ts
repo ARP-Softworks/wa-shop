@@ -6,7 +6,6 @@ import { ConditionLabelPipe } from '../../pipes/condition-label.pipe';
 import { productAlt } from '../../utils/product-alt.util';
 import { WhatsappLinkService } from '../../../core/whatsapp/whatsapp-link.service';
 import { AnalyticsService } from '../../../core/analytics/analytics.service';
-import { CartService } from '../../../core/cart/cart.service';
 
 @Component({
   selector: 'app-product-card',
@@ -22,13 +21,6 @@ export class ProductCardComponent {
 
   private readonly whatsapp = inject(WhatsappLinkService);
   private readonly analytics = inject(AnalyticsService);
-  private readonly cart = inject(CartService);
-
-  added = false;
-
-  get canAddToCart(): boolean {
-    return this.product.currency === 'UYU' && this.product.stock > 0;
-  }
 
   get promoLabel(): string | null {
     const { promoBuyQuantity, promoPayQuantity } = this.product;
@@ -36,14 +28,6 @@ export class ProductCardComponent {
       return null;
     }
     return `${promoBuyQuantity}x${promoPayQuantity}`;
-  }
-
-  addToCart(event: Event): void {
-    event.preventDefault();
-    event.stopPropagation();
-    this.cart.addItem(this.product);
-    this.added = true;
-    setTimeout(() => (this.added = false), 1500);
   }
 
   get detailLink(): string {
@@ -57,7 +41,7 @@ export class ProductCardComponent {
   }
 
   get whatsappUrl(): string | null {
-    return this.whatsapp.buildProductInquiryUrl(this.product);
+    return this.whatsapp.buildProductInquiryUrl(this.product, this.product);
   }
 
   onWhatsappClick(event: Event): void {

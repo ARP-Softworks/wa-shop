@@ -67,9 +67,4 @@ public class PublicProductController {
     public List<ProductPublicSummaryResponse> related(@PathVariable String slugOrId) {
         return publicCatalogService.related(slugOrId);
     }
-
-    @GetMapping("/{slugOrId}/variants")
-    public List<ProductPublicSummaryResponse> variants(@PathVariable String slugOrId) {
-        return publicCatalogService.variants(slugOrId);
-    }
 }

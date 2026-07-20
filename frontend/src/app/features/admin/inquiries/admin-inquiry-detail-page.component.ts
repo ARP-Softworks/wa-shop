@@ -5,7 +5,9 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AdminInquiryApiService } from '../../../core/api/admin-inquiry-api.service';
 import { AdminBreadcrumbsComponent } from '../../../shared/components/admin-breadcrumbs/admin-breadcrumbs.component';
 import { StatePanelComponent } from '../../../shared/components/state-panel/state-panel.component';
+import { UiSelectComponent } from '../../../shared/components/ui-select/ui-select.component';
 import { AdminInquiryDetail, InquiryStatus } from '../../../shared/models/admin.models';
+import { INQUIRY_STATUS_OPTIONS } from '../../../shared/models/inquiry-status-options';
 import { loadingState, successState, UiState } from '../../../shared/models/ui-state';
 import { InquiryStatusLabelPipe } from '../../../shared/pipes/inquiry-status-label.pipe';
 import { apiErrorMessage, mapFieldErrors, parseApiError } from '../../../shared/utils/api-error.util';
@@ -21,6 +23,7 @@ import { apiErrorMessage, mapFieldErrors, parseApiError } from '../../../shared/
     AdminBreadcrumbsComponent,
     StatePanelComponent,
     InquiryStatusLabelPipe,
+    UiSelectComponent,
   ],
   templateUrl: './admin-inquiry-detail-page.component.html',
   styleUrl: './admin-inquiry-detail-page.component.scss',
@@ -33,6 +36,7 @@ export class AdminInquiryDetailPageComponent implements OnInit {
   readonly state = signal<UiState<AdminInquiryDetail>>(loadingState());
   readonly submitError = signal('');
   readonly successMessage = signal('');
+  readonly statusOptions = INQUIRY_STATUS_OPTIONS;
   readonly submitting = signal(false);
 
   readonly statusForm = this.fb.nonNullable.group({

@@ -28,7 +28,6 @@ import uy.washop.order.infrastructure.OrderStatusHistoryRepository;
 import uy.washop.notification.application.OrderEmailService;
 import uy.washop.payment.application.PaymentInfo;
 import uy.washop.payment.application.PaymentProvider;
-import uy.washop.product.infrastructure.ProductRepository;
 import uy.washop.shared.domain.CurrencyCode;
 
 @ExtendWith(MockitoExtension.class)
@@ -37,7 +36,7 @@ class OrderWebhookServiceTest {
     @Mock private OrderRepository orderRepository;
     @Mock private OrderItemRepository orderItemRepository;
     @Mock private OrderStatusHistoryRepository historyRepository;
-    @Mock private ProductRepository productRepository;
+    @Mock private VariantStockService variantStockService;
     @Mock private PaymentProvider paymentProvider;
     @Mock private AuditService auditService;
     @Mock private OrderEmailService orderEmailService;
@@ -51,7 +50,7 @@ class OrderWebhookServiceTest {
                 orderRepository,
                 orderItemRepository,
                 historyRepository,
-                productRepository,
+                variantStockService,
                 paymentProvider,
                 auditService,
                 orderEmailService,

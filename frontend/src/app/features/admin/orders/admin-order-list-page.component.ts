@@ -6,7 +6,9 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { AdminOrderApiService } from '../../../core/api/admin-order-api.service';
 import { AdminBreadcrumbsComponent } from '../../../shared/components/admin-breadcrumbs/admin-breadcrumbs.component';
 import { StatePanelComponent } from '../../../shared/components/state-panel/state-panel.component';
+import { UiSelectComponent } from '../../../shared/components/ui-select/ui-select.component';
 import { AdminOrderSummary, OrderStatus, PageResponse } from '../../../shared/models/admin.models';
+import { ORDER_STATUS_FILTER_OPTIONS } from '../../../shared/models/order-status-options';
 import { errorState, loadingState, successState, UiState } from '../../../shared/models/ui-state';
 import { MoneyPipe } from '../../../shared/pipes/money.pipe';
 import { OrderStatusLabelPipe } from '../../../shared/pipes/order-status-label.pipe';
@@ -24,6 +26,7 @@ import { apiErrorMessage } from '../../../shared/utils/api-error.util';
     StatePanelComponent,
     MoneyPipe,
     OrderStatusLabelPipe,
+    UiSelectComponent,
   ],
   templateUrl: './admin-order-list-page.component.html',
   styleUrl: './admin-order-list-page.component.scss',
@@ -36,6 +39,7 @@ export class AdminOrderListPageComponent implements OnInit {
   readonly state = signal<UiState<PageResponse<AdminOrderSummary>>>(loadingState());
   readonly page = signal(0);
   readonly pageSize = 20;
+  readonly statusOptions = ORDER_STATUS_FILTER_OPTIONS;
 
   readonly filters = this.fb.nonNullable.group({
     status: ['' as '' | OrderStatus],

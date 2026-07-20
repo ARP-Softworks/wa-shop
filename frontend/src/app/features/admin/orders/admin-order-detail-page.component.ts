@@ -5,7 +5,9 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AdminOrderApiService } from '../../../core/api/admin-order-api.service';
 import { AdminBreadcrumbsComponent } from '../../../shared/components/admin-breadcrumbs/admin-breadcrumbs.component';
 import { StatePanelComponent } from '../../../shared/components/state-panel/state-panel.component';
+import { UiSelectComponent } from '../../../shared/components/ui-select/ui-select.component';
 import { AdminOrderDetail, OrderStatus } from '../../../shared/models/admin.models';
+import { ORDER_STATUS_OPTIONS } from '../../../shared/models/order-status-options';
 import { loadingState, successState, UiState } from '../../../shared/models/ui-state';
 import { MoneyPipe } from '../../../shared/pipes/money.pipe';
 import { OrderStatusLabelPipe } from '../../../shared/pipes/order-status-label.pipe';
@@ -23,6 +25,7 @@ import { apiErrorMessage, mapFieldErrors, parseApiError } from '../../../shared/
     StatePanelComponent,
     MoneyPipe,
     OrderStatusLabelPipe,
+    UiSelectComponent,
   ],
   templateUrl: './admin-order-detail-page.component.html',
   styleUrl: './admin-order-detail-page.component.scss',
@@ -36,6 +39,7 @@ export class AdminOrderDetailPageComponent implements OnInit {
   readonly submitError = signal('');
   readonly successMessage = signal('');
   readonly submitting = signal(false);
+  readonly statusOptions = ORDER_STATUS_OPTIONS;
 
   readonly statusForm = this.fb.nonNullable.group({
     status: ['PENDING_PAYMENT' as OrderStatus, Validators.required],

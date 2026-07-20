@@ -20,6 +20,7 @@ import uy.washop.product.domain.Product;
 import uy.washop.product.domain.ProductCondition;
 import uy.washop.product.domain.ProductType;
 import uy.washop.product.infrastructure.ProductRepository;
+import uy.washop.product.infrastructure.ProductVariantRepository;
 import uy.washop.technicalservice.api.mapper.TechnicalServiceMapper;
 import uy.washop.technicalservice.infrastructure.TechnicalServiceRepository;
 
@@ -27,6 +28,7 @@ import uy.washop.technicalservice.infrastructure.TechnicalServiceRepository;
 public class AdminDashboardService {
 
     private final ProductRepository productRepository;
+    private final ProductVariantRepository productVariantRepository;
     private final PrimaryImageUrlLoader primaryImageUrlLoader;
     private final InquiryRepository inquiryRepository;
     private final OrderRepository orderRepository;
@@ -34,12 +36,14 @@ public class AdminDashboardService {
 
     public AdminDashboardService(
             ProductRepository productRepository,
+            ProductVariantRepository productVariantRepository,
             PrimaryImageUrlLoader primaryImageUrlLoader,
             InquiryRepository inquiryRepository,
             OrderRepository orderRepository,
             TechnicalServiceRepository technicalServiceRepository
     ) {
         this.productRepository = productRepository;
+        this.productVariantRepository = productVariantRepository;
         this.primaryImageUrlLoader = primaryImageUrlLoader;
         this.inquiryRepository = inquiryRepository;
         this.orderRepository = orderRepository;
@@ -52,9 +56,20 @@ public class AdminDashboardService {
                 PageRequest.of(0, 5, org.springframework.data.domain.Sort.by(
                         org.springframework.data.domain.Sort.Direction.DESC, "updatedAt"))
         ).getContent();
-        Map<UUID, String> images = primaryImageUrlLoader.load(recentProducts.stream().map(Product::getId).toList());
+        List<UUID> productIds = recentProducts.stream().map(Product::getId).toList();
+        Map<UUID, String> images = primaryImageUrlLoader.load(productIds);
+        Map<UUID, Long> variantCounts = productIds.isEmpty()
+                ? Map.of()
+                : productVariantRepository.findByProduct_IdIn(productIds).stream()
+                        .collect(java.util.stream.Collectors.groupingBy(
+                                v -> v.getProduct().getId(),
+                                java.util.stream.Collectors.counting()));
         List<AdminProductSummaryResponse> recentProductDtos = recentProducts.stream()
-                .map(product -> ProductMapper.toAdminSummary(product, images.get(product.getId())))
+                .map(product -> ProductMapper.toAdminSummary(
+                        product,
+                        images.get(product.getId()),
+                        variantCounts.getOrDefault(product.getId(), 0L).intValue()
+                ))
                 .toList();
 
         List<Inquiry> recentInquiries = inquiryRepository.findAll(

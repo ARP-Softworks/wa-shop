@@ -16,7 +16,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import uy.washop.product.domain.Product;
 import uy.washop.product.domain.ProductCondition;
 import uy.washop.product.domain.ProductType;
+import uy.washop.product.domain.ProductVariant;
 import uy.washop.product.infrastructure.ProductRepository;
+import uy.washop.product.infrastructure.ProductVariantRepository;
 import uy.washop.settings.domain.SiteSettings;
 import uy.washop.settings.infrastructure.SiteSettingsRepository;
 import uy.washop.shared.domain.CurrencyCode;
@@ -33,6 +35,9 @@ class PublicCatalogIntegrationTest {
 
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private ProductVariantRepository productVariantRepository;
 
     @Autowired
     private SiteSettingsRepository siteSettingsRepository;
@@ -65,7 +70,23 @@ class PublicCatalogIntegrationTest {
         published.setImei("356938035643811");
         published.setPublished(true);
         published.setFeatured(true);
-        usedSlug = productRepository.save(published).getSlug();
+        published = productRepository.save(published);
+        usedSlug = published.getSlug();
+
+        ProductVariant publishedVariant = new ProductVariant();
+        publishedVariant.setProduct(published);
+        publishedVariant.setCondition(ProductCondition.USED);
+        publishedVariant.setStorageCapacity("128GB");
+        publishedVariant.setColor("Midnight");
+        publishedVariant.setBatteryHealth(91);
+        publishedVariant.setPrice(new BigDecimal("28990.00"));
+        publishedVariant.setPreviousPrice(new BigDecimal("31990.00"));
+        publishedVariant.setCurrency(CurrencyCode.UYU);
+        publishedVariant.setStock(1);
+        publishedVariant.setWarranty("3 meses");
+        publishedVariant.setImei("356938035643811");
+        publishedVariant.setPublished(true);
+        productVariantRepository.save(publishedVariant);
 
         Product unpublished = new Product();
         unpublished.setSlug("iphone-oculto");

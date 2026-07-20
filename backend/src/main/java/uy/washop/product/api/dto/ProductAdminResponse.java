@@ -8,14 +8,12 @@ import uy.washop.product.domain.ProductCondition;
 import uy.washop.product.domain.ProductType;
 import uy.washop.shared.domain.CurrencyCode;
 
-/** Admin projection — includes IMEI. Never use for public endpoints. */
+/** Admin projection — includes IMEI on variants. Never use for public endpoints. */
 public record ProductAdminResponse(
         UUID id,
         String slug,
         String name,
         String model,
-        UUID productGroupId,
-        String productGroupName,
         String description,
         ProductType productType,
         ProductCondition condition,
@@ -29,12 +27,12 @@ public record ProductAdminResponse(
         CurrencyCode currency,
         int stock,
         String warranty,
-        String imei,
         boolean published,
         boolean featured,
         UUID categoryId,
         String categoryName,
-        List<ProductImageResponse> images,
+        int variantCount,
+        List<ProductVariantAdminResponse> variants,
         List<ProductFeatureResponse> features,
         List<String> compatibleModels,
         String seoTitle,

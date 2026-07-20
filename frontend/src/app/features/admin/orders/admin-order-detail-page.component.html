@@ -46,6 +46,16 @@
               {{ order.status | orderStatusLabel }}
             </span>
           </dd>
+          <dt>Subtotal</dt>
+          <dd>{{ order.subtotal | money: order.currency }}</dd>
+          @if (order.promotionDiscount > 0) {
+            <dt>Descuento por promoción</dt>
+            <dd>−{{ order.promotionDiscount | money: order.currency }}</dd>
+          }
+          @if (order.discountCode) {
+            <dt>Código de descuento</dt>
+            <dd>{{ order.discountCode }} (−{{ order.couponDiscount | money: order.currency }})</dd>
+          }
           <dt>Total</dt>
           <dd>{{ order.total | money: order.currency }}</dd>
           <dt>ID de pago MP</dt>
@@ -95,16 +105,7 @@
         <div class="admin-form__grid">
           <div class="admin-form__field">
             <label for="status">Estado</label>
-            <select id="status" class="ui-select" formControlName="status">
-              <option value="PENDING_PAYMENT">Pendiente de pago</option>
-              <option value="PAID">Pagado</option>
-              <option value="CONFIRMED">Confirmado</option>
-              <option value="SHIPPED">Enviado</option>
-              <option value="DELIVERED">Entregado</option>
-              <option value="CANCELLED">Cancelado</option>
-              <option value="REJECTED">Rechazado</option>
-              <option value="EXPIRED">Expirado</option>
-            </select>
+            <app-ui-select inputId="status" formControlName="status" [options]="statusOptions" />
           </div>
           <div class="admin-form__field admin-form__field--full">
             <label for="note">Nota del cambio</label>

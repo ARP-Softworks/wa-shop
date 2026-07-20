@@ -22,16 +22,16 @@ export class CartPageComponent {
   readonly couponError = signal('');
   readonly couponBusy = signal(false);
 
-  increment(productId: string, current: number): void {
-    this.cart.updateQuantity(productId, current + 1);
+  increment(variantId: string, current: number): void {
+    this.cart.updateQuantity(variantId, current + 1);
   }
 
-  decrement(productId: string, current: number): void {
-    this.cart.updateQuantity(productId, current - 1);
+  decrement(variantId: string, current: number): void {
+    this.cart.updateQuantity(variantId, current - 1);
   }
 
-  remove(productId: string): void {
-    this.cart.removeItem(productId);
+  remove(variantId: string): void {
+    this.cart.removeItem(variantId);
   }
 
   lineSubtotal(item: CartItem): number {
@@ -46,7 +46,7 @@ export class CartPageComponent {
   }
 
   lineDiscount(item: CartItem): number {
-    return this.cart.promotionDiscounts().get(item.productId) ?? 0;
+    return this.cart.promotionDiscounts().get(item.variantId) ?? 0;
   }
 
   applyCoupon(): void {

@@ -9,6 +9,7 @@ import { AnalyticsService } from '../../../core/analytics/analytics.service';
 import { BreadcrumbsComponent, BreadcrumbItem } from '../../../shared/components/breadcrumbs/breadcrumbs.component';
 import { ProductCardComponent } from '../../../shared/components/product-card/product-card.component';
 import { StatePanelComponent } from '../../../shared/components/state-panel/state-panel.component';
+import { UiSelectComponent } from '../../../shared/components/ui-select/ui-select.component';
 import {
   ProductCondition,
   ProductSearchParams,
@@ -21,7 +22,14 @@ import { UiState, emptyState, errorState, loadingState, successState } from '../
 @Component({
   selector: 'app-catalog-page',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, ProductCardComponent, StatePanelComponent, BreadcrumbsComponent],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+    ProductCardComponent,
+    StatePanelComponent,
+    BreadcrumbsComponent,
+    UiSelectComponent,
+  ],
   templateUrl: './catalog-page.component.html',
   styleUrl: './catalog-page.component.scss',
 })
@@ -46,6 +54,19 @@ export class CatalogPageComponent implements OnInit {
   readonly totalElements = signal(0);
   readonly crumbs = signal<BreadcrumbItem[]>([]);
   readonly categoryLabel = signal<string | null>(null);
+
+  readonly conditionOptions = [
+    { value: '', label: 'Todos' },
+    { value: 'NEW', label: 'Nuevo' },
+    { value: 'USED', label: 'Usado' },
+  ];
+
+  readonly sortOptions = [
+    { value: 'createdAt,desc', label: 'Más recientes' },
+    { value: 'createdAt,asc', label: 'Más antiguos' },
+    { value: 'price,asc', label: 'Precio: menor a mayor' },
+    { value: 'price,desc', label: 'Precio: mayor a menor' },
+  ];
 
   readonly filters = this.fb.nonNullable.group({
     q: [''],

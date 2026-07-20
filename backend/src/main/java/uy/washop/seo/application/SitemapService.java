@@ -79,7 +79,7 @@ public class SitemapService {
             ));
         }
 
-        for (Product product : productRepository.findByPublishedTrueAndIndexableTrueOrderByUpdatedAtDesc()) {
+        for (Product product : productRepository.findByPublishedTrueAndIndexableTrueAndStockGreaterThanOrderByUpdatedAtDesc(0)) {
             entries.add(new SitemapEntry(
                     seoUrlService.productPath(product),
                     product.getUpdatedAt() != null ? product.getUpdatedAt() : now

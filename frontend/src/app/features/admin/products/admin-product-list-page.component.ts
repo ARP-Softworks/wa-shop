@@ -6,6 +6,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { AdminProductApiService } from '../../../core/api/admin-product-api.service';
 import { AdminBreadcrumbsComponent } from '../../../shared/components/admin-breadcrumbs/admin-breadcrumbs.component';
 import { StatePanelComponent } from '../../../shared/components/state-panel/state-panel.component';
+import { UiSelectComponent } from '../../../shared/components/ui-select/ui-select.component';
 import {
   AdminProductSummary,
   PageResponse,
@@ -33,6 +34,7 @@ interface ProductListRouteData {
     StatePanelComponent,
     ConditionLabelPipe,
     MoneyPipe,
+    UiSelectComponent,
   ],
   templateUrl: './admin-product-list-page.component.html',
   styleUrl: './admin-product-list-page.component.scss',
@@ -57,6 +59,18 @@ export class AdminProductListPageComponent implements OnInit {
     condition: ['' as '' | ProductCondition],
     published: ['' as '' | 'true' | 'false'],
   });
+
+  readonly conditionOptions = [
+    { value: '', label: 'Todas' },
+    { value: 'NEW', label: 'Nuevo' },
+    { value: 'USED', label: 'Usado' },
+  ];
+
+  readonly publishedOptions = [
+    { value: '', label: 'Todas' },
+    { value: 'true', label: 'Publicados' },
+    { value: 'false', label: 'Borradores' },
+  ];
 
   ngOnInit(): void {
     const data = this.route.snapshot.data as ProductListRouteData;

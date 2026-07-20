@@ -6,10 +6,13 @@ import { PublicContentApiService } from '../api/public-content-api.service';
 export class WhatsappLinkService {
   constructor(private readonly contentApi: PublicContentApiService) {}
 
-  buildProductInquiryUrl(product: Pick<
-    ProductSummary,
-    'name' | 'condition' | 'storageCapacity' | 'color' | 'batteryHealth' | 'currency' | 'price'
-  >): string | null {
+  buildProductInquiryUrl(
+    product: Pick<ProductSummary, 'name'>,
+    variant: Pick<
+      ProductSummary,
+      'condition' | 'storageCapacity' | 'color' | 'batteryHealth' | 'currency' | 'price'
+    >
+  ): string | null {
     const phone = this.normalizePhone(this.contentApi.settings()?.whatsappNumber);
     if (!phone) {
       return null;
@@ -17,19 +20,19 @@ export class WhatsappLinkService {
 
     const parts: string[] = [`Hola, estoy interesado en el ${product.name}`];
 
-    parts.push(this.conditionLabel(product.condition));
+    parts.push(this.conditionLabel(variant.condition));
 
-    if (product.storageCapacity) {
-      parts.push(product.storageCapacity);
+    if (variant.storageCapacity) {
+      parts.push(variant.storageCapacity);
     }
-    if (product.color) {
-      parts.push(`color ${product.color}`);
+    if (variant.color) {
+      parts.push(`color ${variant.color}`);
     }
-    if (product.batteryHealth != null) {
-      parts.push(`batería ${product.batteryHealth}%`);
+    if (variant.batteryHealth != null) {
+      parts.push(`batería ${variant.batteryHealth}%`);
     }
 
-    parts.push(`publicado a ${product.currency} ${this.formatPrice(product.price)}`);
+    parts.push(`publicado a ${variant.currency} ${this.formatPrice(variant.price)}`);
 
     const message = `${parts.join(', ')}. ¿Sigue disponible?`;
     return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;

@@ -76,7 +76,7 @@
 
     <aside class="checkout-summary">
       <h2>Resumen</h2>
-      @for (item of cart.cartItems(); track item.productId) {
+      @for (item of cart.cartItems(); track item.variantId) {
         <div class="checkout-summary__row">
           <span>{{ item.name }} × {{ item.quantity }}</span>
           <span>{{ item.price * item.quantity | money: item.currency }}</span>

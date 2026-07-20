@@ -72,7 +72,7 @@ export class CheckoutPageComponent implements OnInit {
         shippingAddress: value.shippingAddress || null,
         discountCode: this.cart.couponCode(),
         items: this.cart.cartItems().map((item) => ({
-          productId: item.productId,
+          variantId: item.variantId,
           quantity: item.quantity,
         })),
       })

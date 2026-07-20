@@ -6,11 +6,13 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { AdminInquiryApiService } from '../../../core/api/admin-inquiry-api.service';
 import { AdminBreadcrumbsComponent } from '../../../shared/components/admin-breadcrumbs/admin-breadcrumbs.component';
 import { StatePanelComponent } from '../../../shared/components/state-panel/state-panel.component';
+import { UiSelectComponent } from '../../../shared/components/ui-select/ui-select.component';
 import {
   AdminInquirySummary,
   InquiryStatus,
   PageResponse,
 } from '../../../shared/models/admin.models';
+import { INQUIRY_STATUS_FILTER_OPTIONS } from '../../../shared/models/inquiry-status-options';
 import { errorState, loadingState, successState, UiState } from '../../../shared/models/ui-state';
 import { InquiryStatusLabelPipe } from '../../../shared/pipes/inquiry-status-label.pipe';
 import { apiErrorMessage } from '../../../shared/utils/api-error.util';
@@ -26,6 +28,7 @@ import { apiErrorMessage } from '../../../shared/utils/api-error.util';
     AdminBreadcrumbsComponent,
     StatePanelComponent,
     InquiryStatusLabelPipe,
+    UiSelectComponent,
   ],
   templateUrl: './admin-inquiry-list-page.component.html',
   styleUrl: './admin-inquiry-list-page.component.scss',
@@ -38,6 +41,7 @@ export class AdminInquiryListPageComponent implements OnInit {
   readonly state = signal<UiState<PageResponse<AdminInquirySummary>>>(loadingState());
   readonly page = signal(0);
   readonly pageSize = 20;
+  readonly statusOptions = INQUIRY_STATUS_FILTER_OPTIONS;
 
   readonly filters = this.fb.nonNullable.group({
     status: ['' as '' | InquiryStatus],

@@ -23,6 +23,7 @@ public final class ProductSpecifications {
 
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(cb.isTrue(root.get("published")));
+            predicates.add(cb.greaterThan(root.get("stock"), 0));
 
             if (criteria == null) {
                 return cb.and(predicates.toArray(Predicate[]::new));
@@ -57,9 +58,6 @@ public final class ProductSpecifications {
             }
             if (Boolean.TRUE.equals(criteria.featured())) {
                 predicates.add(cb.isTrue(root.get("featured")));
-            }
-            if (Boolean.TRUE.equals(criteria.inStock())) {
-                predicates.add(cb.greaterThan(root.get("stock"), 0));
             }
             if (StringUtils.hasText(criteria.q())) {
                 String pattern = "%" + criteria.q().trim().toLowerCase() + "%";

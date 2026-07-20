@@ -8,7 +8,12 @@ public final class DiscountCodeMapper {
     private DiscountCodeMapper() {
     }
 
-    public static DiscountCodeResponse toResponse(DiscountCode entity) {
+    /**
+     * usedCount is passed in rather than read from the entity: the stored column is never
+     * incremented (enforcement counts DiscountCodeRedemption rows instead), so it would always
+     * report zero. Callers must compute the real count from DiscountCodeRedemptionRepository.
+     */
+    public static DiscountCodeResponse toResponse(DiscountCode entity, long usedCount) {
         return new DiscountCodeResponse(
                 entity.getId(),
                 entity.getCode(),
@@ -16,7 +21,7 @@ public final class DiscountCodeMapper {
                 entity.getDiscountType(),
                 entity.getDiscountValue(),
                 entity.getMaxUses(),
-                entity.getUsedCount(),
+                usedCount,
                 entity.getStartsAt(),
                 entity.getEndsAt(),
                 entity.getCreatedAt(),

@@ -19,8 +19,6 @@ import uy.washop.order.infrastructure.OrderStatusHistoryRepository;
 import uy.washop.notification.application.OrderEmailService;
 import uy.washop.payment.application.PaymentInfo;
 import uy.washop.payment.application.PaymentProvider;
-import uy.washop.product.infrastructure.ProductRepository;
-
 @Service
 public class OrderWebhookService {
 
@@ -29,7 +27,7 @@ public class OrderWebhookService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final OrderStatusHistoryRepository historyRepository;
-    private final ProductRepository productRepository;
+    private final VariantStockService variantStockService;
     private final PaymentProvider paymentProvider;
     private final AuditService auditService;
     private final OrderEmailService orderEmailService;
@@ -39,7 +37,7 @@ public class OrderWebhookService {
             OrderRepository orderRepository,
             OrderItemRepository orderItemRepository,
             OrderStatusHistoryRepository historyRepository,
-            ProductRepository productRepository,
+            VariantStockService variantStockService,
             PaymentProvider paymentProvider,
             AuditService auditService,
             OrderEmailService orderEmailService,
@@ -48,7 +46,7 @@ public class OrderWebhookService {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.historyRepository = historyRepository;
-        this.productRepository = productRepository;
+        this.variantStockService = variantStockService;
         this.paymentProvider = paymentProvider;
         this.auditService = auditService;
         this.orderEmailService = orderEmailService;
@@ -184,9 +182,7 @@ public class OrderWebhookService {
 
     private void restoreStock(Order order) {
         for (OrderItem item : orderItemRepository.findByOrderId(order.getId())) {
-            if (item.getProductId() != null) {
-                productRepository.restoreStock(item.getProductId(), item.getQuantity());
-            }
+            variantStockService.restore(item);
         }
     }
 

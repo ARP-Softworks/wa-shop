@@ -150,21 +150,27 @@ class AdminPanelIntegrationTest {
                   "model": "iPhone 15 Pro",
                   "description": "Equipo nuevo",
                   "productType": "IPHONE",
-                  "condition": "NEW",
-                  "storageCapacity": "256GB",
-                  "color": "Titanio",
-                  "batteryHealth": null,
-                  "price": 45990,
-                  "previousPrice": null,
-                  "currency": "UYU",
-                  "stock": 3,
-                  "warranty": "1 año",
-                  "imei": null,
+                  "promoBuyQuantity": null,
+                  "promoPayQuantity": null,
                   "published": false,
                   "featured": true,
                   "categoryId": null,
                   "features": [{"name": "Chip", "value": "A17"}],
-                  "images": [{"url": "https://cdn.example/main.jpg", "publicId": null, "altText": "Principal", "position": 0, "mainImage": true}]
+                  "compatibleModels": [],
+                  "variants": [{
+                    "condition": "NEW",
+                    "storageCapacity": "256GB",
+                    "color": "Titanio",
+                    "batteryHealth": null,
+                    "price": 45990,
+                    "previousPrice": null,
+                    "currency": "UYU",
+                    "stock": 3,
+                    "warranty": "1 año",
+                    "imei": null,
+                    "published": true,
+                    "images": [{"url": "https://cdn.example/main.jpg", "publicId": null, "altText": "Principal", "position": 0, "mainImage": true}]
+                  }]
                 }
                 """;
 
@@ -206,12 +212,16 @@ class AdminPanelIntegrationTest {
                   "name": "Usado sin batería",
                   "slug": "usado-sin-bateria",
                   "productType": "IPHONE",
-                  "condition": "USED",
-                  "price": 10000,
-                  "currency": "UYU",
-                  "stock": 1,
                   "published": false,
-                  "featured": false
+                  "featured": false,
+                  "variants": [{
+                    "condition": "USED",
+                    "price": 10000,
+                    "currency": "UYU",
+                    "stock": 1,
+                    "published": false,
+                    "images": []
+                  }]
                 }
                 """;
 

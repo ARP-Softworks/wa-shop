@@ -26,9 +26,10 @@ public interface ProductRepository extends JpaRepository<Product, UUID>, JpaSpec
 
     List<Product> findByPublishedTrueAndFeaturedTrueOrderByUpdatedAtDesc();
 
-    List<Product> findByPublishedTrueAndIndexableTrueOrderByUpdatedAtDesc();
+    List<Product> findByPublishedTrueAndIndexableTrueAndStockGreaterThanOrderByUpdatedAtDesc(int stock);
 
-    List<Product> findTop4ByPublishedTrueAndProductTypeAndIdNotOrderByFeaturedDescCreatedAtDesc(
+    List<Product> findTop4ByPublishedTrueAndStockGreaterThanAndProductTypeAndIdNotOrderByFeaturedDescCreatedAtDesc(
+            int stock,
             ProductType productType,
             UUID id
     );

@@ -13,7 +13,13 @@ public interface ProductImageRepository extends JpaRepository<ProductImage, UUID
 
     List<ProductImage> findByProductIdOrderByPositionAsc(UUID productId);
 
+    List<ProductImage> findByVariantIdOrderByPositionAsc(UUID variantId);
+
+    List<ProductImage> findByVariant_IdInOrderByPositionAsc(Collection<UUID> variantIds);
+
     Optional<ProductImage> findByProductIdAndMainImageTrue(UUID productId);
+
+    Optional<ProductImage> findByVariantIdAndMainImageTrue(UUID variantId);
 
     @Query("""
             SELECT pi FROM ProductImage pi

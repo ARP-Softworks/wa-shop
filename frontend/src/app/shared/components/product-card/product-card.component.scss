@@ -72,6 +72,18 @@
 .price {
   margin: 0.25rem 0 0.35rem;
   font-size: 1.1rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.price__from {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-muted, #64748b);
 }
 
 .card__actions {

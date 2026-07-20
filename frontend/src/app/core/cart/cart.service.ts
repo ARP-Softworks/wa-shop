@@ -2,7 +2,8 @@ import { isPlatformBrowser } from '@angular/common';
 import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import {
   CartItem,
-  ProductSummary,
+  ProductDetail,
+  ProductVariantPublic,
   PublicPromotion,
   buildCategoryCartLines,
   calculateLineSubtotal,
@@ -10,8 +11,10 @@ import {
   totalPromotionDiscount,
 } from '../../shared/models/catalog.models';
 import { PublicContentApiService } from '../api/public-content-api.service';
+import { PublicDiscountCodeApiService } from '../api/public-discount-code-api.service';
 
-const STORAGE_KEY = 'wa-shop-cart';
+const STORAGE_KEY = 'wa-shop-cart-v2';
+const COUPON_STORAGE_KEY = 'wa-shop-coupon-v1';
 /** Keep in sync with backend OrderItemRequest @Max. */
 const MAX_LINE_QUANTITY = 10;
 
@@ -20,6 +23,7 @@ export class CartService {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
   private readonly contentApi = inject(PublicContentApiService);
+  private readonly discountApi = inject(PublicDiscountCodeApiService);
   private readonly items = signal<CartItem[]>(this.readFromStorage());
   private readonly promotions = signal<PublicPromotion[]>([]);
   private readonly appliedCouponCode = signal<string | null>(null);
@@ -51,35 +55,53 @@ export class CartService {
 
   constructor() {
     if (this.isBrowser) {
-      this.contentApi.getPromotions().subscribe((promotions) => this.promotions.set(promotions));
+      this.contentApi.getPromotions().subscribe((promotions) => {
+        this.promotions.set(promotions);
+        this.restoreCoupon();
+      });
     }
   }
 
-  addItem(product: ProductSummary, quantity = 1): void {
+  /** Coupon state is in-memory only (unlike cart items); re-validate a persisted code after a
+   *  full page reload so it doesn't silently drop and let checkout proceed at full price. */
+  private restoreCoupon(): void {
+    const code = this.readCouponFromStorage();
+    if (!code || this.items().length === 0) {
+      return;
+    }
+    this.discountApi.validate({ code, eligibleSubtotal: this.afterPromotions() }).subscribe({
+      next: (response) => this.setCoupon(response.code, response.discountAmount),
+      error: () => this.clearCoupon(),
+    });
+  }
+
+  addVariant(product: ProductDetail, variant: ProductVariantPublic, quantity = 1): void {
     const current = this.items();
-    const existing = current.find((item) => item.productId === product.id);
-    const maxQty = Math.min(Math.max(product.stock, 1), MAX_LINE_QUANTITY);
+    const existing = current.find((item) => item.variantId === variant.id);
+    const maxQty = Math.min(Math.max(variant.stock, 1), MAX_LINE_QUANTITY);
+    const displayName = this.displayName(product.name, variant);
     if (existing) {
       this.items.set(
         current.map((item) =>
-          item.productId === product.id
+          item.variantId === variant.id
             ? { ...item, quantity: Math.min(item.quantity + quantity, maxQty) }
             : item
         )
       );
     } else {
       const newItem: CartItem = {
+        variantId: variant.id,
         productId: product.id,
         slug: product.slug,
-        name: product.name,
-        price: product.price,
-        currency: product.currency,
-        primaryImageUrl: product.primaryImageUrl,
-        storageCapacity: product.storageCapacity,
-        color: product.color,
-        condition: product.condition,
+        name: displayName,
+        price: variant.price,
+        currency: variant.currency,
+        primaryImageUrl: variant.primaryImageUrl,
+        storageCapacity: variant.storageCapacity,
+        color: variant.color,
+        condition: variant.condition,
         productType: product.productType,
-        stock: product.stock,
+        stock: variant.stock,
         quantity: Math.min(quantity, maxQty),
         promoBuyQuantity: product.promoBuyQuantity,
         promoPayQuantity: product.promoPayQuantity,
@@ -90,14 +112,14 @@ export class CartService {
     this.persist();
   }
 
-  updateQuantity(productId: string, quantity: number): void {
+  updateQuantity(variantId: string, quantity: number): void {
     if (quantity <= 0) {
-      this.removeItem(productId);
+      this.removeItem(variantId);
       return;
     }
     this.items.set(
       this.items().map((item) => {
-        if (item.productId !== productId) {
+        if (item.variantId !== variantId) {
           return item;
         }
         const maxQty = Math.min(Math.max(item.stock, 1), MAX_LINE_QUANTITY);
@@ -107,8 +129,8 @@ export class CartService {
     this.persist();
   }
 
-  removeItem(productId: string): void {
-    this.items.set(this.items().filter((item) => item.productId !== productId));
+  removeItem(variantId: string): void {
+    this.items.set(this.items().filter((item) => item.variantId !== variantId));
     this.persist();
   }
 
@@ -121,11 +143,24 @@ export class CartService {
   setCoupon(code: string, amount: number): void {
     this.appliedCouponCode.set(code.trim().toUpperCase());
     this.appliedCouponAmount.set(Math.max(0, amount));
+    this.persistCoupon();
   }
 
   clearCoupon(): void {
     this.appliedCouponCode.set(null);
     this.appliedCouponAmount.set(0);
+    this.persistCoupon();
+  }
+
+  private displayName(productName: string, variant: ProductVariantPublic): string {
+    const parts = [productName];
+    if (variant.color) {
+      parts.push(variant.color);
+    }
+    if (variant.storageCapacity) {
+      parts.push(variant.storageCapacity);
+    }
+    return parts.length === 1 ? productName : `${productName} — ${parts.slice(1).join(' / ')}`;
   }
 
   private persist(): void {
@@ -135,7 +170,34 @@ export class CartService {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.items()));
     } catch {
-      // localStorage unavailable (e.g. private browsing) — cart just won't persist across reloads.
+      // localStorage unavailable
+    }
+  }
+
+  private persistCoupon(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+    try {
+      const code = this.appliedCouponCode();
+      if (code) {
+        localStorage.setItem(COUPON_STORAGE_KEY, code);
+      } else {
+        localStorage.removeItem(COUPON_STORAGE_KEY);
+      }
+    } catch {
+      // localStorage unavailable
+    }
+  }
+
+  private readCouponFromStorage(): string | null {
+    if (!this.isBrowser) {
+      return null;
+    }
+    try {
+      return localStorage.getItem(COUPON_STORAGE_KEY);
+    } catch {
+      return null;
     }
   }
 
@@ -145,7 +207,13 @@ export class CartService {
     }
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? (JSON.parse(raw) as CartItem[]) : [];
+      if (!raw) {
+        return [];
+      }
+      const parsed = JSON.parse(raw) as CartItem[];
+      return Array.isArray(parsed)
+        ? parsed.filter((item) => typeof item?.variantId === 'string')
+        : [];
     } catch {
       return [];
     }

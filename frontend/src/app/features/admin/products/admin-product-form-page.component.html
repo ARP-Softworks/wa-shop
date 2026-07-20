@@ -25,7 +25,7 @@
 
     <form class="admin-form admin-card" [formGroup]="form" (ngSubmit)="submit()">
       <section class="admin-form__section">
-        <h2>Información básica</h2>
+        <h2>Producto</h2>
         <div class="admin-form__grid">
           <div class="admin-form__field admin-form__field--full">
             <label for="name">Nombre<span class="required-mark" aria-hidden="true">*</span></label>
@@ -40,7 +40,7 @@
               <span class="admin-help" tabindex="0" aria-describedby="slug-help">
                 <span aria-hidden="true">?</span>
                 <span id="slug-help" class="admin-help__tip" role="tooltip">
-                  Es la parte final de la dirección web del producto (ej: "iphone-13-128-azul"). Se genera
+                  Es la parte final de la dirección web del producto (ej: "iphone-15-pro"). Se genera
                   automáticamente a partir del Nombre — normalmente no necesitás tocarlo.
                 </span>
               </span>
@@ -52,10 +52,7 @@
           </div>
           <div class="admin-form__field">
             <label for="productType">Tipo<span class="required-mark" aria-hidden="true">*</span></label>
-            <select id="productType" class="ui-select" formControlName="productType">
-              <option value="IPHONE">iPhone</option>
-              <option value="ACCESSORY">Accesorio</option>
-            </select>
+            <app-ui-select inputId="productType" formControlName="productType" [options]="productTypeOptions" />
           </div>
           <div class="admin-form__field">
             <label for="model">Modelo</label>
@@ -67,18 +64,8 @@
             />
           </div>
           <div class="admin-form__field">
-            <label for="productGroupName">
-              Grupo de variantes (opcional)
-              <span class="admin-help" tabindex="0" aria-describedby="group-help">
-                <span aria-hidden="true">?</span>
-                <span id="group-help" class="admin-help__tip" role="tooltip">
-                  Poné el mismo texto en todos los colores/capacidades de un mismo modelo (por defecto se copia
-                  el Modelo). Así, en la ficha pública, el cliente puede elegir entre los colores y capacidades
-                  que realmente tenés cargados de ese grupo.
-                </span>
-              </span>
-            </label>
-            <input id="productGroupName" type="text" formControlName="productGroupName" />
+            <label for="categoryId">Categoría</label>
+            <app-ui-select inputId="categoryId" formControlName="categoryId" [options]="categoryOptions()" />
           </div>
           @if (form.controls.productType.value === 'ACCESSORY') {
             <div class="admin-form__field admin-form__field--full">
@@ -133,126 +120,198 @@
             <label for="description">Descripción</label>
             <textarea id="description" formControlName="description" rows="4"></textarea>
           </div>
-        </div>
-      </section>
-
-      <section class="admin-form__section">
-        <h2>Especificaciones</h2>
-        <div class="admin-form__grid">
-          <div class="admin-form__field">
-            <label for="condition">Condición<span class="required-mark" aria-hidden="true">*</span></label>
-            <select id="condition" class="ui-select" formControlName="condition">
-              <option value="NEW">Nuevo</option>
-              <option value="USED">Usado</option>
-            </select>
-          </div>
-          <div class="admin-form__field">
-            <label for="storageCapacity">Capacidad</label>
-            <app-suggest-combo
-              inputId="storageCapacity"
-              formControlName="storageCapacity"
-              [options]="iphoneCapacities"
-              placeholder="128GB"
-            />
-          </div>
-          <div class="admin-form__field">
-            <label for="color">Color</label>
-            <app-suggest-combo
-              inputId="color"
-              formControlName="color"
-              [options]="colorOptionsForModel()"
-            />
-          </div>
-          <div class="admin-form__field">
-            <label for="categoryId">Categoría</label>
-            <select id="categoryId" class="ui-select" formControlName="categoryId">
-              <option value="">Sin categoría</option>
-              @for (category of categories(); track category.id) {
-                <option [value]="category.id">{{ category.name }}</option>
-              }
-            </select>
-          </div>
-          <div class="admin-form__field">
-            <label for="batteryHealth">Salud de batería (%)</label>
-            <input id="batteryHealth" type="number" min="0" max="100" formControlName="batteryHealth" />
-            @if (fieldError('batteryHealth'); as err) {
-              <p class="admin-form__error">{{ err }}</p>
-            }
-            <p class="admin-form__hint">Obligatorio para iPhone usados (0–100).</p>
-          </div>
-        </div>
-      </section>
-
-      <section class="admin-form__section">
-        <h2>Precio y stock</h2>
-        <div class="admin-form__grid">
-          <div class="admin-form__field">
-            <label for="price">Precio<span class="required-mark" aria-hidden="true">*</span></label>
-            <input id="price" type="number" min="0" step="0.01" formControlName="price" />
-            @if (fieldError('price'); as err) {
-              <p class="admin-form__error">{{ err }}</p>
-            }
-          </div>
-          <div class="admin-form__field">
-            <label for="previousPrice">Precio anterior</label>
-            <input id="previousPrice" type="number" min="0" step="0.01" formControlName="previousPrice" />
-          </div>
           <div class="admin-form__field">
             <label for="promoBuyQuantity">Promoción — comprá</label>
             <input id="promoBuyQuantity" type="number" min="1" step="1" formControlName="promoBuyQuantity" placeholder="Ej: 2" />
-            @if (fieldError('promoBuyQuantity'); as err) {
-              <p class="admin-form__error">{{ err }}</p>
-            }
           </div>
           <div class="admin-form__field">
             <label for="promoPayQuantity">Promoción — pagá</label>
             <input id="promoPayQuantity" type="number" min="1" step="1" formControlName="promoPayQuantity" placeholder="Ej: 1" />
             <p class="admin-form__hint">Dejar ambos vacíos si no hay promoción. Ej: comprá 2, pagá 1 = 2x1.</p>
-            @if (fieldError('promoPayQuantity'); as err) {
-              <p class="admin-form__error">{{ err }}</p>
-            }
-          </div>
-          <div class="admin-form__field">
-            <label for="currency">Moneda<span class="required-mark" aria-hidden="true">*</span></label>
-            <select id="currency" class="ui-select" formControlName="currency">
-              <option value="UYU">UYU</option>
-              <option value="USD">USD</option>
-            </select>
-          </div>
-          <div class="admin-form__field">
-            <label for="stock">Stock<span class="required-mark" aria-hidden="true">*</span></label>
-            <input id="stock" type="number" min="0" step="1" formControlName="stock" />
-            @if (fieldError('stock'); as err) {
-              <p class="admin-form__error">{{ err }}</p>
-            }
-          </div>
-          <div class="admin-form__field admin-form__field--full">
-            <label for="warranty">Garantía</label>
-            <input id="warranty" type="text" formControlName="warranty" />
           </div>
         </div>
       </section>
 
       <section class="admin-form__section">
-        <h2>IMEI (solo admin)</h2>
-        <div class="admin-form__grid">
-          <div class="admin-form__field admin-form__field--full">
-            <label for="imei">
-              IMEI
-              <span class="admin-help" tabindex="0" aria-describedby="imei-help">
-                <span aria-hidden="true">?</span>
-                <span id="imei-help" class="admin-help__tip" role="tooltip">
-                  Es el número de serie único de 15-17 dígitos del equipo físico (se ve marcando *#06# o en
-                  Ajustes › General › Información). Sirve para identificar el equipo puntual que tenés en stock
-                  (por robo, garantía o reclamos) — nunca se muestra en el sitio público, es solo para uso interno.
+        <div class="admin-form__section-head">
+          <h2>Variantes</h2>
+          <button type="button" class="btn btn-secondary" (click)="addVariant()">Agregar variante</button>
+        </div>
+        <p class="admin-page__subtitle">
+          Cada color/capacidad (o cada unidad usada con IMEI) es una variante con su propio precio, stock e imágenes.
+        </p>
+
+        <div class="variant-tabs" role="tablist">
+          @for (variant of variants.controls; track $index; let i = $index) {
+            <button
+              type="button"
+              class="variant-tabs__tab"
+              role="tab"
+              [class.variant-tabs__tab--active]="selectedVariantIndex() === i"
+              (click)="selectVariant(i)"
+            >
+              Variante {{ i + 1 }}
+              @if (variant.get('color')?.value || variant.get('storageCapacity')?.value) {
+                <span class="variant-tabs__meta">
+                  {{ variant.get('color')?.value || '—' }}
+                  @if (variant.get('storageCapacity')?.value) {
+                    / {{ variant.get('storageCapacity')?.value }}
+                  }
                 </span>
-              </span>
-            </label>
-            <input id="imei" type="text" formControlName="imei" maxlength="17" />
-            @if (fieldError('imei'); as err) {
-              <p class="admin-form__error">{{ err }}</p>
+              }
+            </button>
+          }
+        </div>
+
+        <div formArrayName="variants">
+          @for (variant of variants.controls; track $index; let i = $index) {
+            @if (selectedVariantIndex() === i) {
+              <div class="variant-panel" [formGroupName]="i">
+                <div class="admin-form__grid">
+                  <div class="admin-form__field">
+                    <label [attr.for]="'condition-' + i">Condición<span class="required-mark" aria-hidden="true">*</span></label>
+                    <app-ui-select
+                      [inputId]="'condition-' + i"
+                      formControlName="condition"
+                      [options]="conditionOptions"
+                    />
+                  </div>
+                  <div class="admin-form__field">
+                    <label [attr.for]="'storageCapacity-' + i">Capacidad</label>
+                    <app-suggest-combo
+                      [inputId]="'storageCapacity-' + i"
+                      formControlName="storageCapacity"
+                      [options]="iphoneCapacities"
+                      placeholder="128GB"
+                    />
+                  </div>
+                  <div class="admin-form__field">
+                    <label [attr.for]="'color-' + i">Color</label>
+                    <app-suggest-combo
+                      [inputId]="'color-' + i"
+                      formControlName="color"
+                      [options]="colorOptionsForModel()"
+                    />
+                  </div>
+                  <div class="admin-form__field">
+                    <label [attr.for]="'batteryHealth-' + i">Salud de batería (%)</label>
+                    <input [id]="'batteryHealth-' + i" type="number" min="0" max="100" formControlName="batteryHealth" />
+                    @if (variantFieldError(i, 'batteryHealth'); as err) {
+                      <p class="admin-form__error">{{ err }}</p>
+                    }
+                    <p class="admin-form__hint">Obligatorio para iPhone usados (0–100).</p>
+                  </div>
+                  <div class="admin-form__field">
+                    <label [attr.for]="'price-' + i">Precio<span class="required-mark" aria-hidden="true">*</span></label>
+                    <input [id]="'price-' + i" type="number" min="0" step="0.01" formControlName="price" />
+                    @if (variantFieldError(i, 'price'); as err) {
+                      <p class="admin-form__error">{{ err }}</p>
+                    }
+                  </div>
+                  <div class="admin-form__field">
+                    <label [attr.for]="'previousPrice-' + i">Precio anterior</label>
+                    <input [id]="'previousPrice-' + i" type="number" min="0" step="0.01" formControlName="previousPrice" />
+                  </div>
+                  <div class="admin-form__field">
+                    <label [attr.for]="'currency-' + i">Moneda<span class="required-mark" aria-hidden="true">*</span></label>
+                    <app-ui-select
+                      [inputId]="'currency-' + i"
+                      formControlName="currency"
+                      [options]="currencyOptions"
+                    />
+                  </div>
+                  <div class="admin-form__field">
+                    <label [attr.for]="'stock-' + i">Stock<span class="required-mark" aria-hidden="true">*</span></label>
+                    <input [id]="'stock-' + i" type="number" min="0" step="1" formControlName="stock" />
+                    @if (variantFieldError(i, 'stock'); as err) {
+                      <p class="admin-form__error">{{ err }}</p>
+                    }
+                  </div>
+                  <div class="admin-form__field admin-form__field--full">
+                    <label [attr.for]="'warranty-' + i">Garantía</label>
+                    <input [id]="'warranty-' + i" type="text" formControlName="warranty" />
+                  </div>
+                  <div class="admin-form__field admin-form__field--full">
+                    <label [attr.for]="'imei-' + i">
+                      IMEI (solo admin)
+                      <span class="admin-help" tabindex="0" [attr.aria-describedby]="'imei-help-' + i">
+                        <span aria-hidden="true">?</span>
+                        <span [id]="'imei-help-' + i" class="admin-help__tip" role="tooltip">
+                          Número único del equipo físico. Nunca se muestra en el sitio público.
+                        </span>
+                      </span>
+                    </label>
+                    <input [id]="'imei-' + i" type="text" formControlName="imei" maxlength="17" />
+                  </div>
+                  <div class="admin-form__checkboxes">
+                    <label>
+                      <input type="checkbox" formControlName="published" />
+                      Variante publicada
+                    </label>
+                  </div>
+                </div>
+
+                <div class="variant-panel__images">
+                  <h3>Imágenes de esta variante</h3>
+                  <app-admin-media-uploader
+                    [folder]="mediaFolder()"
+                    label="Agregar imagen"
+                    (uploaded)="onImageUploaded($event)"
+                    (failed)="onImageUploadFailed($event)"
+                  />
+                  @if (imageUploadError()) {
+                    <p class="admin-alert admin-alert--error" role="alert">{{ imageUploadError() }}</p>
+                  }
+                  <div formArrayName="images" class="image-list">
+                    @for (image of variantImages(i).controls; track $index; let j = $index) {
+                      <div class="image-list__item" [formGroupName]="j">
+                        <div class="image-list__preview">
+                          @if (image.get('url')?.value) {
+                            <img [src]="image.get('url')?.value" [alt]="image.get('altText')?.value || 'Imagen'" />
+                          }
+                          @if (image.get('mainImage')?.value) {
+                            <span class="image-list__badge">Principal</span>
+                          }
+                        </div>
+                        <div class="image-list__fields">
+                          <label>
+                            Texto alternativo
+                            <input type="text" formControlName="altText" maxlength="255" />
+                          </label>
+                          <div class="image-list__actions">
+                            <button type="button" class="btn btn-secondary" (click)="setMainImage(i, j)">
+                              Usar como principal
+                            </button>
+                            <button type="button" class="btn btn-secondary" (click)="moveImage(i, j, -1)" [disabled]="j === 0">
+                              Subir
+                            </button>
+                            <button
+                              type="button"
+                              class="btn btn-secondary"
+                              (click)="moveImage(i, j, 1)"
+                              [disabled]="j === variantImages(i).length - 1"
+                            >
+                              Bajar
+                            </button>
+                            <button type="button" class="btn btn-secondary" (click)="removeImage(i, j)">Quitar</button>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                  @if (variantImages(i).length === 0) {
+                    <p class="admin-page__subtitle">Todavía no hay imágenes en esta variante.</p>
+                  }
+                </div>
+
+                @if (variants.length > 1) {
+                  <button type="button" class="btn btn-secondary" (click)="removeVariant(i)">
+                    Eliminar esta variante
+                  </button>
+                }
+              </div>
             }
-          </div>
+          }
         </div>
       </section>
 
@@ -271,73 +330,23 @@
       </section>
 
       <section class="admin-form__section">
-        <h2>Imágenes</h2>
-        <p class="admin-page__subtitle">
-          La subida se hace por el servidor (JPEG, PNG o WebP). Un fallo de carga no borra el resto del formulario.
-        </p>
-
-        <app-admin-media-uploader
-          [folder]="mediaFolder()"
-          label="Agregar imagen"
-          (uploaded)="onImageUploaded($event)"
-          (failed)="onImageUploadFailed($event)"
-        />
-
-        @if (imageUploadError()) {
-          <p class="admin-alert admin-alert--error" role="alert">{{ imageUploadError() }}</p>
-        }
-        @if (fieldErrors()['images']; as err) {
-          <p class="admin-form__error">{{ err }}</p>
-        }
-
-        <div formArrayName="images" class="image-list">
-          @for (image of images.controls; track $index; let i = $index) {
-            <div class="image-list__item" [formGroupName]="i">
-              <div class="image-list__preview">
-                @if (image.get('url')?.value) {
-                  <img [src]="image.get('url')?.value" [alt]="image.get('altText')?.value || 'Imagen'" />
-                }
-                @if (image.get('mainImage')?.value) {
-                  <span class="image-list__badge">Principal</span>
-                }
-              </div>
-              <div class="image-list__fields">
-                <label>
-                  Texto alternativo
-                  <input type="text" formControlName="altText" maxlength="255" />
-                </label>
-                <div class="image-list__meta">
-                  @if (image.get('format')?.value) {
-                    <span>{{ image.get('format')?.value }}</span>
-                  }
-                  @if (image.get('width')?.value && image.get('height')?.value) {
-                    <span>{{ image.get('width')?.value }}×{{ image.get('height')?.value }}</span>
-                  }
-                </div>
-                <div class="image-list__actions">
-                  <button type="button" class="btn btn-secondary" (click)="setMainImage(i)">
-                    Usar como principal
-                  </button>
-                  <button type="button" class="btn btn-secondary" (click)="moveImage(i, -1)" [disabled]="i === 0">
-                    Subir
-                  </button>
-                  <button
-                    type="button"
-                    class="btn btn-secondary"
-                    (click)="moveImage(i, 1)"
-                    [disabled]="i === images.length - 1"
-                  >
-                    Bajar
-                  </button>
-                  <button type="button" class="btn btn-secondary" (click)="removeImage(i)">Quitar</button>
-                </div>
-              </div>
-            </div>
-          }
+        <h2>SEO</h2>
+        <div class="admin-form__grid">
+          <div class="admin-form__field admin-form__field--full">
+            <label for="seoTitle">Título SEO</label>
+            <input id="seoTitle" type="text" formControlName="seoTitle" maxlength="70" />
+          </div>
+          <div class="admin-form__field admin-form__field--full">
+            <label for="metaDescription">Meta descripción</label>
+            <textarea id="metaDescription" formControlName="metaDescription" rows="3" maxlength="320"></textarea>
+          </div>
+          <div class="admin-form__checkboxes">
+            <label>
+              <input type="checkbox" formControlName="indexable" />
+              Indexable en buscadores
+            </label>
+          </div>
         </div>
-        @if (images.length === 0) {
-          <p class="admin-page__subtitle">Todavía no hay imágenes en este producto.</p>
-        }
       </section>
 
       <section class="admin-form__section">
@@ -345,7 +354,7 @@
         <div class="admin-form__checkboxes">
           <label>
             <input type="checkbox" formControlName="published" />
-            Publicado
+            Producto publicado
           </label>
           <label>
             <input type="checkbox" formControlName="featured" />

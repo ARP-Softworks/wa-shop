@@ -31,7 +31,7 @@
     <div class="cart-layout">
       <div class="cart-main">
         <div class="cart-list">
-          @for (item of cart.cartItems(); track item.productId) {
+          @for (item of cart.cartItems(); track item.variantId) {
             <article class="cart-item">
               <div class="cart-item__media">
                 @if (item.primaryImageUrl) {
@@ -66,7 +66,7 @@
                   <button
                     type="button"
                     class="cart-item__remove"
-                    (click)="remove(item.productId)"
+                    (click)="remove(item.variantId)"
                     aria-label="Quitar del carrito"
                   >
                     Quitar
@@ -77,7 +77,7 @@
                   <div class="cart-item__qty" role="group" [attr.aria-label]="'Cantidad de ' + item.name">
                     <button
                       type="button"
-                      (click)="decrement(item.productId, item.quantity)"
+                      (click)="decrement(item.variantId, item.quantity)"
                       [disabled]="item.quantity <= 1"
                       aria-label="Restar unidad"
                     >
@@ -86,7 +86,7 @@
                     <span aria-live="polite">{{ item.quantity }}</span>
                     <button
                       type="button"
-                      (click)="increment(item.productId, item.quantity)"
+                      (click)="increment(item.variantId, item.quantity)"
                       [disabled]="item.quantity >= item.stock || item.quantity >= 10"
                       aria-label="Sumar unidad"
                     >

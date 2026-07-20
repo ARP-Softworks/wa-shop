@@ -21,11 +21,7 @@
     @if (!conditionLocked()) {
       <label>
         Estado
-        <select class="ui-select" formControlName="condition">
-          <option value="">Todos</option>
-          <option value="NEW">Nuevo</option>
-          <option value="USED">Usado</option>
-        </select>
+        <app-ui-select formControlName="condition" [options]="conditionOptions" />
       </label>
     }
 
@@ -65,12 +61,7 @@
 
     <label>
       Orden
-      <select class="ui-select" formControlName="sort">
-        <option value="createdAt,desc">Más recientes</option>
-        <option value="createdAt,asc">Más antiguos</option>
-        <option value="price,asc">Precio: menor a mayor</option>
-        <option value="price,desc">Precio: mayor a menor</option>
-      </select>
+      <app-ui-select formControlName="sort" [options]="sortOptions" />
     </label>
 
     <button type="button" class="btn btn-secondary" (click)="clearFilters()">Limpiar filtros</button>
