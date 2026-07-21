@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AdminDiscountCodeApiService } from '../../../core/api/admin-discount-code-api.service';
@@ -49,7 +49,23 @@ export class AdminDiscountCodeFormPageComponent implements OnInit, CanComponentD
     endsAt: [''],
   });
 
+  readonly formValues = signal(this.form.getRawValue());
+
+  readonly previewCode = computed(() => (this.formValues().code || 'CÓDIGO').trim().toUpperCase());
+
+  readonly previewDiscountLabel = computed(() => {
+    const v = this.formValues();
+    if (!v.discountValue) {
+      return '';
+    }
+    return v.discountType === 'PERCENT'
+      ? `${v.discountValue}% de descuento`
+      : `$${v.discountValue} UYU de descuento`;
+  });
+
   ngOnInit(): void {
+    this.form.valueChanges.subscribe(() => this.formValues.set(this.form.getRawValue()));
+
     const id = this.route.snapshot.paramMap.get('id');
     if (id && id !== 'nuevo') {
       this.isEdit.set(true);
@@ -111,6 +127,7 @@ export class AdminDiscountCodeFormPageComponent implements OnInit, CanComponentD
         if (!this.isEdit()) {
           void this.router.navigate(['/admin/codigos-descuento', saved.id]);
         }
+        scrollToTop();
       },
       error: (error) => {
         this.submitting.set(false);

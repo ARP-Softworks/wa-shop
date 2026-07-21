@@ -8,6 +8,7 @@ import { errorState, loadingState, successState, UiState } from '../../../shared
 import { MoneyPipe } from '../../../shared/pipes/money.pipe';
 import { apiErrorMessage } from '../../../shared/utils/api-error.util';
 import { confirmAction } from '../../../shared/utils/confirm.util';
+import { scrollToTop } from '../../../shared/utils/scroll.util';
 
 @Component({
   selector: 'app-admin-technical-service-list-page',
@@ -21,6 +22,7 @@ export class AdminTechnicalServiceListPageComponent implements OnInit {
 
   readonly state = signal<UiState<AdminTechnicalService[]>>(loadingState());
   readonly actionError = signal('');
+  readonly actionSuccess = signal('');
 
   ngOnInit(): void {
     this.load();
@@ -47,10 +49,16 @@ export class AdminTechnicalServiceListPageComponent implements OnInit {
     if (!confirmAction(`¿Eliminar el servicio "${service.name}"?`)) {
       return;
     }
+    this.actionSuccess.set('');
     this.serviceApi.delete(service.id).subscribe({
-      next: () => this.load(),
+      next: () => {
+        this.actionSuccess.set('Servicio eliminado.');
+        scrollToTop();
+        this.load();
+      },
       error: (error) => {
         this.actionError.set(apiErrorMessage(error, 'No se pudo eliminar el servicio'));
+        scrollToTop();
       },
     });
   }

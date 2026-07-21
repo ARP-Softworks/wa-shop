@@ -48,7 +48,23 @@ export class AdminPromotionFormPageComponent implements OnInit, CanComponentDeac
     discountPercent: [100, [Validators.required, Validators.min(1), Validators.max(100)]],
   });
 
+  readonly formValues = signal(this.form.getRawValue());
+
+  readonly previewSummary = computed(() => {
+    const v = this.formValues();
+    const options = this.categoryOptions();
+    const triggerLabel = options.find((o) => o.value === v.triggerCategoryId)?.label;
+    const rewardLabel = options.find((o) => o.value === v.rewardCategoryId)?.label;
+    if (!triggerLabel || !rewardLabel || !v.triggerQuantity || !v.rewardQuantity || !v.discountPercent) {
+      return '';
+    }
+    const discountText = Number(v.discountPercent) >= 100 ? 'gratis' : `con ${v.discountPercent}% off`;
+    return `Comprá ${v.triggerQuantity} de "${triggerLabel}", llevate ${v.rewardQuantity} de "${rewardLabel}" ${discountText}.`;
+  });
+
   ngOnInit(): void {
+    this.form.valueChanges.subscribe(() => this.formValues.set(this.form.getRawValue()));
+
     this.categoryApi.list().subscribe({
       next: (categories) => this.categories.set(categories),
       error: () => this.categories.set([]),
@@ -107,6 +123,7 @@ export class AdminPromotionFormPageComponent implements OnInit, CanComponentDeac
         if (!this.isEdit()) {
           void this.router.navigate(['/admin/promociones', promotion.id]);
         }
+        scrollToTop();
       },
       error: (error) => {
         this.submitting.set(false);

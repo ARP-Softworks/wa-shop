@@ -11,6 +11,9 @@
     <a class="btn" routerLink="/admin/promociones/nueva">Nueva promoción</a>
   </header>
 
+  @if (actionSuccess()) {
+    <p class="admin-alert admin-alert--success" role="status">{{ actionSuccess() }}</p>
+  }
   @if (actionError()) {
     <p class="admin-alert admin-alert--error" role="alert">{{ actionError() }}</p>
   }

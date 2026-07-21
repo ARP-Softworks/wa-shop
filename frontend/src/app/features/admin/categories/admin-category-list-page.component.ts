@@ -7,6 +7,7 @@ import { AdminCategory } from '../../../shared/models/admin.models';
 import { errorState, loadingState, successState, UiState } from '../../../shared/models/ui-state';
 import { apiErrorMessage } from '../../../shared/utils/api-error.util';
 import { confirmAction } from '../../../shared/utils/confirm.util';
+import { scrollToTop } from '../../../shared/utils/scroll.util';
 
 @Component({
   selector: 'app-admin-category-list-page',
@@ -20,6 +21,7 @@ export class AdminCategoryListPageComponent implements OnInit {
 
   readonly state = signal<UiState<AdminCategory[]>>(loadingState());
   readonly actionError = signal('');
+  readonly actionSuccess = signal('');
 
   ngOnInit(): void {
     this.load();
@@ -46,10 +48,16 @@ export class AdminCategoryListPageComponent implements OnInit {
     if (!confirmAction(`¿Eliminar la categoría "${category.name}"?`)) {
       return;
     }
+    this.actionSuccess.set('');
     this.categoryApi.delete(category.id).subscribe({
-      next: () => this.load(),
+      next: () => {
+        this.actionSuccess.set('Categoría eliminada.');
+        scrollToTop();
+        this.load();
+      },
       error: (error) => {
         this.actionError.set(apiErrorMessage(error, 'No se pudo eliminar la categoría'));
+        scrollToTop();
       },
     });
   }

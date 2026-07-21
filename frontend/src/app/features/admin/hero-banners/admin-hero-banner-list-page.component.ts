@@ -7,6 +7,7 @@ import { AdminHeroBanner } from '../../../shared/models/admin.models';
 import { errorState, loadingState, successState, UiState } from '../../../shared/models/ui-state';
 import { apiErrorMessage } from '../../../shared/utils/api-error.util';
 import { confirmAction } from '../../../shared/utils/confirm.util';
+import { scrollToTop } from '../../../shared/utils/scroll.util';
 
 @Component({
   selector: 'app-admin-hero-banner-list-page',
@@ -20,6 +21,7 @@ export class AdminHeroBannerListPageComponent implements OnInit {
 
   readonly state = signal<UiState<AdminHeroBanner[]>>(loadingState());
   readonly actionError = signal('');
+  readonly actionSuccess = signal('');
 
   ngOnInit(): void {
     this.load();
@@ -46,10 +48,16 @@ export class AdminHeroBannerListPageComponent implements OnInit {
     if (!confirmAction('¿Eliminar este banner?')) {
       return;
     }
+    this.actionSuccess.set('');
     this.bannerApi.delete(banner.id).subscribe({
-      next: () => this.load(),
+      next: () => {
+        this.actionSuccess.set('Banner eliminado.');
+        scrollToTop();
+        this.load();
+      },
       error: (error) => {
         this.actionError.set(apiErrorMessage(error, 'No se pudo eliminar el banner'));
+        scrollToTop();
       },
     });
   }

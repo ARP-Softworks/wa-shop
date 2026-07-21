@@ -17,6 +17,7 @@ import { ConditionLabelPipe } from '../../../shared/pipes/condition-label.pipe';
 import { MoneyPipe } from '../../../shared/pipes/money.pipe';
 import { apiErrorMessage } from '../../../shared/utils/api-error.util';
 import { confirmAction } from '../../../shared/utils/confirm.util';
+import { scrollToTop } from '../../../shared/utils/scroll.util';
 
 interface ProductListRouteData {
   productType?: ProductType;
@@ -51,6 +52,7 @@ export class AdminProductListPageComponent implements OnInit {
 
   readonly state = signal<UiState<PageResponse<AdminProductSummary>>>(loadingState());
   readonly actionError = signal('');
+  readonly actionSuccess = signal('');
   readonly page = signal(0);
   readonly pageSize = 20;
 
@@ -137,11 +139,18 @@ export class AdminProductListPageComponent implements OnInit {
     if (!confirmAction(`¿Confirmás ${action} "${product.name}"?`)) {
       return;
     }
+    this.actionError.set('');
+    this.actionSuccess.set('');
 
     this.productApi.setPublished(product.id, !product.published).subscribe({
-      next: () => this.load(),
+      next: () => {
+        this.actionSuccess.set(product.published ? 'Producto despublicado.' : 'Producto publicado.');
+        scrollToTop();
+        this.load();
+      },
       error: (error) => {
         this.actionError.set(apiErrorMessage(error, `No se pudo ${action} el producto`));
+        scrollToTop();
       },
     });
   }
@@ -150,11 +159,18 @@ export class AdminProductListPageComponent implements OnInit {
     if (!confirmAction(`¿Eliminar "${product.name}"? Esta acción no se puede deshacer.`)) {
       return;
     }
+    this.actionError.set('');
+    this.actionSuccess.set('');
 
     this.productApi.delete(product.id).subscribe({
-      next: () => this.load(),
+      next: () => {
+        this.actionSuccess.set('Producto eliminado.');
+        scrollToTop();
+        this.load();
+      },
       error: (error) => {
         this.actionError.set(apiErrorMessage(error, 'No se pudo eliminar el producto'));
+        scrollToTop();
       },
     });
   }

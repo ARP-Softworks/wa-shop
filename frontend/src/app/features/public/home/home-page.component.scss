@@ -102,6 +102,15 @@
   visibility: hidden;
   transition: opacity 400ms ease;
   background: transparent;
+  /*
+   * The drop-shadow lives here, on the wrapper, instead of on the <img> itself.
+   * An element with BOTH mix-blend-mode and filter becomes its own isolated
+   * stacking context, and the shadow (a solid dark color) can end up composited
+   * on top of the blended image instead of behind it — rendering as a hard dark
+   * edge/bar in some browsers/GPUs instead of a soft shadow. Keeping the two
+   * effects on separate elements avoids that.
+   */
+  filter: drop-shadow(0 16px 26px rgb(15 23 42 / 10%));
 }
 
 .hero-carousel__slide--active {
@@ -116,7 +125,6 @@
   object-position: center;
   background: transparent;
   mix-blend-mode: multiply;
-  filter: drop-shadow(0 16px 26px rgb(15 23 42 / 10%));
 }
 
 .hero-carousel__dots {

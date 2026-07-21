@@ -119,6 +119,7 @@ export class AdminCategoryFormPageComponent implements OnInit, OnDestroy, CanCom
         if (!this.isEdit()) {
           void this.router.navigate(['/admin/categorias', category.id]);
         }
+        scrollToTop();
       },
       error: (error) => {
         this.submitting.set(false);

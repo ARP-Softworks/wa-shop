@@ -372,6 +372,7 @@ export class AdminProductFormPageComponent implements OnInit, OnDestroy, CanComp
         } else {
           this.patchFormFromProduct(product);
         }
+        scrollToTop();
       },
       error: (error) => {
         this.submitting.set(false);

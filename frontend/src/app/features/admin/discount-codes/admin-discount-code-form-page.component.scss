@@ -1,1 +1,29 @@
 @import '../../../shared/styles/admin-page.scss';
+
+.coupon-preview {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  border-radius: 999px;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  box-shadow: var(--shadow-soft);
+}
+
+.coupon-preview__code {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: 0.06em;
+  color: #fff;
+}
+
+.coupon-preview__value {
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 15%);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+}

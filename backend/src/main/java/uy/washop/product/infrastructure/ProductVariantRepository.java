@@ -31,6 +31,16 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
 
     long countByProduct_Id(UUID productId);
 
+    /**
+     * A plain scalar aggregate — deliberately NOT "load all variants and sum in Java" — because
+     * reserveStock()/restoreStock() below are bulk @Modifying updates that bypass the persistence
+     * context. If a variant was already loaded earlier in the same transaction (as CheckoutService
+     * does), Hibernate's identity map would hand back that stale cached entity instead of the
+     * post-update row, and the sum would silently use the pre-decrement value.
+     */
+    @Query("SELECT COALESCE(SUM(v.stock), 0) FROM ProductVariant v WHERE v.product.id = :productId")
+    int sumStockByProductId(@Param("productId") UUID productId);
+
     @Modifying
     @Query("UPDATE ProductVariant v SET v.stock = v.stock - :quantity WHERE v.id = :id AND v.stock >= :quantity")
     int reserveStock(@Param("id") UUID id, @Param("quantity") int quantity);

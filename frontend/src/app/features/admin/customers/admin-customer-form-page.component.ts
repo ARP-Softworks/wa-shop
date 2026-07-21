@@ -106,6 +106,7 @@ export class AdminCustomerFormPageComponent implements OnInit, CanComponentDeact
         if (!this.isEdit()) {
           void this.router.navigate(['/admin/clientes', customer.id]);
         }
+        scrollToTop();
       },
       error: (error) => {
         this.submitting.set(false);

@@ -166,6 +166,7 @@ export class AdminSettingsPageComponent implements OnInit, CanComponentDeactivat
           this.form.markAsPristine();
           this.state.set(successState(settings));
           this.successMessage.set('Configuración guardada correctamente.');
+          scrollToTop();
         },
         error: (error) => {
           this.submitting.set(false);

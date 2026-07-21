@@ -57,6 +57,7 @@ export class AdminChangePasswordPageComponent {
         this.submitting = false;
         this.successMessage = 'Contraseña actualizada correctamente.';
         this.form.reset({ currentPassword: '', newPassword: '', confirmPassword: '' });
+        scrollToTop();
       },
       error: (error: unknown) => {
         this.submitting = false;

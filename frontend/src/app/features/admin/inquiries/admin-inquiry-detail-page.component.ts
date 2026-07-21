@@ -115,6 +115,7 @@ export class AdminInquiryDetailPageComponent implements OnInit {
           this.state.set(successState(inquiry));
           this.statusForm.patchValue({ note: '' });
           this.successMessage.set('Estado actualizado correctamente.');
+          scrollToTop();
         },
         error: (error) => {
           this.submitting.set(false);

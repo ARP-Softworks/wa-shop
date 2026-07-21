@@ -111,6 +111,7 @@ export class AdminUserFormPageComponent implements OnInit, CanComponentDeactivat
         if (!this.isEdit()) {
           void this.router.navigate(['/admin/usuarios', user.id]);
         }
+        scrollToTop();
       },
       error: (error) => {
         this.submitting.set(false);

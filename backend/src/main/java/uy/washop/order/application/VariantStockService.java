@@ -1,12 +1,9 @@
 package uy.washop.order.application;
 
-import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uy.washop.order.domain.OrderItem;
-import uy.washop.product.domain.Product;
-import uy.washop.product.domain.ProductVariant;
 import uy.washop.product.infrastructure.ProductRepository;
 import uy.washop.product.infrastructure.ProductVariantRepository;
 
@@ -52,8 +49,7 @@ public class VariantStockService {
     }
 
     private void syncParentStock(UUID productId) {
-        List<ProductVariant> variants = productVariantRepository.findByProduct_IdOrderByPriceAsc(productId);
-        int total = variants.stream().mapToInt(ProductVariant::getStock).sum();
+        int total = productVariantRepository.sumStockByProductId(productId);
         productRepository.findById(productId).ifPresent(product -> {
             product.setStock(total);
             productRepository.save(product);

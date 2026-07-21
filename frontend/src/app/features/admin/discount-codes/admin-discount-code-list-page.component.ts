@@ -8,6 +8,7 @@ import { AdminDiscountCode } from '../../../shared/models/admin.models';
 import { errorState, loadingState, successState, UiState } from '../../../shared/models/ui-state';
 import { apiErrorMessage } from '../../../shared/utils/api-error.util';
 import { confirmAction } from '../../../shared/utils/confirm.util';
+import { scrollToTop } from '../../../shared/utils/scroll.util';
 
 @Component({
   selector: 'app-admin-discount-code-list-page',
@@ -21,6 +22,7 @@ export class AdminDiscountCodeListPageComponent implements OnInit {
 
   readonly state = signal<UiState<AdminDiscountCode[]>>(loadingState());
   readonly actionError = signal('');
+  readonly actionSuccess = signal('');
 
   ngOnInit(): void {
     this.load();
@@ -58,10 +60,16 @@ export class AdminDiscountCodeListPageComponent implements OnInit {
     if (!confirmAction(`¿Eliminar el código "${code.code}"?`)) {
       return;
     }
+    this.actionSuccess.set('');
     this.api.delete(code.id).subscribe({
-      next: () => this.load(),
+      next: () => {
+        this.actionSuccess.set('Código eliminado.');
+        scrollToTop();
+        this.load();
+      },
       error: (error) => {
         this.actionError.set(apiErrorMessage(error, 'No se pudo eliminar el código'));
+        scrollToTop();
       },
     });
   }

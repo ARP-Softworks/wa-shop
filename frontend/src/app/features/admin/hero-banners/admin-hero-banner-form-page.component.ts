@@ -111,6 +111,7 @@ export class AdminHeroBannerFormPageComponent implements OnInit, CanComponentDea
         if (!this.isEdit()) {
           void this.router.navigate(['/admin/banners', banner.id]);
         }
+        scrollToTop();
       },
       error: (error) => {
         this.submitting.set(false);

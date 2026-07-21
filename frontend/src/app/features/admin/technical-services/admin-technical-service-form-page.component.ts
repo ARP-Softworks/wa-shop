@@ -132,6 +132,7 @@ export class AdminTechnicalServiceFormPageComponent implements OnInit, OnDestroy
         if (!this.isEdit()) {
           void this.router.navigate(['/admin/servicios', service.id]);
         }
+        scrollToTop();
       },
       error: (error) => {
         this.submitting.set(false);

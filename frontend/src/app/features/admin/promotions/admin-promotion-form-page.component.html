@@ -21,77 +21,93 @@
       <p class="admin-alert admin-alert--error">{{ submitError() }}</p>
     }
 
-    <form class="admin-form admin-card" [formGroup]="form" (ngSubmit)="submit()">
-      <p class="admin-form__hint">
-        Usá la misma categoría en "comprá" y "llevate" para mezcla y combina (ej: cualquier 3 fundas, la más
-        barata sale gratis). Usá categorías distintas para un regalo cruzado (ej: 2 celulares = 2 accesorios
-        con descuento).
-      </p>
+    <form class="admin-form" [formGroup]="form" (ngSubmit)="submit()">
+      <section class="admin-form__section">
+        <h2>Detalles</h2>
+        <div class="admin-form__grid">
+          <div class="admin-form__field admin-form__field--full">
+            <label for="name">Nombre<span class="required-mark" aria-hidden="true">*</span></label>
+            <input id="name" type="text" formControlName="name" placeholder="Ej: 3 fundas, la más barata gratis" />
+            @if (fieldError('name'); as err) {
+              <p class="admin-form__error">{{ err }}</p>
+            }
+          </div>
+          <div class="admin-form__field admin-form__checkboxes">
+            <label>
+              <input type="checkbox" formControlName="active" />
+              Promoción activa
+            </label>
+            <p class="admin-form__hint">Si está desactivada, no se aplica en el sitio aunque exista.</p>
+          </div>
+        </div>
+      </section>
 
-      <div class="admin-form__grid">
-        <div class="admin-form__field admin-form__field--full">
-          <label for="name">Nombre<span class="required-mark" aria-hidden="true">*</span></label>
-          <input id="name" type="text" formControlName="name" placeholder="Ej: 3 fundas, la más barata gratis" />
-          @if (fieldError('name'); as err) {
-            <p class="admin-form__error">{{ err }}</p>
-          }
+      <section class="admin-form__section">
+        <h2>Regla de la promoción</h2>
+        <p class="admin-form__hint">
+          Usá la misma categoría en "comprá" y "llevate" para mezcla y combina (ej: cualquier 3 fundas, la más
+          barata sale gratis). Usá categorías distintas para un regalo cruzado (ej: 2 celulares = 2 accesorios
+          con descuento).
+        </p>
+
+        <div class="admin-form__grid">
+          <div class="admin-form__field">
+            <label for="triggerCategoryId">Comprá — categoría<span class="required-mark" aria-hidden="true">*</span></label>
+            <app-ui-select
+              inputId="triggerCategoryId"
+              formControlName="triggerCategoryId"
+              [options]="categoryOptions()"
+              placeholder="Seleccioná una categoría"
+            />
+            @if (fieldError('triggerCategoryId'); as err) {
+              <p class="admin-form__error">{{ err }}</p>
+            }
+          </div>
+          <div class="admin-form__field">
+            <label for="triggerQuantity">Comprá — cantidad<span class="required-mark" aria-hidden="true">*</span></label>
+            <input id="triggerQuantity" type="number" min="1" step="1" formControlName="triggerQuantity" />
+            @if (fieldError('triggerQuantity'); as err) {
+              <p class="admin-form__error">{{ err }}</p>
+            }
+          </div>
+
+          <div class="admin-form__field">
+            <label for="rewardCategoryId">Llevate — categoría<span class="required-mark" aria-hidden="true">*</span></label>
+            <app-ui-select
+              inputId="rewardCategoryId"
+              formControlName="rewardCategoryId"
+              [options]="categoryOptions()"
+              placeholder="Seleccioná una categoría"
+            />
+            @if (fieldError('rewardCategoryId'); as err) {
+              <p class="admin-form__error">{{ err }}</p>
+            }
+          </div>
+          <div class="admin-form__field">
+            <label for="rewardQuantity">Llevate — cantidad<span class="required-mark" aria-hidden="true">*</span></label>
+            <input id="rewardQuantity" type="number" min="1" step="1" formControlName="rewardQuantity" />
+            @if (fieldError('rewardQuantity'); as err) {
+              <p class="admin-form__error">{{ err }}</p>
+            }
+          </div>
+
+          <div class="admin-form__field admin-form__field--full">
+            <label for="discountPercent">Descuento (%)<span class="required-mark" aria-hidden="true">*</span></label>
+            <input id="discountPercent" type="number" min="1" max="100" step="1" formControlName="discountPercent" />
+            <p class="admin-form__hint">100% = gratis.</p>
+            @if (fieldError('discountPercent'); as err) {
+              <p class="admin-form__error">{{ err }}</p>
+            }
+          </div>
         </div>
 
-        <div class="admin-form__field">
-          <label for="triggerCategoryId">Comprá — categoría<span class="required-mark" aria-hidden="true">*</span></label>
-          <app-ui-select
-            inputId="triggerCategoryId"
-            formControlName="triggerCategoryId"
-            [options]="categoryOptions()"
-            placeholder="Seleccioná una categoría"
-          />
-          @if (fieldError('triggerCategoryId'); as err) {
-            <p class="admin-form__error">{{ err }}</p>
-          }
-        </div>
-        <div class="admin-form__field">
-          <label for="triggerQuantity">Comprá — cantidad<span class="required-mark" aria-hidden="true">*</span></label>
-          <input id="triggerQuantity" type="number" min="1" step="1" formControlName="triggerQuantity" />
-          @if (fieldError('triggerQuantity'); as err) {
-            <p class="admin-form__error">{{ err }}</p>
-          }
-        </div>
-
-        <div class="admin-form__field">
-          <label for="rewardCategoryId">Llevate — categoría<span class="required-mark" aria-hidden="true">*</span></label>
-          <app-ui-select
-            inputId="rewardCategoryId"
-            formControlName="rewardCategoryId"
-            [options]="categoryOptions()"
-            placeholder="Seleccioná una categoría"
-          />
-          @if (fieldError('rewardCategoryId'); as err) {
-            <p class="admin-form__error">{{ err }}</p>
-          }
-        </div>
-        <div class="admin-form__field">
-          <label for="rewardQuantity">Llevate — cantidad<span class="required-mark" aria-hidden="true">*</span></label>
-          <input id="rewardQuantity" type="number" min="1" step="1" formControlName="rewardQuantity" />
-          @if (fieldError('rewardQuantity'); as err) {
-            <p class="admin-form__error">{{ err }}</p>
-          }
-        </div>
-
-        <div class="admin-form__field">
-          <label for="discountPercent">Descuento (%)<span class="required-mark" aria-hidden="true">*</span></label>
-          <input id="discountPercent" type="number" min="1" max="100" step="1" formControlName="discountPercent" />
-          <p class="admin-form__hint">100% = gratis.</p>
-          @if (fieldError('discountPercent'); as err) {
-            <p class="admin-form__error">{{ err }}</p>
-          }
-        </div>
-        <div class="admin-form__field">
-          <label>
-            <input type="checkbox" formControlName="active" />
-            Activa
-          </label>
-        </div>
-      </div>
+        @if (previewSummary()) {
+          <div class="promo-preview">
+            <span class="promo-preview__icon" aria-hidden="true">🏷️</span>
+            <p>{{ previewSummary() }}</p>
+          </div>
+        }
+      </section>
 
       <div class="admin-form__actions">
         <button type="submit" class="btn" [disabled]="submitting()">
