@@ -10,6 +10,7 @@ import { AdminCategory } from '../../../shared/models/admin.models';
 import { loadingState, successState, UiState } from '../../../shared/models/ui-state';
 import { apiErrorMessage, mapFieldErrors, parseApiError } from '../../../shared/utils/api-error.util';
 import { confirmAction } from '../../../shared/utils/confirm.util';
+import { scrollToTop } from '../../../shared/utils/scroll.util';
 import { slugify } from '../../../shared/utils/slugify.util';
 
 @Component({
@@ -90,6 +91,7 @@ export class AdminCategoryFormPageComponent implements OnInit, OnDestroy, CanCom
 
     if (this.form.invalid) {
       this.submitError.set('Revisá los campos marcados.');
+      scrollToTop();
       return;
     }
 
@@ -125,6 +127,7 @@ export class AdminCategoryFormPageComponent implements OnInit, OnDestroy, CanCom
         if (parsed?.details) {
           this.fieldErrors.set(mapFieldErrors(parsed.details));
         }
+        scrollToTop();
       },
     });
   }

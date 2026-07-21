@@ -12,6 +12,7 @@ import { loadingState, successState, UiState } from '../../../shared/models/ui-s
 import { MoneyPipe } from '../../../shared/pipes/money.pipe';
 import { OrderStatusLabelPipe } from '../../../shared/pipes/order-status-label.pipe';
 import { apiErrorMessage, mapFieldErrors, parseApiError } from '../../../shared/utils/api-error.util';
+import { scrollToTop } from '../../../shared/utils/scroll.util';
 
 @Component({
   selector: 'app-admin-order-detail-page',
@@ -97,6 +98,7 @@ export class AdminOrderDetailPageComponent implements OnInit {
         if (parsed?.details) {
           this.submitError.set(Object.values(mapFieldErrors(parsed.details)).join(' '));
         }
+        scrollToTop();
       },
     });
   }

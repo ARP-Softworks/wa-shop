@@ -104,7 +104,7 @@
       <form class="admin-form" [formGroup]="statusForm" (ngSubmit)="submitStatus()">
         <div class="admin-form__grid">
           <div class="admin-form__field">
-            <label for="status">Estado</label>
+            <label for="status">Estado<span class="required-mark" aria-hidden="true">*</span></label>
             <app-ui-select inputId="status" formControlName="status" [options]="statusOptions" />
           </div>
           <div class="admin-form__field admin-form__field--full">

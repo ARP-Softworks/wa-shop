@@ -5,6 +5,7 @@ import { CartService } from '../../../core/cart/cart.service';
 import { OrderApiService } from '../../../core/api/order-api.service';
 import { MoneyPipe } from '../../../shared/pipes/money.pipe';
 import { apiErrorMessage } from '../../../shared/utils/api-error.util';
+import { scrollToTop } from '../../../shared/utils/scroll.util';
 
 @Component({
   selector: 'app-checkout-page',
@@ -59,6 +60,7 @@ export class CheckoutPageComponent implements OnInit {
       if (this.form.invalid) {
         this.errorMessage = 'Revisá los campos marcados.';
       }
+      scrollToTop();
       return;
     }
 
@@ -84,6 +86,7 @@ export class CheckoutPageComponent implements OnInit {
         error: (error: unknown) => {
           this.submitting = false;
           this.errorMessage = apiErrorMessage(error, 'No se pudo iniciar el pago. Intentá de nuevo.');
+          scrollToTop();
         },
       });
   }

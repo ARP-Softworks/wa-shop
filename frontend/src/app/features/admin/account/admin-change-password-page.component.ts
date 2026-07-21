@@ -4,6 +4,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
 import { AdminBreadcrumbsComponent } from '../../../shared/components/admin-breadcrumbs/admin-breadcrumbs.component';
+import { scrollToTop } from '../../../shared/utils/scroll.util';
 
 function passwordsMatchValidator(control: AbstractControl): ValidationErrors | null {
   const newPassword = control.get('newPassword')?.value;
@@ -64,6 +65,7 @@ export class AdminChangePasswordPageComponent {
         } else {
           this.errorMessage = 'No se pudo actualizar la contraseña. Intentá de nuevo.';
         }
+        scrollToTop();
       },
     });
   }

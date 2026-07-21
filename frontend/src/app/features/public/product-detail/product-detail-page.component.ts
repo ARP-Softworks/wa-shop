@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CatalogApiService } from '../../../core/api/catalog-api.service';
 import { WhatsappLinkService } from '../../../core/whatsapp/whatsapp-link.service';
@@ -43,6 +43,7 @@ export class ProductDetailPageComponent implements OnInit {
   readonly related = signal<ProductSummary[]>([]);
   readonly selectedVariantId = signal<string | null>(null);
   readonly activeImage = signal<ProductImage | null>(null);
+  readonly lightboxOpen = signal(false);
   added = false;
 
   readonly selectedVariant = computed(() => {
@@ -176,6 +177,45 @@ export class ProductDetailPageComponent implements OnInit {
 
   selectImage(image: ProductImage): void {
     this.activeImage.set(image);
+  }
+
+  openLightbox(): void {
+    if (this.activeImage() || this.selectedVariant()?.primaryImageUrl) {
+      this.lightboxOpen.set(true);
+    }
+  }
+
+  closeLightbox(): void {
+    this.lightboxOpen.set(false);
+  }
+
+  shiftLightboxImage(step: number): void {
+    const variant = this.selectedVariant();
+    const images = variant?.images ?? [];
+    if (images.length < 2) {
+      return;
+    }
+    const currentId = this.activeImage()?.id;
+    const currentIndex = Math.max(
+      images.findIndex((img) => img.id === currentId),
+      0
+    );
+    const nextIndex = (currentIndex + step + images.length) % images.length;
+    this.activeImage.set(images[nextIndex]);
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  onLightboxKeydown(event: KeyboardEvent): void {
+    if (!this.lightboxOpen()) {
+      return;
+    }
+    if (event.key === 'Escape') {
+      this.closeLightbox();
+    } else if (event.key === 'ArrowRight') {
+      this.shiftLightboxImage(1);
+    } else if (event.key === 'ArrowLeft') {
+      this.shiftLightboxImage(-1);
+    }
   }
 
   onWhatsappClick(): void {

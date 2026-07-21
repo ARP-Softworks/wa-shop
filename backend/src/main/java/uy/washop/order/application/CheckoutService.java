@@ -6,7 +6,10 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -31,6 +34,7 @@ import uy.washop.order.domain.OrderStatusHistory;
 import uy.washop.order.infrastructure.OrderItemRepository;
 import uy.washop.order.infrastructure.OrderRepository;
 import uy.washop.order.infrastructure.OrderStatusHistoryRepository;
+import uy.washop.payment.application.PaymentInfo;
 import uy.washop.payment.application.PaymentItem;
 import uy.washop.payment.application.PaymentPreference;
 import uy.washop.payment.application.PaymentPreferenceRequest;
@@ -50,6 +54,8 @@ import uy.washop.shared.exception.ResourceNotFoundException;
 @Service
 public class CheckoutService {
 
+    private static final Logger log = LoggerFactory.getLogger(CheckoutService.class);
+
     private final ProductVariantRepository productVariantRepository;
     private final VariantStockService variantStockService;
     private final CustomerRepository customerRepository;
@@ -63,6 +69,7 @@ public class CheckoutService {
     private final PromotionRepository promotionRepository;
     private final DiscountCodeApplicationService discountCodeApplicationService;
     private final DiscountCodeRedemptionRepository discountCodeRedemptionRepository;
+    private final OrderWebhookService orderWebhookService;
 
     public CheckoutService(
             ProductVariantRepository productVariantRepository,
@@ -77,7 +84,8 @@ public class CheckoutService {
             SeoUrlService seoUrlService,
             PromotionRepository promotionRepository,
             DiscountCodeApplicationService discountCodeApplicationService,
-            DiscountCodeRedemptionRepository discountCodeRedemptionRepository
+            DiscountCodeRedemptionRepository discountCodeRedemptionRepository,
+            OrderWebhookService orderWebhookService
     ) {
         this.productVariantRepository = productVariantRepository;
         this.variantStockService = variantStockService;
@@ -92,6 +100,7 @@ public class CheckoutService {
         this.promotionRepository = promotionRepository;
         this.discountCodeApplicationService = discountCodeApplicationService;
         this.discountCodeRedemptionRepository = discountCodeRedemptionRepository;
+        this.orderWebhookService = orderWebhookService;
     }
 
     @Transactional
@@ -208,11 +217,33 @@ public class CheckoutService {
         return new OrderCreateResponse(order.getId(), preference.checkoutUrl());
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public OrderStatusResponse getStatus(UUID orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Pedido no encontrado"));
+        if (order.getStatus() == OrderStatus.PENDING_PAYMENT) {
+            order = reconcileWithMercadoPago(order);
+        }
         return new OrderStatusResponse(order.getId(), order.getStatus());
+    }
+
+    /**
+     * The buyer landing back on the result page is often the FIRST signal we get that a
+     * payment happened — Mercado Pago's webhook can be delayed, dropped, or (in local/dev
+     * setups without a reachable public URL) never arrive at all. Look the payment up
+     * directly so the order doesn't stay stuck in PENDING_PAYMENT forever.
+     */
+    private Order reconcileWithMercadoPago(Order order) {
+        try {
+            Optional<PaymentInfo> info = paymentProvider.findLatestPaymentByExternalReference(order.getId().toString());
+            if (info.isPresent()) {
+                orderWebhookService.processNotification(info.get().paymentId());
+                return orderRepository.findById(order.getId()).orElse(order);
+            }
+        } catch (Exception ex) {
+            log.warn("Could not reconcile order {} against Mercado Pago: {}", order.getId(), ex.getMessage());
+        }
+        return order;
     }
 
     /** Applies "buy X pay Y" promos (2x1, 3x2, ...): full-price for the non-bundled remainder. */

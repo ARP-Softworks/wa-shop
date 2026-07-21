@@ -9,6 +9,7 @@ import { MediaUploadResponse, SiteSettings } from '../../../shared/models/admin.
 import { loadingState, successState, UiState } from '../../../shared/models/ui-state';
 import { apiErrorMessage, mapFieldErrors, parseApiError } from '../../../shared/utils/api-error.util';
 import { confirmAction } from '../../../shared/utils/confirm.util';
+import { scrollToTop } from '../../../shared/utils/scroll.util';
 
 @Component({
   selector: 'app-admin-settings-page',
@@ -127,6 +128,7 @@ export class AdminSettingsPageComponent implements OnInit, CanComponentDeactivat
 
     if (this.form.invalid) {
       this.submitError.set('Revisá los campos marcados.');
+      scrollToTop();
       return;
     }
 
@@ -172,6 +174,7 @@ export class AdminSettingsPageComponent implements OnInit, CanComponentDeactivat
           if (parsed?.details) {
             this.fieldErrors.set(mapFieldErrors(parsed.details));
           }
+          scrollToTop();
         },
       });
   }

@@ -9,7 +9,12 @@
     @if (selectedVariant(); as variant) {
       <div class="detail">
         <div class="detail__gallery">
-          <div class="media-frame media-frame--large">
+          <button
+            type="button"
+            class="media-frame media-frame--large media-frame--zoomable"
+            (click)="openLightbox()"
+            [attr.aria-label]="'Ampliar imagen: ' + mainAlt"
+          >
             @if (activeImage(); as image) {
               <img
                 [src]="image.url"
@@ -22,7 +27,10 @@
             } @else {
               <span class="media-frame__fallback">Imagen pendiente</span>
             }
-          </div>
+            @if (activeImage() || variant.primaryImageUrl) {
+              <span class="media-frame__zoom-hint" aria-hidden="true">🔍</span>
+            }
+          </button>
           @if (variant.images.length > 1) {
             <div class="thumbs" role="list">
               @for (image of variant.images; track image.id) {
@@ -176,6 +184,38 @@
           </div>
         </div>
       </div>
+
+      @if (lightboxOpen()) {
+        <div class="lightbox" role="dialog" aria-modal="true" [attr.aria-label]="mainAlt" (click)="closeLightbox()">
+          <button type="button" class="lightbox__close" (click)="closeLightbox()" aria-label="Cerrar">✕</button>
+          @if (variant.images.length > 1) {
+            <button
+              type="button"
+              class="lightbox__nav lightbox__nav--prev"
+              (click)="shiftLightboxImage(-1); $event.stopPropagation()"
+              aria-label="Imagen anterior"
+            >
+              ‹
+            </button>
+          }
+          <img
+            class="lightbox__image"
+            [src]="activeImage()?.url || variant.primaryImageUrl"
+            [alt]="mainAlt"
+            (click)="$event.stopPropagation()"
+          />
+          @if (variant.images.length > 1) {
+            <button
+              type="button"
+              class="lightbox__nav lightbox__nav--next"
+              (click)="shiftLightboxImage(1); $event.stopPropagation()"
+              aria-label="Imagen siguiente"
+            >
+              ›
+            </button>
+          }
+        </div>
+      }
     }
 
     @if (related().length) {

@@ -11,6 +11,7 @@ import { INQUIRY_STATUS_OPTIONS } from '../../../shared/models/inquiry-status-op
 import { loadingState, successState, UiState } from '../../../shared/models/ui-state';
 import { InquiryStatusLabelPipe } from '../../../shared/pipes/inquiry-status-label.pipe';
 import { apiErrorMessage, mapFieldErrors, parseApiError } from '../../../shared/utils/api-error.util';
+import { scrollToTop } from '../../../shared/utils/scroll.util';
 
 @Component({
   selector: 'app-admin-inquiry-detail-page',
@@ -122,6 +123,7 @@ export class AdminInquiryDetailPageComponent implements OnInit {
           if (parsed?.details) {
             this.submitError.set(Object.values(mapFieldErrors(parsed.details)).join(' '));
           }
+          scrollToTop();
         },
       });
   }

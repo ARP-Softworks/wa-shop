@@ -10,6 +10,7 @@ import { AdminDiscountCode, DiscountType } from '../../../shared/models/admin.mo
 import { loadingState, successState, UiState } from '../../../shared/models/ui-state';
 import { apiErrorMessage, mapFieldErrors, parseApiError } from '../../../shared/utils/api-error.util';
 import { confirmAction } from '../../../shared/utils/confirm.util';
+import { scrollToTop } from '../../../shared/utils/scroll.util';
 
 @Component({
   selector: 'app-admin-discount-code-form-page',
@@ -74,6 +75,7 @@ export class AdminDiscountCodeFormPageComponent implements OnInit, CanComponentD
 
     if (this.form.invalid) {
       this.submitError.set('Revisá los campos marcados.');
+      scrollToTop();
       return;
     }
 
@@ -91,6 +93,7 @@ export class AdminDiscountCodeFormPageComponent implements OnInit, CanComponentD
 
     if (payload.discountType === 'PERCENT' && payload.discountValue > 100) {
       this.submitError.set('El porcentaje no puede superar 100.');
+      scrollToTop();
       return;
     }
 
@@ -116,6 +119,7 @@ export class AdminDiscountCodeFormPageComponent implements OnInit, CanComponentD
         if (parsed?.details) {
           this.fieldErrors.set(mapFieldErrors(parsed.details));
         }
+        scrollToTop();
       },
     });
   }

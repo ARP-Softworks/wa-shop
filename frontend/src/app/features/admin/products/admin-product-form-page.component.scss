@@ -205,6 +205,7 @@ h3 {
 }
 
 .variant-tabs__tab {
+  position: relative;
   display: grid;
   gap: 0.15rem;
   padding: 0.55rem 0.9rem;
@@ -219,6 +220,20 @@ h3 {
 .variant-tabs__tab--active {
   border-color: var(--color-accent);
   background: var(--color-bg-soft);
+}
+
+.variant-tabs__tab--error {
+  border-color: var(--color-danger);
+}
+
+.variant-tabs__error-dot {
+  position: absolute;
+  top: -0.3rem;
+  right: -0.3rem;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: var(--color-danger);
 }
 
 .variant-tabs__meta {

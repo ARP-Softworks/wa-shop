@@ -8,12 +8,17 @@ import com.mercadopago.client.preference.PreferenceRequest;
 import com.mercadopago.client.payment.PaymentClient;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
+import com.mercadopago.net.MPResultsResourcesPage;
+import com.mercadopago.net.MPSearchRequest;
+import com.mercadopago.resources.payment.Payment;
 import com.mercadopago.resources.preference.Preference;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import org.slf4j.Logger;
@@ -126,6 +131,34 @@ public class MercadoPagoPaymentProvider implements PaymentProvider {
         } catch (MPException ex) {
             log.error("Mercado Pago payment lookup failed", ex);
             throw new BusinessConflictException("No se pudo consultar el pago en Mercado Pago");
+        }
+    }
+
+    @Override
+    public Optional<PaymentInfo> findLatestPaymentByExternalReference(String externalReference) {
+        requireConfigured();
+        try {
+            Map<String, Object> filters = new HashMap<>();
+            filters.put("external_reference", externalReference);
+            MPSearchRequest searchRequest = MPSearchRequest.builder().filters(filters).limit(10).offset(0).build();
+            PaymentClient client = new PaymentClient();
+            MPResultsResourcesPage<Payment> results = client.search(searchRequest);
+            return results.getResults().stream()
+                    .max(Comparator.comparing(Payment::getDateCreated))
+                    .map(payment -> new PaymentInfo(
+                            String.valueOf(payment.getId()),
+                            payment.getStatus(),
+                            payment.getStatusDetail(),
+                            payment.getExternalReference(),
+                            payment.getTransactionAmount(),
+                            payment.getCurrencyId()
+                    ));
+        } catch (MPApiException ex) {
+            log.error("Mercado Pago payment search failed: {}", ex.getApiResponse().getContent(), ex);
+            return Optional.empty();
+        } catch (MPException ex) {
+            log.error("Mercado Pago payment search failed", ex);
+            return Optional.empty();
         }
     }
 

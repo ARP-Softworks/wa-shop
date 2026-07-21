@@ -30,6 +30,7 @@ import { CurrencyCode, ProductCondition, ProductType } from '../../../shared/mod
 import { loadingState, successState, UiState } from '../../../shared/models/ui-state';
 import { apiErrorMessage, mapFieldErrors, parseApiError } from '../../../shared/utils/api-error.util';
 import { confirmAction } from '../../../shared/utils/confirm.util';
+import { scrollToTop } from '../../../shared/utils/scroll.util';
 import { slugify } from '../../../shared/utils/slugify.util';
 import { IPHONE_MODELS, IPHONE_CAPACITIES, colorsForModel } from '../../../shared/data/iphone-catalog-reference';
 
@@ -341,10 +342,16 @@ export class AdminProductFormPageComponent implements OnInit, OnDestroy, CanComp
     this.form.markAllAsTouched();
     if (this.form.invalid) {
       this.submitError.set('Revisá los campos marcados.');
+      const firstInvalidVariant = this.variants.controls.findIndex((v) => v.invalid);
+      if (firstInvalidVariant !== -1) {
+        this.selectedVariantIndex.set(firstInvalidVariant);
+      }
+      scrollToTop();
       return;
     }
     if (this.variants.length === 0) {
       this.submitError.set('Agregá al menos una variante.');
+      scrollToTop();
       return;
     }
 
@@ -373,8 +380,13 @@ export class AdminProductFormPageComponent implements OnInit, OnDestroy, CanComp
         if (parsed?.details) {
           this.fieldErrors.set(mapFieldErrors(parsed.details));
         }
+        scrollToTop();
       },
     });
+  }
+
+  variantHasError(index: number): boolean {
+    return this.variants.at(index).invalid;
   }
 
   fieldError(field: string): string | null {

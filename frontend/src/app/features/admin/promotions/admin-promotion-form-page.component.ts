@@ -11,6 +11,7 @@ import { AdminCategory, AdminPromotion } from '../../../shared/models/admin.mode
 import { loadingState, successState, UiState } from '../../../shared/models/ui-state';
 import { apiErrorMessage, mapFieldErrors, parseApiError } from '../../../shared/utils/api-error.util';
 import { confirmAction } from '../../../shared/utils/confirm.util';
+import { scrollToTop } from '../../../shared/utils/scroll.util';
 
 @Component({
   selector: 'app-admin-promotion-form-page',
@@ -78,6 +79,7 @@ export class AdminPromotionFormPageComponent implements OnInit, CanComponentDeac
 
     if (this.form.invalid) {
       this.submitError.set('Revisá los campos marcados.');
+      scrollToTop();
       return;
     }
 
@@ -113,6 +115,7 @@ export class AdminPromotionFormPageComponent implements OnInit, CanComponentDeac
         if (parsed?.details) {
           this.fieldErrors.set(mapFieldErrors(parsed.details));
         }
+        scrollToTop();
       },
     });
   }

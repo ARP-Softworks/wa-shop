@@ -148,6 +148,7 @@
               class="variant-tabs__tab"
               role="tab"
               [class.variant-tabs__tab--active]="selectedVariantIndex() === i"
+              [class.variant-tabs__tab--error]="variantHasError(i)"
               (click)="selectVariant(i)"
             >
               Variante {{ i + 1 }}
@@ -158,6 +159,10 @@
                     / {{ variant.get('storageCapacity')?.value }}
                   }
                 </span>
+              }
+              @if (variantHasError(i)) {
+                <span class="variant-tabs__error-dot" aria-hidden="true"></span>
+                <span class="visually-hidden">Tiene campos obligatorios sin completar</span>
               }
             </button>
           }
@@ -327,26 +332,6 @@
           }
         </div>
         <button type="button" class="btn btn-secondary" (click)="addFeature()">Agregar característica</button>
-      </section>
-
-      <section class="admin-form__section">
-        <h2>SEO</h2>
-        <div class="admin-form__grid">
-          <div class="admin-form__field admin-form__field--full">
-            <label for="seoTitle">Título SEO</label>
-            <input id="seoTitle" type="text" formControlName="seoTitle" maxlength="70" />
-          </div>
-          <div class="admin-form__field admin-form__field--full">
-            <label for="metaDescription">Meta descripción</label>
-            <textarea id="metaDescription" formControlName="metaDescription" rows="3" maxlength="320"></textarea>
-          </div>
-          <div class="admin-form__checkboxes">
-            <label>
-              <input type="checkbox" formControlName="indexable" />
-              Indexable en buscadores
-            </label>
-          </div>
-        </div>
       </section>
 
       <section class="admin-form__section">

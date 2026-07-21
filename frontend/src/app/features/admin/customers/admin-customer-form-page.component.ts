@@ -13,6 +13,7 @@ import { MoneyPipe } from '../../../shared/pipes/money.pipe';
 import { OrderStatusLabelPipe } from '../../../shared/pipes/order-status-label.pipe';
 import { apiErrorMessage, mapFieldErrors, parseApiError } from '../../../shared/utils/api-error.util';
 import { confirmAction } from '../../../shared/utils/confirm.util';
+import { scrollToTop } from '../../../shared/utils/scroll.util';
 
 @Component({
   selector: 'app-admin-customer-form-page',
@@ -79,6 +80,7 @@ export class AdminCustomerFormPageComponent implements OnInit, CanComponentDeact
 
     if (this.form.invalid) {
       this.submitError.set('Revisá los campos marcados.');
+      scrollToTop();
       return;
     }
 
@@ -112,6 +114,7 @@ export class AdminCustomerFormPageComponent implements OnInit, CanComponentDeact
         if (parsed?.details) {
           this.fieldErrors.set(mapFieldErrors(parsed.details));
         }
+        scrollToTop();
       },
     });
   }

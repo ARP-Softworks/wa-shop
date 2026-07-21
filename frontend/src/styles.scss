@@ -307,21 +307,38 @@ button:disabled,
 
 /* ——— Media ——— */
 .media-frame {
+  position: relative;
   aspect-ratio: 1 / 1;
   overflow: hidden;
   border-radius: var(--radius);
   background: linear-gradient(145deg, #f1f5f9, #e2e8f0);
-  display: grid;
-  place-items: center;
+}
+
+/*
+ * Absolutely-position the single child (img or the fallback span) to fill the
+ * frame exactly. A percentage height on a grid/flex item can silently fall back
+ * to "auto" when the track/cell itself has no definite height (which is what
+ * happened here — non-square photos, portrait ones especially, rendered at their
+ * intrinsic aspect ratio and overflowed instead of filling the square frame).
+ * `inset:0` on an absolutely-positioned element always resolves against its
+ * positioned ancestor's box, which is definite here via aspect-ratio, so this
+ * can't have the same failure mode.
+ */
+.media-frame > * {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
 }
 
 .media-frame img {
-  width: 100%;
-  height: 100%;
   object-fit: cover;
 }
 
 .media-frame__fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: var(--color-muted);
   font-size: 0.95rem;
   text-align: center;

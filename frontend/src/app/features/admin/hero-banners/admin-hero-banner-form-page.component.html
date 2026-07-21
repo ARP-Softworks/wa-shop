@@ -41,7 +41,10 @@
           @if (form.controls.imageUrl.value) {
             <button type="button" class="btn btn-secondary" (click)="clearImage()">Quitar imagen</button>
           }
-          <p class="admin-form__hint">Recomendado: imagen apaisada, ideal 1200×900px o similar.</p>
+          <p class="admin-form__hint">
+            Recomendado: imagen apaisada, ideal 1200×900px o similar, en PNG con fondo transparente —
+            si el fondo es de un color sólido va a quedar un recuadro feo sobre el fondo del sitio.
+          </p>
         </div>
         <div class="admin-form__field admin-form__field--full">
           <label for="altText">Texto alternativo (opcional)</label>
