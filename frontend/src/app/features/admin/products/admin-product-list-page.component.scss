@@ -177,9 +177,28 @@
 }
 
 @media (max-width: 640px) {
+  .products-table td[data-label='Acciones'] {
+    grid-template-columns: 1fr;
+    gap: 0.55rem;
+    margin-top: 0.35rem;
+    padding-top: 0.75rem;
+    border-top: 1px dashed #e2e8f0;
+  }
+
   .products-table__actions {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
     min-width: 0;
+    width: 100%;
+  }
+
+  .products-table__action {
+    width: 100%;
+    min-height: 2.6rem;
+    padding: 0.55rem 0.9rem;
+    font-size: 0.9rem;
+    border-radius: 0.65rem;
   }
 
   .products-table__name {

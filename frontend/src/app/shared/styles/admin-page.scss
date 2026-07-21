@@ -613,4 +613,51 @@
   .admin-table td[data-label='']::before {
     content: none;
   }
+
+  /* Acciones: label arriba + botones apilados a ancho completo (tap targets cómodos). */
+  .admin-table td[data-label='Acciones'] {
+    grid-template-columns: 1fr;
+    gap: 0.55rem;
+    margin-top: 0.35rem;
+    padding-top: 0.75rem;
+    border-top: 1px dashed var(--color-border);
+  }
+
+  /* Celdas de acción sin label (Editar / Ver) también a ancho completo. */
+  .admin-table td[data-label=''] {
+    grid-template-columns: 1fr;
+    margin-top: 0.35rem;
+    padding-top: 0.75rem;
+    border-top: 1px dashed var(--color-border);
+  }
+
+  .admin-table td[data-label=''] > .btn,
+  .admin-table td[data-label=''] > a.btn {
+    width: 100%;
+    min-height: 2.6rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+
+  .admin-table__actions {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+  }
+
+  .admin-table__actions button,
+  .admin-table__actions a {
+    width: 100%;
+    min-height: 2.6rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 0.55rem 0.9rem;
+    font-size: 0.9rem;
+  }
 }

@@ -9,6 +9,11 @@ interface AdminNavItem {
   exact?: boolean;
 }
 
+interface AdminNavSection {
+  label: string | null;
+  items: AdminNavItem[];
+}
+
 @Component({
   selector: 'app-admin-layout',
   standalone: true,
@@ -22,21 +27,39 @@ export class AdminLayoutComponent {
 
   readonly sidebarOpen = signal(false);
 
-  readonly navItems: AdminNavItem[] = [
-    { label: 'Panel', link: '/admin', icon: 'dashboard', exact: true },
-    { label: 'Productos', link: '/admin/productos', icon: 'products' },
-    { label: 'Categorías', link: '/admin/categorias', icon: 'categories' },
-    { label: 'Accesorios', link: '/admin/accesorios', icon: 'accessories' },
-    { label: 'Servicios', link: '/admin/servicios', icon: 'services' },
-    { label: 'Consultas', link: '/admin/consultas', icon: 'inquiries' },
-    { label: 'Banners', link: '/admin/banners', icon: 'banners' },
-    { label: 'Pedidos', link: '/admin/pedidos', icon: 'orders' },
-    { label: 'Promociones', link: '/admin/promociones', icon: 'promotions' },
-    { label: 'Códigos descuento', link: '/admin/codigos-descuento', icon: 'promotions' },
-    { label: 'Clientes', link: '/admin/clientes', icon: 'customers' },
-    { label: 'Usuarios', link: '/admin/usuarios', icon: 'users' },
-    { label: 'Configuración', link: '/admin/configuracion', icon: 'settings' },
-    { label: 'Auditoría', link: '/admin/auditoria', icon: 'audit' },
+  readonly navSections: AdminNavSection[] = [
+    {
+      label: null,
+      items: [{ label: 'Panel', link: '/admin', icon: 'dashboard', exact: true }],
+    },
+    {
+      label: 'Catálogo',
+      items: [
+        { label: 'Productos', link: '/admin/productos', icon: 'products' },
+        { label: 'Accesorios', link: '/admin/accesorios', icon: 'accessories' },
+        { label: 'Categorías', link: '/admin/categorias', icon: 'categories' },
+        { label: 'Servicios', link: '/admin/servicios', icon: 'services' },
+        { label: 'Banners', link: '/admin/banners', icon: 'banners' },
+      ],
+    },
+    {
+      label: 'Ventas',
+      items: [
+        { label: 'Pedidos', link: '/admin/pedidos', icon: 'orders' },
+        { label: 'Consultas', link: '/admin/consultas', icon: 'inquiries' },
+        { label: 'Promociones', link: '/admin/promociones', icon: 'promotions' },
+        { label: 'Códigos descuento', link: '/admin/codigos-descuento', icon: 'promotions' },
+        { label: 'Clientes', link: '/admin/clientes', icon: 'customers' },
+      ],
+    },
+    {
+      label: 'Sistema',
+      items: [
+        { label: 'Usuarios', link: '/admin/usuarios', icon: 'users' },
+        { label: 'Configuración', link: '/admin/configuracion', icon: 'settings' },
+        { label: 'Auditoría', link: '/admin/auditoria', icon: 'audit' },
+      ],
+    },
   ];
 
   readonly userInitials = computed(() => {
