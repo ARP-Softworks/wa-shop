@@ -157,7 +157,8 @@
   box-shadow: none;
 }
 
-.variant-chip--active {
+.variant-chip--active,
+.variant-chip--active:hover {
   border-color: var(--color-accent);
   background: var(--color-accent);
   color: var(--color-accent-contrast);

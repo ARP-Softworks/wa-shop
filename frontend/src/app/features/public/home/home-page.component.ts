@@ -2,8 +2,6 @@ import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CatalogApiService } from '../../../core/api/catalog-api.service';
 import { PublicContentApiService } from '../../../core/api/public-content-api.service';
-import { WhatsappLinkService } from '../../../core/whatsapp/whatsapp-link.service';
-import { AnalyticsService } from '../../../core/analytics/analytics.service';
 import { ProductCardComponent } from '../../../shared/components/product-card/product-card.component';
 import { ProductSummary, PublicHeroBanner } from '../../../shared/models/catalog.models';
 import { UiState, emptyState, errorState, loadingState, successState } from '../../../shared/models/ui-state';
@@ -38,8 +36,6 @@ const FIXED_HERO_BANNERS: PublicHeroBanner[] = [
 export class HomePageComponent implements OnInit, OnDestroy {
   private readonly catalogApi = inject(CatalogApiService);
   readonly contentApi = inject(PublicContentApiService);
-  private readonly whatsapp = inject(WhatsappLinkService);
-  private readonly analytics = inject(AnalyticsService);
 
   readonly featuredState = signal<UiState<ProductSummary[]>>(loadingState());
   readonly banners = signal<PublicHeroBanner[]>(FIXED_HERO_BANNERS);
@@ -91,16 +87,8 @@ export class HomePageComponent implements OnInit, OnDestroy {
     }
   }
 
-  get whatsappUrl(): string | null {
-    return this.whatsapp.buildGeneralInquiryUrl();
-  }
-
   get businessName(): string {
     return this.contentApi.settings()?.businessName || 'WA Shop';
-  }
-
-  onWhatsappClick(): void {
-    this.analytics.trackWhatsappClick('home');
   }
 
   hideBrokenImage(event: Event): void {

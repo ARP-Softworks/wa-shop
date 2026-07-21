@@ -19,11 +19,15 @@
     <button
       type="button"
       class="menu-toggle"
+      [class.menu-toggle--open]="menuOpen"
       [attr.aria-expanded]="menuOpen"
+      [attr.aria-label]="menuOpen ? 'Cerrar menú' : 'Abrir menú'"
       aria-controls="nav-principal"
       (click)="toggleMenu()"
     >
-      Menú
+      <span class="menu-toggle__bar"></span>
+      <span class="menu-toggle__bar"></span>
+      <span class="menu-toggle__bar"></span>
     </button>
 
     <nav id="nav-principal" class="nav" [class.nav--open]="menuOpen" aria-label="Principal">
