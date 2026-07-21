@@ -49,7 +49,11 @@ public final class ProductMapper {
         );
     }
 
-    public static ProductPublicSummaryResponse toPublicSummary(Product product, String primaryImageUrl) {
+    public static ProductPublicSummaryResponse toPublicSummary(
+            Product product,
+            String primaryImageUrl,
+            List<String> availableColors
+    ) {
         return new ProductPublicSummaryResponse(
                 product.getId(),
                 product.getSlug(),
@@ -70,7 +74,8 @@ public final class ProductMapper {
                 product.isFeatured(),
                 primaryImageUrl,
                 product.getCreatedAt(),
-                product.getCategoryId()
+                product.getCategoryId(),
+                availableColors == null ? List.of() : availableColors
         );
     }
 

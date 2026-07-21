@@ -1,1 +1,9 @@
 @import '../../../shared/styles/admin-page.scss';
+
+.audit-entity-id {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.72rem;
+  font-family: var(--font-mono, monospace);
+  color: var(--color-muted, #94a3b8);
+}

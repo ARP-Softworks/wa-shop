@@ -55,6 +55,7 @@ export interface ProductSummary {
   primaryImageUrl: string | null;
   createdAt: string;
   categoryId: string | null;
+  availableColors: string[];
 }
 
 export interface ProductDetail extends ProductSummary {

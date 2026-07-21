@@ -64,7 +64,7 @@
       <app-ui-select formControlName="sort" [options]="sortOptions" />
     </label>
 
-    <button type="button" class="btn btn-secondary" (click)="clearFilters()">Limpiar filtros</button>
+    <button type="button" class="filters__clear" (click)="clearFilters()">Limpiar filtros</button>
   </form>
 
   <app-state-panel [state]="listState()" />

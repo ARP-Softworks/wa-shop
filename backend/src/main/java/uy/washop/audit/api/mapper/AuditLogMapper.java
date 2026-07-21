@@ -8,10 +8,11 @@ public final class AuditLogMapper {
     private AuditLogMapper() {
     }
 
-    public static AuditLogResponse toResponse(AuditLog log) {
+    public static AuditLogResponse toResponse(AuditLog log, String actorName) {
         return new AuditLogResponse(
                 log.getId(),
                 log.getUserId(),
+                actorName,
                 log.getAction(),
                 log.getEntityType(),
                 log.getEntityId(),

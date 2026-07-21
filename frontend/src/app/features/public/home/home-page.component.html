@@ -55,76 +55,48 @@
     </div>
 
     <div class="hero__visual">
-      @if (banners().length > 0) {
-        <div class="hero-carousel">
-          @for (banner of banners(); track banner.id; let i = $index) {
-            @if (banner.linkUrl) {
-              @if (isInternalLink(banner.linkUrl)) {
-                <a
-                  class="hero-carousel__slide"
-                  [class.hero-carousel__slide--active]="i === activeBanner()"
-                  [routerLink]="banner.linkUrl"
-                >
-                  <img [src]="banner.imageUrl" [alt]="banner.altText || 'Promoción'" width="960" height="720" />
-                </a>
-              } @else {
-                <a
-                  class="hero-carousel__slide"
-                  [class.hero-carousel__slide--active]="i === activeBanner()"
-                  [href]="banner.linkUrl"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <img [src]="banner.imageUrl" [alt]="banner.altText || 'Promoción'" width="960" height="720" />
-                </a>
-              }
-            } @else {
-              <div class="hero-carousel__slide" [class.hero-carousel__slide--active]="i === activeBanner()">
+      <div class="hero-carousel">
+        @for (banner of banners(); track banner.id; let i = $index) {
+          @if (banner.linkUrl) {
+            @if (isInternalLink(banner.linkUrl)) {
+              <a
+                class="hero-carousel__slide"
+                [class.hero-carousel__slide--active]="i === activeBanner()"
+                [routerLink]="banner.linkUrl"
+              >
                 <img [src]="banner.imageUrl" [alt]="banner.altText || 'Promoción'" width="960" height="720" />
-              </div>
+              </a>
+            } @else {
+              <a
+                class="hero-carousel__slide"
+                [class.hero-carousel__slide--active]="i === activeBanner()"
+                [href]="banner.linkUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <img [src]="banner.imageUrl" [alt]="banner.altText || 'Promoción'" width="960" height="720" />
+              </a>
             }
-          }
-          @if (banners().length > 1) {
-            <div class="hero-carousel__dots" role="tablist" aria-label="Banners">
-              @for (banner of banners(); track banner.id; let i = $index) {
-                <button
-                  type="button"
-                  class="hero-carousel__dot"
-                  [class.hero-carousel__dot--active]="i === activeBanner()"
-                  [attr.aria-label]="'Ver banner ' + (i + 1)"
-                  (click)="goToBanner(i)"
-                ></button>
-              }
+          } @else {
+            <div class="hero-carousel__slide" [class.hero-carousel__slide--active]="i === activeBanner()">
+              <img [src]="banner.imageUrl" [alt]="banner.altText || 'Promoción'" width="960" height="720" />
             </div>
           }
-        </div>
-      } @else if (heroImageOk) {
-        <img
-          class="hero__photo"
-          [src]="heroImageSrc"
-          alt="iPhone disponibles en WA Shop"
-          width="960"
-          height="720"
-          (error)="onHeroImageError()"
-        />
-      } @else {
-        <div class="hero-phones" aria-hidden="true">
-          <svg class="hero-phones__svg" viewBox="0 0 420 360" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <g transform="translate(48 48) rotate(-12 80 140)">
-              <rect x="0" y="0" width="160" height="280" rx="28" fill="#1e293b"/>
-              <rect x="8" y="10" width="144" height="260" rx="22" fill="#334155"/>
-            </g>
-            <g transform="translate(130 28) rotate(4 80 140)">
-              <rect x="0" y="0" width="160" height="280" rx="28" fill="#0f172a"/>
-              <rect x="8" y="10" width="144" height="260" rx="22" fill="#475569"/>
-            </g>
-            <g transform="translate(210 40) rotate(14 80 140)">
-              <rect x="0" y="0" width="160" height="280" rx="28" fill="#1d4ed8"/>
-              <rect x="8" y="10" width="144" height="260" rx="22" fill="#3b82f6"/>
-            </g>
-          </svg>
-        </div>
-      }
+        }
+        @if (banners().length > 1) {
+          <div class="hero-carousel__dots" role="tablist" aria-label="Banners">
+            @for (banner of banners(); track banner.id; let i = $index) {
+              <button
+                type="button"
+                class="hero-carousel__dot"
+                [class.hero-carousel__dot--active]="i === activeBanner()"
+                [attr.aria-label]="'Ver banner ' + (i + 1)"
+                (click)="goToBanner(i)"
+              ></button>
+            }
+          </div>
+        }
+      </div>
     </div>
   </div>
 </section>

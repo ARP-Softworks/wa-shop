@@ -39,6 +39,7 @@ public class PublicCatalogService {
     private final ProductFeatureRepository productFeatureRepository;
     private final ProductCompatibleModelRepository productCompatibleModelRepository;
     private final PrimaryImageUrlLoader primaryImageUrlLoader;
+    private final AvailableColorsLoader availableColorsLoader;
 
     public PublicCatalogService(
             ProductRepository productRepository,
@@ -46,7 +47,8 @@ public class PublicCatalogService {
             ProductImageRepository productImageRepository,
             ProductFeatureRepository productFeatureRepository,
             ProductCompatibleModelRepository productCompatibleModelRepository,
-            PrimaryImageUrlLoader primaryImageUrlLoader
+            PrimaryImageUrlLoader primaryImageUrlLoader,
+            AvailableColorsLoader availableColorsLoader
     ) {
         this.productRepository = productRepository;
         this.productVariantRepository = productVariantRepository;
@@ -54,6 +56,7 @@ public class PublicCatalogService {
         this.productFeatureRepository = productFeatureRepository;
         this.productCompatibleModelRepository = productCompatibleModelRepository;
         this.primaryImageUrlLoader = primaryImageUrlLoader;
+        this.availableColorsLoader = availableColorsLoader;
     }
 
     @Transactional(readOnly = true)
@@ -66,12 +69,16 @@ public class PublicCatalogService {
         Pageable pageable = PageRequest.of(Math.max(page, 0), clampSize(size), resolveSort(sort));
         Page<Product> result = productRepository.findAll(ProductSpecifications.fromPublicCriteria(criteria), pageable);
 
-        Map<UUID, String> primaryImages = primaryImageUrlLoader.load(
-                result.getContent().stream().map(Product::getId).toList()
-        );
+        List<UUID> productIds = result.getContent().stream().map(Product::getId).toList();
+        Map<UUID, String> primaryImages = primaryImageUrlLoader.load(productIds);
+        Map<UUID, List<String>> availableColors = availableColorsLoader.load(productIds);
 
         List<ProductPublicSummaryResponse> content = result.getContent().stream()
-                .map(product -> ProductMapper.toPublicSummary(product, primaryImages.get(product.getId())))
+                .map(product -> ProductMapper.toPublicSummary(
+                        product,
+                        primaryImages.get(product.getId()),
+                        availableColors.get(product.getId())
+                ))
                 .toList();
 
         return new PageResponse<>(
@@ -98,11 +105,15 @@ public class PublicCatalogService {
                         product.getProductType(),
                         product.getId()
                 );
-        Map<UUID, String> primaryImages = primaryImageUrlLoader.load(
-                related.stream().map(Product::getId).toList()
-        );
+        List<UUID> relatedIds = related.stream().map(Product::getId).toList();
+        Map<UUID, String> primaryImages = primaryImageUrlLoader.load(relatedIds);
+        Map<UUID, List<String>> availableColors = availableColorsLoader.load(relatedIds);
         return related.stream()
-                .map(item -> ProductMapper.toPublicSummary(item, primaryImages.get(item.getId())))
+                .map(item -> ProductMapper.toPublicSummary(
+                        item,
+                        primaryImages.get(item.getId()),
+                        availableColors.get(item.getId())
+                ))
                 .toList();
     }
 

@@ -87,4 +87,13 @@ export class AuthService {
     this.currentUser.set(null);
     this.sessionRequest$ = null;
   }
+
+  /** Reflects a self-edit (e.g. admin renaming themself) into the session signal without
+   *  a round-trip to /auth/me — the topbar and anything else reading `user()` updates immediately. */
+  updateCurrentUser(patch: Partial<AuthenticatedUser>): void {
+    const current = this.currentUser();
+    if (current) {
+      this.currentUser.set({ ...current, ...patch });
+    }
+  }
 }

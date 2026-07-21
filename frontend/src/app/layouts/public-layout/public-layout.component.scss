@@ -297,6 +297,19 @@
   color: inherit;
 }
 
+.footer__payment {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.footer__payment-logo {
+  width: 1.1rem;
+  height: 1.1rem;
+  color: #00b1ea;
+  flex-shrink: 0;
+}
+
 .footer__bottom a {
   color: inherit;
   text-decoration: underline;

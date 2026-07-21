@@ -1,13 +1,14 @@
 <article class="card" [class.card--compact]="compact">
   <a [routerLink]="detailLink" class="card__media" [attr.aria-label]="'Ver detalle de ' + product.name">
     <div class="media-frame">
-      @if (product.primaryImageUrl) {
+      @if (product.primaryImageUrl && !imageFailed()) {
         <img
           [src]="product.primaryImageUrl"
           [alt]="imageAlt"
           loading="lazy"
           width="400"
           height="400"
+          (error)="onImageError()"
         />
       } @else {
         <span class="media-frame__fallback">Imagen pendiente</span>
@@ -34,26 +35,35 @@
       <a [routerLink]="detailLink">{{ product.name }}</a>
     </h3>
 
-    <p class="card__specs">
-      @if (product.storageCapacity || product.color) {
-        {{ product.storageCapacity || '' }}
-        @if (product.storageCapacity && product.color) {
-          <span aria-hidden="true"> | </span>
+    <div class="card__meta">
+      <p class="card__specs">
+        @if (product.storageCapacity || product.color) {
+          {{ product.storageCapacity || '' }}
+          @if (product.storageCapacity && product.color) {
+            <span aria-hidden="true"> | </span>
+          }
+          {{ product.color || '' }}
         }
-        {{ product.color || '' }}
+      </p>
+
+      @if (colorSwatches.length > 1) {
+        <div class="card__colors" [attr.aria-label]="colorSwatches.length + ' colores disponibles'">
+          @for (swatch of colorSwatches; track swatch.name) {
+            <span class="card__color-dot" [style.background]="swatch.hex" [attr.title]="swatch.name"></span>
+          }
+        </div>
       }
-    </p>
 
-    @if (product.condition === 'USED' && product.batteryHealth != null) {
-      <p class="card__battery">Batería {{ product.batteryHealth }}%</p>
-    }
+      @if (product.condition === 'USED' && product.batteryHealth != null) {
+        <p class="card__battery">Batería {{ product.batteryHealth }}%</p>
+      }
 
-    @if (!compact && product.warranty) {
-      <p class="card__warranty">Garantía: {{ product.warranty }}</p>
-    }
+      @if (!compact && product.warranty) {
+        <p class="card__warranty">Garantía: {{ product.warranty }}</p>
+      }
+    </div>
 
     <p class="price">
-      <span class="price__from">Desde</span>
       {{ product.price | money: product.currency }}
       @if (product.previousPrice) {
         <span class="price__previous">{{ product.previousPrice | money: product.currency }}</span>
@@ -62,40 +72,25 @@
 
     <div class="card__actions">
       @if (product.stock > 0) {
-        <div class="card__actions-row">
-          <button
-            type="button"
-            class="btn card__cta card__cta--add"
-            [disabled]="adding()"
-            (click)="quickAdd($event)"
-          >
-            @if (adding()) {
-              Agregando…
-            } @else if (added()) {
-              ✓ Agregado
-            } @else {
-              Agregar
-            }
-          </button>
-          <a class="btn btn-secondary card__cta" [routerLink]="detailLink">Ver detalle</a>
-        </div>
+        <button
+          type="button"
+          class="btn card__cta card__cta--add"
+          [disabled]="adding()"
+          (click)="quickAdd($event)"
+        >
+          @if (adding()) {
+            Añadiendo…
+          } @else if (added()) {
+            ✓ Añadido
+          } @else {
+            Añadir al carrito
+          }
+        </button>
         @if (addError()) {
           <p class="card__add-error">{{ addError() }}</p>
         }
-      } @else {
-        <a class="btn btn-secondary card__cta" [routerLink]="detailLink">Ver detalle</a>
       }
-      @if (!compact && whatsappUrl) {
-        <a
-          class="btn btn-secondary card__cta"
-          [href]="whatsappUrl"
-          target="_blank"
-          rel="noopener noreferrer"
-          (click)="onWhatsappClick($event)"
-        >
-          Consultar
-        </a>
-      }
+      <a class="btn btn-secondary card__cta" [routerLink]="detailLink">Ver detalle</a>
     </div>
   </div>
 </article>

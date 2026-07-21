@@ -486,6 +486,21 @@ select:disabled,
   color: #94a3b8;
 }
 
+/* Catalog filter bar is intentionally low-key (small text, tight padding) — shrink the
+ * combo trigger to match the plain <input> filters sitting next to it in the same row. */
+.filters app-ui-select {
+  display: block;
+  margin-top: 0.3rem;
+}
+
+.filters .combo__trigger {
+  box-sizing: border-box;
+  height: 2.3rem;
+  min-height: 0;
+  padding: 0 0.6rem;
+  font-size: 0.85rem;
+}
+
 .combo-panel {
   position: absolute;
   z-index: 40;

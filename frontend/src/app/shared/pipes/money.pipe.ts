@@ -7,10 +7,13 @@ export class MoneyPipe implements PipeTransform {
     if (value == null) {
       return '—';
     }
+    // UYU prices are always whole pesos in this store, so cents are omitted; foreign
+    // currencies (USD) always show 2 decimals — matches how they're actually priced.
+    const isUyu = String(currency) === 'UYU';
     return new Intl.NumberFormat('es-UY', {
       style: 'currency',
       currency: String(currency),
-      minimumFractionDigits: 0,
+      minimumFractionDigits: isUyu ? 0 : 2,
       maximumFractionDigits: 2,
     }).format(value);
   }

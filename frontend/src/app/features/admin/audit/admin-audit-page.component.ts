@@ -6,12 +6,13 @@ import { StatePanelComponent } from '../../../shared/components/state-panel/stat
 import { AuditLog, PageResponse } from '../../../shared/models/admin.models';
 import { errorState, loadingState, successState, UiState } from '../../../shared/models/ui-state';
 import { AuditActionLabelPipe } from '../../../shared/pipes/audit-action-label.pipe';
+import { AuditEntityLabelPipe } from '../../../shared/pipes/audit-entity-label.pipe';
 import { apiErrorMessage } from '../../../shared/utils/api-error.util';
 
 @Component({
   selector: 'app-admin-audit-page',
   standalone: true,
-  imports: [DatePipe, AdminBreadcrumbsComponent, StatePanelComponent, AuditActionLabelPipe],
+  imports: [DatePipe, AdminBreadcrumbsComponent, StatePanelComponent, AuditActionLabelPipe, AuditEntityLabelPipe],
   templateUrl: './admin-audit-page.component.html',
   styleUrl: './admin-audit-page.component.scss',
 })

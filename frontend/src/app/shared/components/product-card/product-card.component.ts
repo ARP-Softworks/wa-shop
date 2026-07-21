@@ -4,7 +4,7 @@ import { ProductSummary } from '../../models/catalog.models';
 import { MoneyPipe } from '../../pipes/money.pipe';
 import { ConditionLabelPipe } from '../../pipes/condition-label.pipe';
 import { productAlt } from '../../utils/product-alt.util';
-import { WhatsappLinkService } from '../../../core/whatsapp/whatsapp-link.service';
+import { colorToHex } from '../../utils/color-swatch.util';
 import { AnalyticsService } from '../../../core/analytics/analytics.service';
 import { CatalogApiService } from '../../../core/api/catalog-api.service';
 import { CartService } from '../../../core/cart/cart.service';
@@ -21,7 +21,6 @@ export class ProductCardComponent {
   /** Compact layout for featured home grid (mockup density). */
   @Input() compact = false;
 
-  private readonly whatsapp = inject(WhatsappLinkService);
   private readonly analytics = inject(AnalyticsService);
   private readonly catalogApi = inject(CatalogApiService);
   private readonly cart = inject(CartService);
@@ -29,6 +28,7 @@ export class ProductCardComponent {
   readonly adding = signal(false);
   readonly added = signal(false);
   readonly addError = signal<string | null>(null);
+  readonly imageFailed = signal(false);
 
   get promoLabel(): string | null {
     const { promoBuyQuantity, promoPayQuantity } = this.product;
@@ -36,6 +36,13 @@ export class ProductCardComponent {
       return null;
     }
     return `${promoBuyQuantity}x${promoPayQuantity}`;
+  }
+
+  get colorSwatches(): { name: string; hex: string }[] {
+    if (this.product.productType !== 'IPHONE') {
+      return [];
+    }
+    return (this.product.availableColors || []).map((name) => ({ name, hex: colorToHex(name) }));
   }
 
   get detailLink(): string {
@@ -48,13 +55,8 @@ export class ProductCardComponent {
     return productAlt(this.product);
   }
 
-  get whatsappUrl(): string | null {
-    return this.whatsapp.buildProductInquiryUrl(this.product, this.product);
-  }
-
-  onWhatsappClick(event: Event): void {
-    event.stopPropagation();
-    this.analytics.trackWhatsappClick('product_card');
+  onImageError(): void {
+    this.imageFailed.set(true);
   }
 
   quickAdd(event: Event): void {

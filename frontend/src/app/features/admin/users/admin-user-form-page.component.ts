@@ -108,6 +108,13 @@ export class AdminUserFormPageComponent implements OnInit, CanComponentDeactivat
         this.form.patchValue({ password: '', confirmPassword: '' });
         this.form.markAsPristine();
         this.successMessage.set('Usuario guardado correctamente.');
+        if (this.auth.user()?.id === user.id) {
+          this.auth.updateCurrentUser({
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+          });
+        }
         if (!this.isEdit()) {
           void this.router.navigate(['/admin/usuarios', user.id]);
         }

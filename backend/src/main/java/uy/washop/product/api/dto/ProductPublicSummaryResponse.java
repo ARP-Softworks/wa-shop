@@ -2,6 +2,7 @@ package uy.washop.product.api.dto;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 import uy.washop.product.domain.ProductCondition;
 import uy.washop.product.domain.ProductType;
@@ -28,6 +29,7 @@ public record ProductPublicSummaryResponse(
         boolean featured,
         String primaryImageUrl,
         Instant createdAt,
-        UUID categoryId
+        UUID categoryId,
+        List<String> availableColors
 ) {
 }

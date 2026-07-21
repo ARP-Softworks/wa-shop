@@ -10,6 +10,24 @@ import { UiState, emptyState, errorState, loadingState, successState } from '../
 
 const ROTATE_INTERVAL_MS = 6000;
 
+// Fixed in code (not admin/DB-driven) so the hero always looks the same in every environment —
+// the DB-backed banner upload was inconsistent across dev/production (missing rows, opaque
+// backgrounds). Swap these two files to change the hero images.
+const FIXED_HERO_BANNERS: PublicHeroBanner[] = [
+  {
+    id: 'fixed-iphones',
+    imageUrl: 'assets/marketing/hero-banner-iphones.png',
+    altText: 'Línea de iPhone en todos los colores disponibles',
+    linkUrl: '/iphone',
+  },
+  {
+    id: 'fixed-accessories',
+    imageUrl: 'assets/marketing/hero-banner-accessories.png',
+    altText: 'Accesorios originales: cargador MagSafe y AirPods',
+    linkUrl: '/accesorios',
+  },
+];
+
 @Component({
   selector: 'app-home-page',
   standalone: true,
@@ -24,16 +42,13 @@ export class HomePageComponent implements OnInit, OnDestroy {
   private readonly analytics = inject(AnalyticsService);
 
   readonly featuredState = signal<UiState<ProductSummary[]>>(loadingState());
-  readonly banners = signal<PublicHeroBanner[]>([]);
+  readonly banners = signal<PublicHeroBanner[]>(FIXED_HERO_BANNERS);
   readonly activeBanner = signal(0);
-
-  heroImageSrc = 'assets/marketing/hero-iphones-pedestal.png';
-  heroImageOk = true;
 
   private rotateTimer: ReturnType<typeof setInterval> | null = null;
 
   ngOnInit(): void {
-    this.catalogApi.search({ featured: true, productType: 'IPHONE', size: 5 }).subscribe({
+    this.catalogApi.search({ featured: true, size: 5 }).subscribe({
       next: (page) => {
         if (page.content.length === 0) {
           this.featuredState.set(emptyState('Todavía no hay productos destacados publicados.'));
@@ -44,12 +59,9 @@ export class HomePageComponent implements OnInit, OnDestroy {
       error: () => this.featuredState.set(errorState('No se pudieron cargar los destacados.')),
     });
 
-    this.contentApi.getHeroBanners().subscribe((banners) => {
-      this.banners.set(banners);
-      if (banners.length > 1) {
-        this.startRotation();
-      }
-    });
+    if (this.banners().length > 1) {
+      this.startRotation();
+    }
   }
 
   ngOnDestroy(): void {
@@ -89,10 +101,6 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
   onWhatsappClick(): void {
     this.analytics.trackWhatsappClick('home');
-  }
-
-  onHeroImageError(): void {
-    this.heroImageOk = false;
   }
 
   hideBrokenImage(event: Event): void {

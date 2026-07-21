@@ -41,6 +41,11 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
     @Query("SELECT COALESCE(SUM(v.stock), 0) FROM ProductVariant v WHERE v.product.id = :productId")
     int sumStockByProductId(@Param("productId") UUID productId);
 
+    @Query("SELECT v.product.id AS productId, v.color AS color FROM ProductVariant v "
+            + "WHERE v.product.id IN :productIds AND v.published = true AND v.stock > 0 AND v.color IS NOT NULL "
+            + "ORDER BY v.price ASC")
+    List<ProductColorProjection> findAvailableColorsByProductIds(@Param("productIds") Collection<UUID> productIds);
+
     @Modifying
     @Query("UPDATE ProductVariant v SET v.stock = v.stock - :quantity WHERE v.id = :id AND v.stock >= :quantity")
     int reserveStock(@Param("id") UUID id, @Param("quantity") int quantity);

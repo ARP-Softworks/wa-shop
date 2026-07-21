@@ -20,6 +20,7 @@
         <thead>
           <tr>
             <th>Fecha</th>
+            <th>Usuario</th>
             <th>Acción</th>
             <th>Entidad</th>
             <th>Detalle</th>
@@ -29,8 +30,14 @@
           @for (log of pageData.content; track log.id) {
             <tr>
               <td data-label="Fecha">{{ log.createdAt | date: 'short' }}</td>
+              <td data-label="Usuario">{{ log.actorName || '—' }}</td>
               <td data-label="Acción">{{ log.action | auditActionLabel }}</td>
-              <td data-label="Entidad">{{ log.entityType }} {{ log.entityId || '' }}</td>
+              <td data-label="Entidad">
+                {{ log.entityType | auditEntityLabel }}
+                @if (log.entityId) {
+                  <span class="audit-entity-id">#{{ log.entityId.slice(0, 8).toUpperCase() }}</span>
+                }
+              </td>
               <td data-label="Detalle">{{ log.details || '—' }}</td>
             </tr>
           }

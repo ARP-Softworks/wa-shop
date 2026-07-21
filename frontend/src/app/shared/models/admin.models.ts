@@ -537,6 +537,7 @@ export interface HeroBannerWriteRequest {
 export interface AuditLog {
   id: string;
   userId: string | null;
+  actorName: string | null;
   action: AuditAction;
   entityType: string;
   entityId: string | null;
