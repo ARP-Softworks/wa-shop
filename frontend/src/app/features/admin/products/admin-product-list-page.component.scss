@@ -190,4 +190,13 @@
   .products-table td {
     white-space: normal;
   }
+
+  /* .products-table__col-image's 4.25rem desktop-column width also wins on mobile (same
+   * specificity as the base grid rule), squeezing the thumbnail's grid track to ~0 — it only
+   * "works" today because the image overflows its track. Give the cell its own full-width,
+   * single-column layout instead. */
+  .products-table td.products-table__col-image {
+    width: auto;
+    grid-template-columns: 1fr;
+  }
 }

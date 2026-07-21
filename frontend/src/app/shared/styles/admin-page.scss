@@ -592,6 +592,11 @@
   .admin-table td {
     display: grid;
     grid-template-columns: 6rem 1fr;
+    /* Grid items stretch to fill their column by default (unlike flex/inline content) — without
+     * this, anything with its own background (status pills, buttons) balloons to the column's
+     * full width instead of hugging its own text. */
+    align-items: start;
+    justify-items: start;
     gap: var(--space-2);
     padding: 0;
     border: 0;

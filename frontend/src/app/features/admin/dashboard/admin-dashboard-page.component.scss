@@ -320,6 +320,10 @@
   .dashboard-table td {
     display: grid;
     grid-template-columns: 6rem 1fr;
+    /* Grid items stretch to fill their column by default — without this, the status pills
+     * balloon to the column's full width instead of hugging their own text. */
+    align-items: start;
+    justify-items: start;
     gap: 0.5rem;
     padding: 0;
     border: 0;
@@ -335,11 +339,15 @@
   }
 
   .dashboard-table td[data-label='']::before,
-  .dashboard-table__col-image::before {
+  .dashboard-table td.dashboard-table__col-image::before {
     content: none;
   }
 
-  .dashboard-table__col-image {
+  /* .dashboard-table__col-image sets a fixed 4.25rem width for the desktop table column,
+   * which also wins on mobile (same specificity as the grid rules below) and squeezes the
+   * thumbnail into a couple of visible pixels — undo it here so the row can size normally. */
+  .dashboard-table td.dashboard-table__col-image {
+    width: auto;
     grid-template-columns: 1fr;
   }
 }
