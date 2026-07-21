@@ -81,6 +81,19 @@ export class AnalyticsService {
     }
   }
 
+  trackAddToCart(_context?: string): void {
+    if (!this.enabled) {
+      return;
+    }
+    this.init();
+    if (typeof window.gtag === 'function' && this.gaId) {
+      window.gtag('event', 'add_to_cart', { context: _context });
+    }
+    if (this.gtmId && Array.isArray(window.dataLayer)) {
+      window.dataLayer.push({ event: 'add_to_cart', context: _context });
+    }
+  }
+
   trackSearch(_query: string): void {
     if (!this.enabled) {
       return;

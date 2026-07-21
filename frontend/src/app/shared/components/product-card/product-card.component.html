@@ -61,7 +61,30 @@
     </p>
 
     <div class="card__actions">
-      <a class="btn card__cta" [routerLink]="detailLink">Ver detalle</a>
+      @if (product.stock > 0) {
+        <div class="card__actions-row">
+          <button
+            type="button"
+            class="btn card__cta card__cta--add"
+            [disabled]="adding()"
+            (click)="quickAdd($event)"
+          >
+            @if (adding()) {
+              Agregando…
+            } @else if (added()) {
+              ✓ Agregado
+            } @else {
+              Agregar
+            }
+          </button>
+          <a class="btn btn-secondary card__cta" [routerLink]="detailLink">Ver detalle</a>
+        </div>
+        @if (addError()) {
+          <p class="card__add-error">{{ addError() }}</p>
+        }
+      } @else {
+        <a class="btn btn-secondary card__cta" [routerLink]="detailLink">Ver detalle</a>
+      }
       @if (!compact && whatsappUrl) {
         <a
           class="btn btn-secondary card__cta"
